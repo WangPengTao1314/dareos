@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- 
+ * @module 系统管理
+ * @func 分销渠道信息
+ * @version 1.0
+ * @author gu_hongxiu
+ *  -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.centit.base.distributor.mapper.DistributorMapper">
+
+	
+
+	<!-- 使用LLGL装载结果集 -->
+	<resultMap id="DistributorModel" type="com.centit.base.distributor.model.DistributorModel">
+		<result column="DISTRIBUTOR_ID" property="DISTRIBUTOR_ID" />
+	</resultMap>
+	
+	<!-- 动态查询 and 列表排序 -->
+	<sql id="queryDynSql"> 		
+		<if test="DISTRIBUTOR_NO !=null and DISTRIBUTOR_NO !='' ">and c.DISTRIBUTOR_NO like '%'||#{DISTRIBUTOR_NO}||'%'</if>		
+		<if test="DISTRIBUTOR_NAME !=null and DISTRIBUTOR_NAME !='' ">and c.DISTRIBUTOR_NAME like '%'||#{DISTRIBUTOR_NAME}||'%'</if>
+    	<if test="DISTRIBUTOR_TYPE !=null and DISTRIBUTOR_TYPE !='' ">and c.DISTRIBUTOR_TYPE=#{DISTRIBUTOR_TYPE}</if>
+    	<if test="AREA_NAME_P !=null and AREA_NAME_P !='' ">and c.AREA_ID in (select a.AREA_ID from BASE_AREA a where a.AREA_NAME_P=#{AREA_NAME_P} and a.del_flag = 0)</if>
+    	<if test="CHANN_NO !=null and CHANN_NO !='' ">and c.CHANN_NO like '%'||#{CHANN_NO}||'%'</if>
+    	<if test="CHANN_NAME !=null and CHANN_NAME !='' ">and c.CHANN_NAME like '%'||#{CHANN_NAME}||'%'</if>
+    	<if test="BEGIN_CRE_TIME !=null and BEGIN_CRE_TIME !='' ">and c.CRE_TIME &gt;= to_date(#{BEGIN_CRE_TIME},'yyyy-MM-DD HH24:MI:SS')</if>
+		<if test="END_CRE_TIME !=null and END_CRE_TIME !='' ">and c.CRE_TIME &lt;= to_date(#{END_CRE_TIME},'yyyy-MM-DD HH24:MI:SS')</if>
+		<if test="AREA_MANAGE_NAME !=null and AREA_MANAGE_NAME !='' ">and c.AREA_MANAGE_NAME like '%'||#{AREA_MANAGE_NAME}||'%'</if>
+    	<if test="PROV !=null and PROV !='' ">and <![CDATA[c.PROV like '%'||#{PROV}||'%']]></if>
+    	<if test="CITY !=null and CITY !='' ">and <![CDATA[c.CITY like '%'||#{CITY}||'%']]></if>
+		<if test="COUNTY !=null and COUNTY !='' ">and <![CDATA[c.COUNTY like '%'||#{COUNTY}||'%']]></if>
+		<if test="PERSON_CON !=null and PERSON_CON !='' ">and c.PERSON_CON like '%'||#{PERSON_CON}||'%'</if>
+    	<if test="STATE !=null and STATE !='' ">and c.STATE=#{STATE}</if>
+		<if test="DEL_FLAG !=null and DEL_FLAG !='' ">and <![CDATA[c.DEL_FLAG=#{DEL_FLAG}]]></if>
+	    <if test="QXJBCON !=null and QXJBCON !='' ">
+	        and ${QXJBCON}
+	   </if>
+	</sql>
+    <sql id="orderSql">
+    order by
+		<if test="orderField !=null and orderField !='' "> ${orderField}</if>
+	</sql>
+	
+	<!-- 查询SQL -->
+	<sql id="coreSql">
+		<![CDATA[
+				select c.DISTRIBUTOR_ID,
+			       c.DISTRIBUTOR_NO,
+			       c.DISTRIBUTOR_NAME,			       
+			       c.DISTRIBUTOR_TYPE,
+			       c.TEL,			       
+			       c.CHANN_NO,
+			       c.CHANN_NAME,
+			       c.CREATOR,
+			       c.CRE_NAME,
+			       to_char(c.CRE_TIME, 'yyyy-MM-DD HH24:MI:SS') CRE_TIME,
+			       c.DEPT_ID,
+			       c.DEPT_NAME,
+			       c.STATE,
+			       (select a.AREA_NAME_P from BASE_AREA a where a.AREA_ID = c.AREA_ID and a.del_flag = 0) AREA_NAME_P       
+			       from BASE_DISTRIBUTOR c			       
+				]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+		
+			<include refid="orderSql"/>
+		
+	</sql>
+	
+	<!-- 分页查询 -->
+	<select id="pageQuery" parameterType="map"
+		resultType="java.util.HashMap">
+	
+		<include refid="coreSql" />
+		
+	</select>	
+	
+	<!-- 分页计数 -->
+	<select id="pageCount" parameterType="map" resultType="int">
+		<![CDATA[SELECT count(DISTRIBUTOR_ID) cnt FROM BASE_DISTRIBUTOR c ]]>
+		<where>
+			<include refid="queryDynSql"/>
+		</where>
+	</select>
+
+   <!-- 查询 -->
+	<select id="query" parameterType="map"
+		resultType="java.util.HashMap">
+		<include refid="coreSql" />
+	</select>
+	<!-- 根据ID查找 -->	
+	<select id="loadById" parameterType="map"
+		resultType="java.util.HashMap">
+		<![CDATA[
+				select 
+					AREA_MANAGE_NAME,
+		 			NATION,
+		 			PROV,
+		 			CITY,
+		 			COUNTY,		 			
+		 			PERSON_CON,		 			
+		 			MOBILE,
+		 			TAX,
+		 			EMAIL,
+		 			SALE_STORE_NAME,
+		 			SALE_STORE_LOCAL,
+		 			BUSS_BRAND,
+		 			BUSS_CLASS,
+		 			to_char(COOPER_DATE,'yyyy-MM-DD') COOPER_DATE,		 			
+				 	STATE,
+				 	CREATOR,
+				 	CRE_NAME, 
+				 	to_char(CRE_TIME,'yyyy-MM-DD HH24:MI:SS') CRE_TIME,
+				 	UPDATOR,
+				 	UPD_NAME,
+				 	to_char(UPD_TIME,'yyyy-MM-DD HH24:MI:SS') UPD_TIME,
+				 	DEPT_ID,
+				 	DEPT_NAME,
+				 	ORG_ID,
+				 	ORG_NAME,
+				 	LEDGER_ID,
+				 	LEDGER_NAME,
+				 	DISTRIBUTOR_ID,
+					DISTRIBUTOR_NO,
+					DISTRIBUTOR_NAME,
+					DISTRIBUTOR_TYPE,
+					TEL,
+					CHANN_NO,
+					CHANN_NAME,
+					CHANN_ID,
+					AREA_ID,
+					AREA_NO,
+					AREA_NAME,
+					ZONE_ID,
+					AREA_MANAGE_ID,
+					AREA_MANAGE_TEL,
+					(select a.AREA_NAME_P from BASE_AREA a where a.AREA_ID = c.AREA_ID and a.del_flag = 0) AREA_NAME_P				 	
+				from BASE_DISTRIBUTOR c where c.DISTRIBUTOR_ID = #{DISTRIBUTOR_ID} and DEL_FLAG=0
+		]]>
+	</select>
+		
+	<insert id="insert" parameterType="map">
+		<![CDATA[
+		 insert into BASE_DISTRIBUTOR(
+		 	DISTRIBUTOR_ID,DISTRIBUTOR_NO,DISTRIBUTOR_NAME,DISTRIBUTOR_TYPE,TEL,
+			CHANN_ID,CHANN_NO,CHANN_NAME,AREA_MANAGE_ID,AREA_MANAGE_NAME,AREA_MANAGE_TEL,PROV,CITY,COUNTY,AREA_ID,AREA_NO,AREA_NAME,ZONE_ID,
+			PERSON_CON,MOBILE,TAX,EMAIL,SALE_STORE_NAME,SALE_STORE_LOCAL,BUSS_BRAND,BUSS_CLASS,COOPER_DATE,
+			STATE,CREATOR,CRE_NAME,CRE_TIME,DEPT_ID,DEPT_NAME,ORG_ID,ORG_NAME,LEDGER_ID,LEDGER_NAME,DEL_FLAG
+		 	)
+		 values(		 	
+			#{DISTRIBUTOR_ID},#{DISTRIBUTOR_NO},#{DISTRIBUTOR_NAME},#{DISTRIBUTOR_TYPE},#{TEL},
+			#{CHANN_ID},#{CHANN_NO},#{CHANN_NAME},#{AREA_MANAGE_ID},#{AREA_MANAGE_NAME},#{AREA_MANAGE_TEL},#{PROV},#{CITY},#{COUNTY},#{AREA_ID},#{AREA_NO},#{AREA_NAME},#{ZONE_ID},
+			#{PERSON_CON},#{MOBILE},#{TAX},#{EMAIL},#{SALE_STORE_NAME},#{SALE_STORE_LOCAL},#{BUSS_BRAND},#{BUSS_CLASS},to_date(#{COOPER_DATE},'yyyy-MM-DD'),
+			#{STATE},#{CREATOR},#{CRE_NAME},sysdate,#{DEPT_ID},#{DEPT_NAME},#{ORG_ID},#{ORG_NAME},#{LEDGER_ID},#{LEDGER_NAME},#{DEL_FLAG}			
+		 )
+		]]>
+	</insert>
+	
+	<update id="updateById" parameterType="map">
+		 <![CDATA[ update BASE_DISTRIBUTOR ]]>
+		<set>
+			<if test="DISTRIBUTOR_NAME !=null "><![CDATA[DISTRIBUTOR_NAME = #{DISTRIBUTOR_NAME}]]>,</if>
+			<if test="DISTRIBUTOR_TYPE !=null "><![CDATA[DISTRIBUTOR_TYPE = #{DISTRIBUTOR_TYPE}]]>,</if>
+			<if test="TEL !=null "><![CDATA[TEL = #{TEL}]]>,</if>
+			<if test="CHANN_ID !=null "><![CDATA[CHANN_ID = #{CHANN_ID}]]>,</if>
+			<if test="CHANN_NO !=null "><![CDATA[CHANN_NO = #{CHANN_NO}]]>,</if>
+			<if test="CHANN_NAME !=null "><![CDATA[CHANN_NAME = #{CHANN_NAME}]]>,</if>
+			<if test="AREA_MANAGE_ID !=null "><![CDATA[AREA_MANAGE_ID = #{AREA_MANAGE_ID}]]>,</if>
+			<if test="AREA_MANAGE_NAME !=null "><![CDATA[AREA_MANAGE_NAME = #{AREA_MANAGE_NAME}]]>,</if>
+			<if test="AREA_MANAGE_TEL !=null "><![CDATA[AREA_MANAGE_TEL = #{AREA_MANAGE_TEL}]]>,</if>
+			<if test="PROV !=null "><![CDATA[PROV = #{PROV}]]>,</if>
+			<if test="CITY !=null "><![CDATA[CITY = #{CITY}]]>,</if>
+			<if test="COUNTY !=null "><![CDATA[COUNTY = #{COUNTY}]]>,</if>
+			<if test="AREA_ID !=null "><![CDATA[AREA_ID = #{AREA_ID}]]>,</if>
+			<if test="AREA_NO !=null "><![CDATA[AREA_NO = #{AREA_NO}]]>,</if>
+			<if test="AREA_NAME !=null "><![CDATA[AREA_NAME = #{AREA_NAME}]]>,</if>
+			<if test="ZONE_ID !=null "><![CDATA[ZONE_ID = #{ZONE_ID}]]>,</if>
+			
+			<if test="PERSON_CON !=null "><![CDATA[PERSON_CON = #{PERSON_CON}]]>,</if>
+			<if test="MOBILE !=null "><![CDATA[MOBILE = #{MOBILE}]]>,</if>
+			<if test="TAX !=null "><![CDATA[TAX = #{TAX}]]>,</if>
+			<if test="EMAIL !=null "><![CDATA[EMAIL = #{EMAIL}]]>,</if>
+			<if test="SALE_STORE_NAME !=null "><![CDATA[SALE_STORE_NAME = #{SALE_STORE_NAME}]]>,</if>
+			<if test="SALE_STORE_LOCAL !=null "><![CDATA[SALE_STORE_LOCAL = #{SALE_STORE_LOCAL}]]>,</if>
+			<if test="BUSS_BRAND !=null "><![CDATA[BUSS_BRAND = #{BUSS_BRAND}]]>,</if>
+			<if test="BUSS_CLASS !=null "><![CDATA[BUSS_CLASS = #{BUSS_CLASS}]]>,</if>
+			<if test="COOPER_DATE !=null "><![CDATA[COOPER_DATE = to_date(#{COOPER_DATE},'yyyy-MM-DD')]]>,</if>
+			
+			<if test="UPDATOR !=null "><![CDATA[UPDATOR = #{UPDATOR}]]>,</if>
+			<if test="UPD_NAME !=null "><![CDATA[UPD_NAME = #{UPD_NAME}]]>,</if>
+			<if test="UPD_TIME !=null "><![CDATA[UPD_TIME = sysdate]]>,</if>
+		</set>
+		<![CDATA[ where DISTRIBUTOR_ID = #{DISTRIBUTOR_ID} ]]>
+	</update>
+	<update id="delete" parameterType="map">
+	<![CDATA[ update BASE_DISTRIBUTOR ]]>
+		<set>
+			<if test="DEL_FLAG !=null "><![CDATA[DEL_FLAG = #{DEL_FLAG}]]>,</if>
+			<if test="UPDATOR !=null "><![CDATA[UPDATOR = #{UPDATOR}]]>,</if>
+			<if test="UPD_NAME !=null "><![CDATA[UPD_NAME = #{UPD_NAME}]]>,</if>
+			<if test="UPD_TIME !=null "><![CDATA[UPD_TIME=sysdate]]>,</if>
+		</set>
+		<![CDATA[ where DISTRIBUTOR_ID = #{DISTRIBUTOR_ID} ]]>	
+	</update>
+	
+	<update id="updateStateById" parameterType="map">	
+		<![CDATA[ update BASE_DISTRIBUTOR ]]>
+		<set>
+			<if test="STATE !=null "><![CDATA[STATE = #{STATE}]]>,</if>
+			<if test="UPDATOR !=null "><![CDATA[UPDATOR = #{UPDATOR}]]>,</if>
+			<if test="UPD_NAME !=null "><![CDATA[UPD_NAME = #{UPD_NAME}]]>,</if>
+			<if test="UPD_TIME !=null "><![CDATA[UPD_TIME =sysdate]]>,</if>
+		</set>
+		<![CDATA[ where DISTRIBUTOR_ID = #{DISTRIBUTOR_ID} ]]>	
+	</update>
+	
+<select id="qryExp" parameterType="map" resultType="java.util.HashMap">
+		<![CDATA[
+				select DISTRIBUTOR_ID,
+				       DISTRIBUTOR_NO,
+				       DISTRIBUTOR_NAME,
+				       DISTRIBUTOR_TYPE,
+				       TEL,
+				       CHANN_ID,
+				       CHANN_NO,
+				       CHANN_NAME,
+				       AREA_MANAGE_ID,
+				       AREA_MANAGE_NAME,
+				       AREA_MANAGE_TEL,
+				       PROV,
+				       CITY,
+				       COUNTY,
+				       AREA_ID,
+				       AREA_NO,
+				       AREA_NAME,
+				       ZONE_ID,
+				       PERSON_CON,
+				       MOBILE,
+				       TAX,
+				       EMAIL,
+				       SALE_STORE_NAME,
+				       SALE_STORE_LOCAL,
+				       BUSS_BRAND,
+				       BUSS_CLASS,
+				       to_char(COOPER_DATE, 'yyyy-MM-DD') COOPER_DATE,
+				       STATE,
+				       CREATOR,
+				       CRE_NAME,
+				       to_char(CRE_TIME, 'yyyy-MM-DD HH24:MI:SS') CRE_TIME,
+				       DEPT_ID,
+				       DEPT_NAME,
+				       ORG_ID,
+				       ORG_NAME,
+				       LEDGER_ID,
+				       LEDGER_NAME,
+				       DEL_FLAG,       
+				       UPDATOR,
+				       UPD_NAME,
+				       to_char(UPD_TIME, 'yyyy-MM-DD HH24:MI:SS') UPD_TIME
+				  from BASE_DISTRIBUTOR c
+				]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+		
+			<include refid="orderSql"/>
+		
+</select>
+
+<select id="queryMaxNo" parameterType="map" resultType="String">
+	<![CDATA[ 
+	   select max(t.DISTRIBUTOR_NO) from  BASE_DISTRIBUTOR t where t.DEL_FLAG=0
+	]]>
+</select>
+
+<select id="queryMaxNoT" parameterType="String" resultType="com.centit.base.distributor.model.DistributorModel">
+	<![CDATA[ 
+	  select 
+		  max(t.DISTRIBUTOR_NO) DISTRIBUTOR_NO
+	      from  BASE_DISTRIBUTOR t where t.DEL_FLAG=0
+	]]>
+</select>
+
+</mapper>

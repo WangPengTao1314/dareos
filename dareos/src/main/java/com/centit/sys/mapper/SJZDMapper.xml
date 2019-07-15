@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.centit.sys.mapper.SJZDMapper">
+
+	
+
+	<!-- 使用LLGL装载结果集 -->
+	<resultMap id="SJZDModel" type="com.centit.sys.model.SJZDModel">
+		<result column="SJZDID" property="SJZDID" />
+	</resultMap>
+
+	<!-- 动态查询 and 列表排序 -->
+	<sql id="queryDynSql">
+		<if test="SJZDBH !=null and SJZDBH !='' ">
+			u.SJZDBH like  '%'||#{SJZDBH}||'%'
+		</if>
+		<if test="SJZDMC !=null and SJZDMC !='' ">
+			and u.SJZDMC like '%'||#{SJZDMC}||'%'
+		</if>
+		<if test="DELFLAG !=null and DELFLAG !='' ">
+			and u.DELFLAG = #{DELFLAG}
+		</if>
+		<if test="STATECON !=null and STATECON !='' ">
+			and u.STATE = #{STATECON}
+		</if>
+	</sql>
+	<sql id="queryDynSqlMx">
+	    <if test="SJXMC !=null and SJXMC !='' ">
+			and SJZDID in (  select SJZDID  from T_SYS_SJZDMX t where t.SJXMC like '%'||#{SJXMC}||'%')
+		</if>
+		<if test="SJXZ !=null and SJXZ !='' ">
+			and SJZDID in (  select SJZDID  from T_SYS_SJZDMX t where t.SJXZ like '%'||#{SJXZ}||'%')
+		</if>
+	</sql>
+	<sql id="orderSql">
+		order by
+		<if test="orderField !=null and orderField !='' ">
+			 ${orderField},
+		</if>
+		u.CRETIME DESC
+	</sql>
+	<!-- 查询SQL -->
+	<sql id="coreSql">
+		<![CDATA[
+				select  SJZDID,SJZDBH,SJZDMC,CREATER,to_char(u.CRETIME,'yyyy-MM-dd hh24:mi:ss')CRETIME,STATE,DELFLAG,UPDTIME,REMARK, CRENAME  from T_SYS_SJZD u 
+		]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+		
+		<include refid="queryDynSqlMx" />
+		<include refid="orderSql"/>
+		
+	</sql>
+	
+	<!-- 分页查询 -->
+	<select id="pageQuery" parameterType="map"
+		resultType="java.util.HashMap">
+		<include refid="coreSql" />
+	</select>
+
+	<!-- 分页计数 -->
+	<select id="pageCount" parameterType="map" resultType="int">
+		<![CDATA[select count(u.sjzdid) from T_SYS_SJZD u  where delflag=0 ]]>
+			<include refid="queryDynSql"/>
+			<include refid="queryDynSqlMx" />
+	</select>
+
+   <!-- 查询 -->
+	<select id="query" parameterType="map"
+		resultType="java.util.HashMap">
+		<include refid="coreSql" />
+	</select>
+	
+	<insert id="insert" parameterType="map">
+		<![CDATA[
+		  insert into T_SYS_SJZD(SJZDID,SJZDBH,SJZDMC,CREATER,CRENAME,CRETIME,UPDTIME,STATE,DELFLAG,REMARK)
+		 values(#{SJZDID},#{SJZDBH},#{SJZDMC},#{CREATER},#{CRENAME},sysdate,sysdate,#{STATE},0,#{REMARK})
+		]]>
+	</insert>
+
+	<update id="updateById" parameterType="map">
+		<![CDATA[ update T_SYS_SJZD ]]>
+		<!-- CHANAME, CHADES,CHADATE,CHASTU -->
+		<set>
+			<if test="SJZDID !=null and SJZDID !='' "><![CDATA[SJZDID = #{SJZDID}]]>,</if>
+			<if test="SJZDBH !=null and SJZDBH !='' "><![CDATA[SJZDBH = #{SJZDBH}]]>,</if>
+			<if test="SJZDMC !=null and SJZDMC !='' "><![CDATA[SJZDMC = #{SJZDMC}]]>,</if>
+			<if test="REMARK !=null and REMARK !='' "><![CDATA[REMARK = #{REMARK}]]>,</if>
+			<if test="UPDTIME !=null and UPDTIME !='' "><![CDATA[UPDTIME = to_date(#{UPDTIME},'yyyy-MM-dd hh24:mi:ss')]]>,</if>
+			<if test="DELFLAG !=null and DELFLAG !='' "><![CDATA[DELFLAG = #{DELFLAG}]]>,</if>
+		</set>
+		<![CDATA[ where SJZDID = #{SJZDID} ]]>
+	</update>
+		<!-- 删除菜单 -->
+	<delete id="delete" parameterType="String">
+		<![CDATA[ delete from T_SYS_SJZD  where SJZDID = #{SJZDID} ]]>
+	</delete>
+	<delete id="deletemx" parameterType="String">
+		<![CDATA[ delete from T_SYS_SJZDMX  where SJZDID = #{SJZDID} ]]>
+	</delete>
+	<insert id="insertSJZD" parameterType="map">
+	   insert into t_sys_datarecycle(DATARECYCLEID,DELETOR,DELTIME,BUSINESSTYPE,DF1,DF2,DF3,DF4,DF5,DF6,DF7,DF8,DF9,DF10)
+	    select #{DATARECYCLEID},#{DELETOR},sysdate,'数据字典信息维护', SJZDID,SJZDBH,SJZDMC,CREATER,CRETIME,STATE,DELFLAG,UPDTIME,REMARK,CRENAME
+        from T_SYS_SJZD  where  SJZDID = #{SJZDID}
+	</insert>
+	<insert id="insertSJZDMX" parameterType="map">
+	   insert into t_sys_datarecycle(DATARECYCLEID,DELETOR,DELTIME,BUSINESSTYPE,DF1,DF2,DF3,DF4,DF5,DF6,DF7,DF8,DF9,DF10,DF11,DF12)
+	    select #{DATARECYCLEID}||rownum,#{DELETOR},sysdate,'数据字典明细信息维护',SJZDMXID,SJZDID,SJXMC,SJXZ,SJSJZDMXID,SJGL,DELFLAG,CREATER,CRETIME,REMARK,UPDTIME,KEYCODE
+        from T_SYS_SJZDMX  where  SJZDID = #{SJZDID}
+	</insert>
+	<select id="loadById" parameterType="String" resultType="java.util.HashMap">
+		<![CDATA[  
+			 select  u.SJZDID,u.SJZDBH,u.SJZDMC,u.CREATER,u.CRENAME,to_char(u.CRETIME,'yyyy-MM-dd hh24:mi:ss')CRETIME,u.STATE,u.DELFLAG,u.REMARK from T_SYS_SJZD u where u.SJZDID = #{SJZDID}]]>
+	</select>
+	<update id="updateState" parameterType="map">
+		<![CDATA[ update T_SYS_SJZD ]]>
+		<!-- CHANAME, CHADES,CHADATE,CHASTU -->
+		<set>
+			<if test="STATE !=null and STATE !='' "><![CDATA[STATE = #{STATE}]]></if>
+		</set>
+		<![CDATA[ where SJZDID = #{SJZDID} ]]>
+	</update>
+	
+	<select id="getIdCount" parameterType="String" resultType="int">
+	   select count(*)
+	   from T_SYS_SJZD
+	   where SJZDBH = #{SJZDBH} and delflag=0
+	</select>
+	<select id="checkSJZDMXById" parameterType="map" resultType="java.util.HashMap">
+		select a.BASE_CODE,a.SJXZ from T_SYS_SJZD u  left join T_SYS_SJZDMX a on u.SJZDID = a.SJZDID 
+		where u.DELFLAG=0 and a.DELFLAG=0 and u.STATE='启用'  and u.SJZDBH=#{SJZDBH} and  a.BASE_CODE=#{BASE_CODE}
+	</select>
+	<select id="checkSJZDMXBySJXZ" parameterType="map" resultType="java.util.HashMap">
+		select a.BASE_CODE,a.SJXZ from T_SYS_SJZD u  left join T_SYS_SJZDMX a on u.SJZDID = a.SJZDID 
+		where u.DELFLAG=0 and a.DELFLAG=0 and u.STATE='启用'  and u.SJZDBH=#{SJZDBH} and  a.SJXZ=#{SJXZ}
+	</select>
+	<insert id="insertSJZDMXByService" parameterType="map">
+		insert into T_SYS_SJZDMX(
+			SJZDMXID,
+			SJZDID,
+			SJXMC,
+			SJXZ,
+			SJGL,
+			DELFLAG,
+			CREATER,
+			CRETIME,
+			KEYCODE,
+			BASE_CODE
+		)
+		select 
+			#{SJZDMXID},
+			SJZDID,
+			#{SJXZ},
+			#{SJXZ},
+			#{SJXZ},
+			#{DELFLAG},
+			#{CREATER},
+			sysdate,
+			#{SJXZ},
+			#{BASE_CODE}
+		from T_SYS_SJZD where SJZDBH=#{SJZDBH} and STATE=#{STATE} and DELFLAG=#{DELFLAG}
+	</insert>
+	<update id="updateSJZDMXByService" parameterType="map">
+		update T_SYS_SJZDMX a set a.SJXZ=#{SJXZ},a.SJXMC=#{SJXZ},a.SJGL=#{SJXZ},a.KEYCODE=#{SJXZ},UPDTIME=sysdate
+		where  a.DELFLAG=#{DELFLAG} and 
+		a.SJZDID=(select b.SJZDID from T_SYS_SJZD b where b.DELFLAG=#{DELFLAG} and b.STATE=#{STATE} and b.SJZDBH=#{SJZDBH}) and a.BASE_CODE=#{BASE_CODE}
+	</update>
+</mapper>
+

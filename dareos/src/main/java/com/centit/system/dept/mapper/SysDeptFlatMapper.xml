@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.centit.system.dept.mapper.SysDeptFlatMapper">
+	<resultMap id="BaseResultMap" type="com.centit.system.dept.entity.SysDeptFlatEntity">
+		<id column="DEPT_FLAT_ID" property="deptFlatId" jdbcType="VARCHAR" />
+		<result column="DEPT_ID" property="deptId" jdbcType="VARCHAR" />
+		<result column="PAR_DEPT_ID" property="parDeptId" jdbcType="VARCHAR" />
+	</resultMap>
+	
+	<!-- 根据主键ID查找关联记录 -->
+	<select id="selectByDeptFlatId" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select DEPT_FLAT_ID, DEPT_ID, PAR_DEPT_ID from SYS_DEPT_FLAT
+		where DEPT_FLAT_ID = #{deptFlatId}
+	</select>
+	
+	<!-- 插入 -->
+	<insert id="insert" parameterType="com.centit.system.dept.entity.SysDeptFlatEntity">
+		insert into SYS_DEPT_FLAT (
+			DEPT_FLAT_ID, 
+			DEPT_ID, 
+			PAR_DEPT_ID
+		)
+		values (
+			#{deptFlatId,jdbcType=VARCHAR}, 
+			#{deptId,jdbcType=VARCHAR},
+			#{parDeptId,jdbcType=VARCHAR}
+		)
+	</insert>
+	
+	<!-- 按主键ID删除关联记录 -->
+	<delete id="deleteByDeptFlatId" parameterType="java.lang.String">
+		delete from SYS_DEPT_FLAT
+		where DEPT_FLAT_ID = #{deptFlatId,jdbcType=VARCHAR}
+	</delete>
+	
+	<!-- 按部门ID删除关联记录 -->
+	<delete id="deleteByDeptId" parameterType="java.lang.String">
+		delete from SYS_DEPT_FLAT
+		where DEPT_ID = #{deptId,jdbcType=VARCHAR}
+	</delete>
+	
+	<!-- 按上级部门ID删除关联记录 -->
+	<delete id="deleteByParDeptId" parameterType="java.lang.String">
+		delete from SYS_DEPT_FLAT
+		where PAR_DEPT_ID = #{parDeptId,jdbcType=VARCHAR}
+	</delete>
+</mapper>

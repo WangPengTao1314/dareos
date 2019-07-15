@@ -1,0 +1,434 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.centit.system.user.mapper.RYXXMapper">
+	
+	<resultMap id="RYXXModel" type="com.centit.system.user.entity.RYXXModel" />
+
+	<!-- 动态查询 and 列表分页 -->
+	<sql id="queryDynSql">
+		<if test="JGXXID!=null  and JGXXID!='' ">and (u.JGXXID = #{JGXXID} OR u.SJJG = #{JGXXID})</if>
+		<if test="JGMC!=null  and JGMC!='' ">and u.JGMC like '%'||#{JGMC}||'%'</if>
+		<if test="JGJC!=null  and JGJC!='' ">and u.JGJC like '%'||#{JGJC}||'%'</if>
+		<if test="BMXXID!=null  and BMXXID!='' ">and (u.BMXXID = #{BMXXID} OR t.SJBM = #{BMXXID}) </if>
+		<if test="JGBH!=null  and JGBH!='' ">and u.JGBH like '%'||#{JGBH}||'%'</if>
+		<if test="SJJG!=null  and SJJG!='' ">and u.SJJG like '%'||#{SJJG}||'%'</if>
+		<if test="JGZT!=null  and JGZT!='' ">and u.JGZT in ${JGZT}</if>
+		<if test="ZTXXID!=null  and ZTXXID!='' ">and u.ZTXXID = #{ZTXXID}</if>
+		<if test="XH!=null  and XH!='' ">and u.XH = #{XH}</if>
+		<if test="DELFLAG!=null  and DELFLAG!='' ">and u.DELFLAG = #{DELFLAG}</if>
+		<if test="IS_DRP_LEDGER!=null  and IS_DRP_LEDGER!='' ">and u.IS_DRP_LEDGER = #{IS_DRP_LEDGER}</if>
+		<if test="RYBH != null and RYBH != '' "> and u.RYBH like '%'|| #{RYBH}||'%'</if>
+		<if test="XM != null and XM != '' "> and u.XM like '%'|| #{XM}||'%'</if>
+		<if test="RYZT != null and RYZT != '' "> and u.RYZT =#{RYZT}</if>
+		
+	</sql>
+
+	<!-- 查询SQL -->
+	<sql id="coreSql">
+		<![CDATA[
+			SELECT 
+				U.RYLB,
+				U.SBJS,
+				U.RYXXID, 
+				U.RYBH, 
+				U.XM, 
+				U.XB, 
+				U.SFZH, 
+				U.ZW, 
+				U.GSDH, 
+				U.SJ, 
+				U.DZYJ, 
+				U.RYZT, 
+				U.RYJB, 
+				U.JGXXID,
+				J.JGMC, 
+				U.BMXXID,
+				T.BMMC,
+				T.SJBM, 
+				U.DELFLAG,
+				U.CWDZM 
+		FROM T_SYS_RYXX U 
+		LEFT JOIN T_SYS_BMXX T ON U.BMXXID=T.BMXXID 
+		LEFT JOIN T_SYS_JGXX J ON U.JGXXID = J.JGXXID 
+		left join BASE_CHANN d on d.chann_id = J.ztxxid
+		]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+	</sql>
+	
+	
+	<!-- 查询分类列表 -->
+	<select id="pageQuery" resultType="java.util.HashMap" parameterType="map">
+		<include refid="coreSql" />
+		<if test="orderField != null and orderField != '' ">
+			order by ${orderField}
+		</if>
+	</select>
+
+	<!-- 查询 -->
+	<select id="query" parameterType="map"
+		resultType="java.util.HashMap">
+		<include refid="coreSql" />
+	</select>
+
+	<!-- 新增 -->
+	<insert id="insert" parameterType="map">
+		<![CDATA[
+		 insert into T_SYS_RYXX
+		  (RYXXID,
+		   RYBH,
+		   XM,
+		   XB,
+		   SFZH,
+		   ZW,
+		   GSDH,
+		   SJ,
+		   DZYJ,
+		   RYZT,
+		   RYJB,
+		   BMXXID,
+		   JGXXID,
+		   DELFLAG,
+		   RYLB,
+		   SBJS,
+		   CWDZM,
+		   IS_DRP_LEDGER,
+		   CREATER,
+		   CRENAME,
+		   CRETIME
+		)values(
+		   #{RYXXID,jdbcType=VARCHAR},
+		   #{RYBH,jdbcType=VARCHAR},
+		   #{XM,jdbcType=VARCHAR},
+		   #{XB,jdbcType=VARCHAR},
+		   #{SFZH,jdbcType=VARCHAR},
+		   #{ZW,jdbcType=VARCHAR},
+		   #{GSDH,jdbcType=VARCHAR},
+		   #{SJ,jdbcType=VARCHAR},
+		   #{DZYJ,jdbcType=VARCHAR},
+		   #{RYZT,jdbcType=VARCHAR},
+		   #{RYJB,jdbcType=VARCHAR},
+		   #{BMXXID,jdbcType=VARCHAR},
+		   #{JGXXID,jdbcType=VARCHAR},
+		   0,
+		   #{RYLB,jdbcType=VARCHAR},
+		   #{SBJS,jdbcType=VARCHAR},
+		   #{CWDZM,jdbcType=VARCHAR},
+		   #{IS_DRP_LEDGER,jdbcType=VARCHAR},
+		   #{CREATER,jdbcType=VARCHAR},
+		   #{CRENAME,jdbcType=VARCHAR},
+		   sysdate)
+		]]>
+	</insert>
+
+	<!-- 修改 -->
+	<update id="updateById" parameterType="map">
+		<![CDATA[ update T_SYS_RYXX ]]>
+		<set >
+			<if test="XM !=null">XM = #{XM},</if>
+			<if test="XB !=null">XB = #{XB},</if>
+			<if test="SFZH !=null">SFZH = #{SFZH},</if>
+			<if test="ZW !=null">ZW = #{ZW},</if>
+			<if test="GSDH !=null">GSDH = #{GSDH},</if>
+			<if test="SJ !=null">SJ = #{SJ},</if>
+			<if test="DZYJ !=null">DZYJ = #{DZYJ},</if>
+			<if test="RYZT !=null">RYZT = #{RYZT},</if>
+			<if test="RYJB !=null">RYJB = #{RYJB},</if>
+			<if test="BMXXID !=null">BMXXID = #{BMXXID},</if>
+			<if test="JGXXID !=null">JGXXID = #{JGXXID},</if>
+			<if test="RYLB !=null">RYLB = #{RYLB},</if>
+			<if test="SBJS !=null">SBJS = #{SBJS},</if>
+			<if test="CWDZM !=null">CWDZM = #{CWDZM},</if>
+			<if test="UPDATER !=null">UPDATER = #{UPDATER},</if>
+			<if test="UPDTIME !=null">UPDTIME = sysdate,</if>
+
+		</set>
+		<![CDATA[ where RYXXID = #{RYXXID} ]]>
+	</update>
+    <update id="updateUserById" parameterType="map">
+		<![CDATA[ 
+		   update T_SYS_XTYH b 
+		       set (BMXXID,JGXXID)=(select BMXXID,JGXXID from T_SYS_RYXX a where a.RYXXID=b.RYXXID )
+		   where RYXXID = #{RYXXID} 
+		    ]]>
+	</update>
+	<!-- 删除人员 -->
+	<delete id="delete" parameterType="String">
+		<![CDATA[ delete from T_SYS_RYXX  where RYXXID = #{RYXXID,jdbcType=VARCHAR} ]]>
+	</delete>
+    
+    <insert id="insertRY" parameterType="map">
+        insert into t_sys_datarecycle(DATARECYCLEID,DELETOR,DELTIME,BUSINESSTYPE,DF1,DF2,DF3,DF4,DF5,DF6,DF7,DF8,DF9,DF10,DF11,DF12,DF13,DF14,DF15,DF16,DF17)
+	    select #DATARECYCLEID#,#DELETOR#,sysdate,'人员信息维护',RYXXID,RYBH,XM,XB,SFZH,ZW,GSDH,SJ,DZYJ,RYZT,
+                RYJB,JGXXID,BMXXID,DELFLAG,RYLB,SBJS,CWDZM
+        from T_SYS_RYXX  where RYXXID = #{RYXXID,jdbcType=VARCHAR}
+    </insert>
+	<!-- 根据ID查找 -->
+	<select id="loadById" parameterType="map"
+		resultType="java.util.HashMap">
+		<![CDATA[SELECT U.RYLB,U.SBJS,U.RYXXID, U.RYBH, U.XM, U.XB, U.SFZH, U.ZW, U.GSDH, U.SJ, U.DZYJ, U.RYZT, U.RYJB, U.JGXXID,J.JGMC, U.BMXXID,
+		T.BMMC, U.DELFLAG,U.CWDZM FROM T_SYS_RYXX U LEFT JOIN T_SYS_BMXX T ON U.BMXXID=T.BMXXID LEFT JOIN T_SYS_JGXX J ON U.JGXXID = J.JGXXID WHERE U.RYXXID = #{RYXXID}]]>
+	</select>
+
+	<!-- 判断是否存在 -->
+	<select id="getExits" parameterType="String" resultType="int">
+		<![CDATA[select count(RYBH) from T_SYS_RYXX T where t.RYXXID=#{RYXXID}]]>
+	</select>
+
+	<!-- 部门机构树 -->
+	<select id="findTreeList" parameterType="map"
+		resultType="com.centit.system.user.entity.RYXXTree">
+		<!--  <![CDATA[ select BMXXID id,BMMC name,SJBM pid from T_SYS_BMXX ]]>-->
+		<![CDATA[ 
+	    	SELECT t.JGXXID ID, t.JGBH||'('||t.JGMC||')' NAME, t.SJJG PID,'0' FLAG,'' icon  
+	    	FROM T_SYS_JGXX t
+	    	left join BASE_CHANN b on b.chann_id = t.ztxxid
+	    	WHERE DELFLAG =0 
+	    	and t.IS_DRP_LEDGER = 0
+			UNION ALL 
+			SELECT BMXXID ID, BMBH||'('||BMMC||')' NAME,NVL(SJBM,JGXXID) PID ,'1' FLAG,'' FROM T_SYS_BMXX WHERE DELFLAG =0
+			ORDER BY NAME
+			]]>
+	</select>
+	<select id="getMaxBh" parameterType="String" resultType="String">
+		select max(RYBH) bh from T_SYS_RYXX where 1=1 and delflag = '0'
+	</select>
+	
+	<select id="getCountBH" parameterType="String" resultType="int">
+	    select count(*) from T_SYS_RYXX where rybh=#{bh}
+	</select>
+	
+	<select id="loadBMZT" parameterType="String" resultType="String">
+		<![CDATA[ select BMZT from T_SYS_BMXX WHERE BMXXID = #{SJBM}]]>
+	</select>
+	
+	<select id="loadJGZT" parameterType="String" resultType="String">
+		<![CDATA[ select JGZT from T_SYS_JGXX WHERE JGXXID = #{SJJG}]]>
+	</select>
+	
+	<update id="changeState" parameterType="map">
+		update T_SYS_RYXX set RYZT=#{RYZT},UPDATER=#{UPDATER},UPDTIME=sysdate
+		where RYXXID=#{RYXXID}
+	</update>
+	
+	<!-- 查询人员表中最大的同步时间 -->
+	<select id="queryMaxTbTime" resultType="String" >
+		select MAX(TB_TIME) AS TB_TIME from T_SYS_RYXX
+	</select>
+
+	<!-- 查询从NC过来需要新插入的人员 -->
+	<select id="queryInsertNcRyxx" resultType="map" parameterType="map">
+	     SELECT
+			t1.PSNDOCCODE AS RYXXID,
+			t1.PSNDOCCODE AS RYBH,
+			t1.PSNDOCNAME AS XM,
+			t1.SEX AS XB,
+			t1.ID AS SFZH,
+			'0' AS DELFLAG,
+			trim(t1.ENABLESTATE) AS RYZT,
+			t1.PSNCLNAME AS RYLB,
+			t1.ORGSCODE AS JGXXID,
+			t1.ORGSCODE || '_' || min(t1.DEPTCODE) AS BMXXID,
+			<!-- JOBNAME AS ZW,
+			POSTNAME AS GW,
+			OFFICEPHONE AS GSDH,
+			MOBILE AS SJ,
+			EMAIL AS DZYJ,-->
+			t1.TS AS TB_TIME 
+		 FROM
+			NC_PERSONVIEW t1
+			group by t1.psndoccode,t1.psndocname,t1.sex,t1.id,0,t1.enablestate,t1.psnclname,t1.orgscode,t1.TS AS TB_TIME
+		 WHERE
+			NOT  EXISTS (
+				SELECT
+					1
+				FROM
+					T_SYS_RYXX t2
+				WHERE
+					T1.PSNDOCCODE = t2.RYXXID
+		 ) 
+		<if test="syncTime !=null and syncTime !='' ">
+		 <!-- and <![CDATA[ TS >= to_date(#{syncTime},'yyyy-MM-DD HH24:MI:SS')]]> -->
+		 and TS >= #{syncTime}
+		</if>	
+	</select>
+	
+	<!-- 查询从NC过来需要更新的人员 -->
+	<select id="queryUpdateNcRyxx" resultType="map" parameterType="map">
+	     SELECT
+			t1.PSNDOCCODE AS RYXXID,
+			t1.PSNDOCCODE AS RYBH,
+			t1.PSNDOCNAME AS XM,
+			t1.SEX AS XB,
+			t1.ID AS SFZH,
+			'0' AS DELFLAG,
+			trim(t1.ENABLESTATE) AS RYZT,
+			t1.PSNCLNAME AS RYLB,
+			t1.ORGSCODE AS JGXXID,
+			t1.ORGSCODE || '_' || min(t1.DEPTCODE) AS BMXXID,
+			<!-- JOBNAME AS ZW,
+			POSTNAME AS GW,
+			OFFICEPHONE AS GSDH,
+			MOBILE AS SJ,
+			EMAIL AS DZYJ,-->
+			t1.TS AS TB_TIME 
+		 FROM
+			NC_PERSONVIEW t1
+			group by t1.psndoccode,t1.psndocname,t1.sex,t1.id,0,t1.enablestate,t1.psnclname,t1.orgscode,t1.TS AS TB_TIME
+		 WHERE
+			EXISTS (
+				SELECT
+					1
+				FROM
+					T_SYS_RYXX t2
+				WHERE
+					T1.PSNDOCCODE = t2.RYXXID
+		 ) 
+		<if test="syncTime !=null and syncTime !='' ">
+		 <!-- and <![CDATA[ TS >= to_date(#{syncTime},'yyyy-MM-DD HH24:MI:SS')]]> -->
+		 and TS >= #{syncTime}
+		</if>
+	</select>
+	
+	<insert id="insertRyxxList" parameterType="java.util.List">
+	    <foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+	     <![CDATA[
+		 insert into T_SYS_RYXX
+		  (RYXXID,
+		   RYBH,
+		   XM,
+		   XB,
+		   SFZH,
+		   ZW,
+		   GSDH,
+		   SJ,
+		   DZYJ,
+		   RYZT,
+		   RYJB,
+		   BMXXID,
+		   JGXXID,
+		   DELFLAG,
+		   RYLB,
+		   SBJS,
+		   CWDZM,
+		   IS_DRP_LEDGER,
+		   CREATER,
+		   CRENAME,
+		   CRETIME,
+		   TB_TIME
+		)values(
+		   #{item.RYXXID,jdbcType=VARCHAR},
+		   #{item.RYBH,jdbcType=VARCHAR},
+		   #{item.XM,jdbcType=VARCHAR},
+		   #{item.XB,jdbcType=VARCHAR},
+		   #{item.SFZH,jdbcType=VARCHAR},
+		   #{item.ZW,jdbcType=VARCHAR},
+		   #{item.GSDH,jdbcType=VARCHAR},
+		   #{item.SJ,jdbcType=VARCHAR},
+		   #{item.DZYJ,jdbcType=VARCHAR},
+		   #{item.RYZT,jdbcType=VARCHAR},
+		   #{item.RYJB,jdbcType=VARCHAR},
+		   #{item.BMXXID,jdbcType=VARCHAR},
+		   #{item.JGXXID,jdbcType=VARCHAR},
+		   0,
+		   #{item.RYLB,jdbcType=VARCHAR},
+		   #{item.SBJS,jdbcType=VARCHAR},
+		   #{item.CWDZM,jdbcType=VARCHAR},
+		   #{item.IS_DRP_LEDGER,jdbcType=VARCHAR},
+		   #{item.CREATER,jdbcType=VARCHAR},
+		   #{item.CRENAME,jdbcType=VARCHAR},
+		   sysdate,
+		   to_date(#{item.TB_TIME,jdbcType=VARCHAR},'yyyy-mm-dd hh24:mi:ss')
+		);
+		]]> 
+	    </foreach>
+	</insert>
+	
+	<update id="updateRyxxList" parameterType="java.util.List">
+	  <foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+	    <![CDATA[ update T_SYS_RYXX ]]>
+		<set >
+			<if test="item.XM !=null">XM = #{item.XM},</if>
+			<if test="item.XB !=null">XB = #{item.XB},</if>
+			<if test="item.SFZH !=null">SFZH = #{item.SFZH},</if>
+			<if test="item.ZW !=null">ZW = #{item.ZW},</if>
+			<if test="item.GSDH !=null">GSDH = #{item.GSDH},</if>
+			<if test="item.SJ !=null">SJ = #{item.SJ},</if>
+			<if test="item.DZYJ !=null">DZYJ = #{item.DZYJ},</if>
+			<if test="item.RYZT !=null">RYZT = #{item.RYZT},</if>
+			<if test="item.RYJB !=null">RYJB = #{item.RYJB},</if>
+			<if test="item.BMXXID !=null">BMXXID = #{item.BMXXID},</if>
+			<if test="item.JGXXID !=null">JGXXID = #{item.JGXXID},</if>
+			<if test="item.RYLB !=null">RYLB = #{item.RYLB},</if>
+			<if test="item.SBJS !=null">SBJS = #{item.SBJS},</if>
+			<if test="item.CWDZM !=null">CWDZM = #{item.CWDZM},</if>
+			<if test="item.UPDATER !=null">UPDATER = #{item.UPDATER},</if>
+			<if test="item.UPDTIME !=null">UPDTIME = sysdate,</if>
+			<if test="item.TB_TIME !=null">TB_TIME = to_date(#{item.TB_TIME},'yyyy-mm-dd hh24:mi:ss'),</if>
+		</set>
+		<![CDATA[ where RYXXID = #{item.RYXXID}; ]]>
+	  </foreach>
+	</update>
+	
+	<update id="MergeDateRyxx">
+		MERGE INTO t_sys_ryxx A USING (
+		SELECT
+			psndoccode AS ryxxid,
+			psndoccode AS rybh,
+			psndocname AS xm,
+			trim(sex) AS xb,
+			ID AS sfzh,
+			0 AS delflag,
+			trim(enablestate) AS ryzt,
+			psnclname AS rylb,
+			orgscode AS jgxxid,
+			orgscode || '-' || MIN (deptcode) AS bmxxid
+		FROM
+			nc_personview
+		GROUP BY
+			psndoccode,
+			psndocname,
+			sex,
+			ID,
+			0,
+			enablestate,
+			psnclname,
+			orgscode
+	) b ON (A.ryxxid = b.ryxxid)
+	WHEN MATCHED THEN
+		UPDATE
+	SET A.rybh = b.rybh, A.xm = b.xm,A.xb = trim(b.xb)
+	,A.sfzh = b.sfzh,A.delflag = b.delflag,A.ryzt = trim(b.ryzt)
+	,A.rylb = b.rylb,A.jgxxid = b.jgxxid,A.bmxxid = b.bmxxid
+	WHEN NOT MATCHED THEN
+		INSERT (
+			A.ryxxid,
+			A.rybh,
+			A.xm,
+			A.xb,
+			A.sfzh,
+			A.delflag,
+			A.ryzt,
+			A.rylb,
+			A.jgxxid,
+			A.bmxxid
+		)
+	VALUES
+		(
+			b.ryxxid,
+			b.rybh,
+			b.xm,
+			b.xb,
+			b.sfzh,
+			b.delflag,
+			b.ryzt,
+			b.rylb,
+			b.jgxxid,
+			b.bmxxid
+		)
+	</update>
+</mapper>
+
+
+

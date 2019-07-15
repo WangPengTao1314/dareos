@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--  
+/**
+ * @module 系统管理
+ * @func 机构信息
+ * @version 1.1
+ * @author 蔡瑾钊
+ */
+-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.centit.sys.mapper.JGXXMapper">
+
+	
+
+	<!-- 使用JGXX装载结果集 -->
+	<resultMap id="JGXXModel" type="com.centit.sys.model.JGXXModel">
+		<result column="JGXXID" property="JGXXID" />
+	</resultMap>
+
+	<!-- 动态查询 and 列表分页 -->
+	<sql id="queryDynSql">
+		<!--  <isNotEmpty prepend="and " property="QXJBCON">$QXJBCON$</isNotEmpty>-->
+		<if test="JGXXID !=null and JGXXID !='' ">
+			(u.JGXXID = #{JGXXID} OR u.SJJG = #{JGXXID})
+		</if>
+		<if test="JGMC !=null and JGMC !='' ">
+			and u.JGMC like '%'||#{JGMC}||'%'
+		</if>
+		<if test="JGJC !=null and JGJC !='' ">
+			and u.JGJC like '%'||#{JGJC}||'%'
+		</if>
+		<if test="JGBH !=null and JGBH !='' ">
+			and u.JGBH like '%'||#{JGBH}||'%'
+		</if>
+		<if test="SJJG !=null and SJJG !='' ">
+			and u.SJJG like '%'||#{SJJG}||'%'
+		</if>
+		<if test="JGZT !=null and JGZT !='' ">
+			and u.JGZT in ${JGZT}
+		</if>
+		<if test="ZTXXID !=null and ZTXXID !='' ">
+			and u.ZTXXID = #{ZTXXID}
+		</if>
+		<if test="XH !=null and XH !='' ">and u.XH = #{XH}</if>
+		<if test="DELFLAG !=null and DELFLAG !='' ">
+			and u.DELFLAG = #{DELFLAG}
+		</if>
+		<if test="IS_DRP_LEDGER !=null and IS_DRP_LEDGER !='' ">
+			and u.IS_DRP_LEDGER = #{IS_DRP_LEDGER}
+		</if>
+	</sql>
+	<sql id="orderSql">
+	order by 
+		<if test="orderField!=null and orderField !='' ">
+		
+			${orderField},
+		</if>
+		u.JGBH
+	</sql>
+
+	<!-- 查询SQL -->
+	<sql id="coreSql">
+		<![CDATA[  select u.FGCWRYID,u.FGCWRYXM,u.JGXXID,u.JGBH,u.JGMC,u.JGJC,u.SJJG,u.YZBM,u.ZTXXID,u.JGZT,a.GJ,a.SF,a.CS,b.JGBH as SJJGBH,b.JGMC SJJGMC,c.ZTMC,U.CRENAME,to_char(u.CRETIME,'yyyy-MM-dd hh24:mi:ss')CRETIME  
+					from T_SYS_JGXX u 
+						left join T_SYS_DZXX a on u.DZXXID = a.DZXXID
+						left join T_SYS_JGXX b on u.sjjg=b.jgxxid 
+						left join T_SYS_ZTXX c on u.ztxxid=c.ztxxid
+						left join BASE_CHANN d on d.chann_id = u.ztxxid
+				]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+		<include refid="orderSql" />
+	</sql>
+
+	<!-- 分页查询 -->
+	<select id="pageQuery" parameterType="map"
+		resultType="java.util.HashMap">
+
+		<include refid="coreSql" />
+		
+	</select>
+
+	<!-- 分页计数 -->
+	<select id="pageCount" parameterType="map" resultType="int">
+		<![CDATA[
+		SELECT count(u.JGXXID) cnt FROM T_SYS_JGXX u 
+		left join T_SYS_JGXX b on u.sjjg=b.jgxxid
+		left join BASE_CHANN d on d.chann_id = u.ztxxid
+		]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+	</select>
+
+	<!-- 查询 -->
+	<select id="query" parameterType="map"
+		resultType="java.util.HashMap">
+		<include refid="coreSql" />
+	</select>
+
+	<insert id="insert" parameterType="map">
+		<![CDATA[
+		 insert into T_SYS_JGXX(JGXXID,DZXXID,ZTXXID,JGBH,JGMC,JGJC,FRDB,DH,CZ,DZYJ,ZYDZ,SJJG,JGZT,QTSM,XXDZ,
+		           YZBM,JGYWMC,JGYWJC,JGYWXXDZ,XH,CREATER,CRENAME,CRETIME,UPDATER,UPDTIME,NFYF,DELFLAG,FGCWRYID,FGCWRYXM)
+		 values(#{JGXXID,jdbcType=VARCHAR},#{DZXXID,jdbcType=VARCHAR},#{ZTXXID,jdbcType=VARCHAR},#{JGBH,jdbcType=VARCHAR},#{JGMC,jdbcType=VARCHAR},#{JGJC,jdbcType=VARCHAR},#{FRDB,jdbcType=VARCHAR},
+		 		#{DH,jdbcType=VARCHAR},#{CZ,jdbcType=VARCHAR},#{DZYJ,jdbcType=VARCHAR},#{ZYDZ,jdbcType=VARCHAR},#{SJJG,jdbcType=VARCHAR},#{JGZT,jdbcType=VARCHAR},#{QTSM,jdbcType=VARCHAR},#{XXDZ,jdbcType=VARCHAR},
+		 		#{YZBM,jdbcType=VARCHAR},#{JGYWMC,jdbcType=VARCHAR},#{JGYWJC,jdbcType=VARCHAR},#{JGYWXXDZ,jdbcType=VARCHAR},#{XH,jdbcType=VARCHAR},#{CREATER,jdbcType=VARCHAR},#{CRENAME,jdbcType=VARCHAR},sysdate,
+		 		#{UPDATER,jdbcType=VARCHAR},sysdate,#{NFYF,jdbcType=VARCHAR},0,#{FGCWRYID,jdbcType=VARCHAR},#{FGCWRYXM,jdbcType=VARCHAR})
+		]]>
+	</insert>
+
+	<update id="updateById" parameterType="map">
+		<![CDATA[ update T_SYS_JGXX ]]>
+		<!-- CHANAME, CHADES,CHADATE,CHASTU -->
+		<set>
+			<if test="DZXXID !=null  "><![CDATA[DZXXID = #{DZXXID}]]>,</if>
+			<if test="ZTXXID !=null  "><![CDATA[ZTXXID = #{ZTXXID}]]>,</if>
+			<if test="JGBH !=null  "><![CDATA[JGBH = #{JGBH}]]>,</if>
+			<if test="JGMC !=null "><![CDATA[JGMC = #{JGMC}]]>,</if>
+			<if test="JGJC !=null "><![CDATA[JGJC = #{JGJC}]]>,</if>
+			<if test="FRDB !=null "><![CDATA[FRDB = #{FRDB}]]>,</if>
+			<if test="DH !=null  "><![CDATA[DH = #{DH}]]>,</if>
+			<if test="CZ !=null  "><![CDATA[CZ = #{CZ}]]>,</if>
+			<if test="DZYJ !=null  "><![CDATA[DZYJ = #{DZYJ}]]>,</if>
+			<if test="ZYDZ !=null  "><![CDATA[ZYDZ = #{ZYDZ}]]>,</if>
+			<if test="SJJG !=null  "><![CDATA[SJJG = #{SJJG}]]>,</if>
+			<if test="JGZT !=null  "><![CDATA[JGZT = #{JGZT}]]>,</if>
+			<if test="QTSM !=null  "><![CDATA[QTSM = #{QTSM}]]>,</if>
+			<if test="XXDZ !=null  "><![CDATA[XXDZ = #{XXDZ}]]>,</if>
+			<if test="YZBM !=null  "><![CDATA[YZBM = #{YZBM}]]>,</if>
+			<if test="FGCWRYID !=null  "><![CDATA[FGCWRYID = #{FGCWRYID}]]>,</if>
+			<if test="FGCWRYXM !=null  "><![CDATA[FGCWRYXM = #{FGCWRYXM}]]>,</if>
+
+			<if test="JGYWMC !=null  "><![CDATA[JGYWMC = #{JGYWMC}]]>,</if>
+			<if test="JGYWJC !=null  "><![CDATA[JGYWJC = #{JGYWJC}]]>,</if>
+			<if test="JGYWXXDZ !=null  "><![CDATA[JGYWXXDZ = #{JGYWXXDZ}]]>,</if>
+			<if test="XH !=null  "><![CDATA[XH = #{XH}]]>,</if>
+			<if test="UPDATER !=null  "><![CDATA[UPDATER = #{UPDATER}]]>,</if>
+			<if test="UPDTIME !=null "><![CDATA[UPDTIME = to_date(#{UPDTIME},'yyyy-MM-dd hh24:mi:ss')]]>,</if>
+			<if test="DELFLAG !=null  "><![CDATA[DELFLAG = #{DELFLAG}]]>,</if>
+		</set>
+		<![CDATA[ where JGXXID = #{JGXXID} ]]>
+	</update>
+	<!-- 软删除 只是更新状态-->
+	<delete id="delete" parameterType="String">
+		      delete from T_SYS_JGXX 
+							where JGXXID in(select JGXXID from T_SYS_JGXX
+                              start with JGXXID = #{JGXXID}
+                              connect by prior JGXXID = SJJG)
+        <!--delete from T_SYS_JGXX where JGXXID = #JGXXID#-->
+	</delete>
+	
+	<update id="updateStateById" parameterType="map">	
+		<![CDATA[ update T_SYS_JGXX ]]>
+			<set>
+			<if test="UPDATER !=null and UPDATER !='' "><![CDATA[UPDATER = #{UPDATER}]]>,</if>
+			<if test="DELFLAG !=null and DELFLAG !='' "><![CDATA[DELFLAG = #{DELFLAG}]]>,</if>
+			</set>
+		<![CDATA[, UPDTIME = sysdate]]>
+		<![CDATA[ where JGXXID in(select JGXXID from T_SYS_JGXX
+                              start with JGXXID = #{JGXXID}
+                              connect by prior JGXXID = SJJG) ]]>	
+	</update>
+	
+	
+	<insert id="insertDelDate" parameterType="map">
+	    insert into t_sys_datarecycle(DATARECYCLEID,DELETOR,DELTIME,BUSINESSTYPE,DF1,DF2,DF3,DF4,DF5,DF6,DF7,DF8,DF9,DF10,DF11,DF12,DF13,DF14,DF15,DF16,DF17,DF18,DF19,DF20,DF21,DF22,DF23,DF24,DF25,DF26,DF27,DF28,DF29)
+	    select SYS_GUID(),#{DELETOR},sysdate,'机构信息维护',JGXXID,DZXXID,ZTXXID,JGBH,JGMC,JGJC,FRDB,DH,CZ,DZYJ,ZYDZ,SJJG,JGZT,QTSM,XXDZ,YZBM,JGYWMC,JGYWJC,JGYWXXDZ,XH,CREATER,CRENAME,CRETIME,UPDATER,UPDTIME,NFYF,DELFLAG,FGCWRYID,FGCWRYXM
+        from T_SYS_JGXX
+	    where JGXXID in(select JGXXID from T_SYS_JGXX
+                           start with JGXXID = #{JGXXID}
+                          connect by prior JGXXID = SJJG)
+	</insert>
+	<select id="loadById" parameterType="String"
+		resultType="java.util.HashMap">
+		<![CDATA[  select  u.FGCWRYID,u.FGCWRYXM,u.JGXXID,u.JGBH,u.JGMC,u.JGJC,u.FRDB,u.DH,u.CZ,u.DZYJ,u.ZYDZ,u.XXDZ,u.SJJG,u.YZBM,u.ZTXXID,u.DZXXID,u.JGZT,u.JGYWMC,u.JGYWJC,u.JGYWXXDZ,u.XH,a.JGBH as SJJGBH,a.JGMC as SJJGMC,b.GJ,b.SF,b.CS,c.ZTMC,u.CRENAME,to_char(u.CRETIME,'yyyy-MM-dd hh24:mi:ss')CRETIME 
+					from T_SYS_JGXX u 
+						left join T_SYS_JGXX a on u.sjjg=a.jgxxid 
+						left join T_SYS_DZXX b on u.dzxxid=b.dzxxid  
+						left join T_SYS_ZTXX c on u.ztxxid=c.ztxxid
+					where u.JGXXID = #{JGXXID}]]>
+	</select>
+	<select id="loadJGZT" parameterType="String" resultType="String">
+		<![CDATA[ select JGZT from T_SYS_JGXX WHERE JGXXID = #{SJJG}]]>
+	</select>
+	<select id="queryTree" parameterType="String" resultType="com.centit.sys.model.JGXXTree">
+  		<![CDATA[
+			select t.jgxxid id, t.jgmc name, t.sjjg pid
+			  from T_SYS_JGXX t
+			  left join BASE_CHANN b on b.chann_id = t.ztxxid
+			 where t.DELFLAG = 0
+			   and t.JGZT in ('启用', '停用', '制定')
+			   and t.IS_DRP_LEDGER = 0
+			 order by t.XH asc
+			]]>
+		</select>
+	<select id="queryBhForInt" parameterType="map" resultType="int">
+			select count(jgbh) from T_SYS_JGXX where JGBH=#{JGBH} 
+			<if test="JGXXID !=null and JGXXID !=''">
+				and <![CDATA[JGXXID != #{JGXXID}]]>
+			</if>
+			<if test="DELFLAG !=null and DELFLAG !=''">
+				and DELFLAG = #{DELFLAG}
+			</if>
+		</select>
+	<select id="querySjForInt" parameterType="map" resultType="int">
+			<![CDATA[ select count(JGXXID) from (select JGXXID from T_SYS_JGXX
+                           start with JGXXID = #{JGXXID}
+                          connect by prior SJJG=JGXXID  
+                          and JGZT!=#{JGZT} ) temp where JGXXID != #{JGXXID} ]]>
+	</select>
+	<update id="stopById" parameterType="map">	
+		<![CDATA[ update T_SYS_JGXX ]]>
+		<set>
+			<if test="JGZT !=null and JGZT !='' "><![CDATA[JGZT = #{JGZT}]]>,</if>
+			<if test="UPDATER !=null and UPDATER !='' "><![CDATA[UPDATER = #{UPDATER}]]>,</if>
+			<if test="UPDTIME !=null and UPDTIME !='' "><![CDATA[UPDTIME = sysdate]]>,</if>
+		</set>
+		<![CDATA[ where JGXXID in(select JGXXID from T_SYS_JGXX
+                           start with JGXXID = #{JGXXID}
+                          connect by prior JGXXID = SJJG) ]]>	
+	</update>
+	<update id="startById" parameterType="map">	
+		<![CDATA[ update T_SYS_JGXX ]]>
+		<set>
+			<if test="JGZT !=null and JGZT !='' "><![CDATA[JGZT = #{JGZT}]]>,</if>
+			<if test="UPDATER !=null and UPDATER !='' "><![CDATA[UPDATER = #{UPDATER}]]>,</if>
+			<if test="UPDTIME !=null and UPDTIME !='' "><![CDATA[UPDTIME = sysdate]]>,</if>
+		</set>
+		<![CDATA[ where JGXXID in(select JGXXID from T_SYS_JGXX
+                           start with JGXXID = #{JGXXID}
+                          connect by prior JGXXID = SJJG) ]]>	
+	</update>
+	<update id="stopBmById" parameterType="map">	
+		<![CDATA[ update T_SYS_BMXX ]]>
+		<set>
+		<if test="JGZT !=null and JGZT !='' "><![CDATA[JGZT = #{JGZT}]]>,</if>
+		</set>
+		<![CDATA[ where JGXXID in(select JGXXID from T_SYS_JGXX
+                           start with JGXXID = #{JGXXID}
+                          connect by prior JGXXID = SJJG) ]]>	
+	</update>
+	<update id="stopRyById" parameterType="map">	
+		<![CDATA[ update T_SYS_RYXX ]]>
+		<set>
+			<if test="JGZT !=null and JGZT !='' "><![CDATA[JGZT = #{JGZT}]]></if>
+		</set>
+		<![CDATA[ where JGXXID in(select JGXXID from T_SYS_JGXX
+                           start with JGXXID = #{JGXXID}
+                          connect by prior JGXXID = SJJG) ]]>	
+	</update>
+</mapper>
+

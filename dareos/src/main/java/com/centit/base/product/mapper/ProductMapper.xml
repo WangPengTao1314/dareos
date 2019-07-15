@@ -1,0 +1,1706 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.centit.base.product.mapper.ProductMapper">
+
+
+	<!-- 使用LLGL装载结果集 -->
+	<resultMap id="ProductModel"
+		type="com.centit.base.product.model.ProductModel">
+		<result column="PRD_ID" property="PRD_ID" />
+	</resultMap>
+	<!-- 动态查询 and 列表排序 -->
+	<sql id="queryDynSql">
+		<if test="productid !=null and productid !='' ">
+			(p.BRAND = #{productid} or p.PAR_PRD_ID = #{productid} or
+			p.PAR_PRD_NO = #{productid} or p.PAR_PRD_NAME=#{productid})
+		</if>
+		<if test="prdInfo !=null and prdInfo !='' ">
+			and (upper(p.PRD_NO) like upper('%'||#{prdInfo}||'%') or upper(p.PRD_NAME) like upper('%'||#{prdInfo}||'%')
+			or upper(p.PRD_SPEC) like upper('%'||#{prdInfo}||'%') or upper(p.PRD_COLOR) like upper('%'||#{prdInfo}||'%')
+			or upper(p.BRAND) like upper('%'||#{prdInfo}||'%') )
+		</if>
+		<if test="parPrdId !=null and parPrdId !='' ">and p.PAR_PRD_ID like #{parPrdId}||'%'</if>
+		
+		<if test="PRD_NO !=null and PRD_NO !='' ">and p.PRD_NO like '%'||#{PRD_NO}||'%'</if>
+		<if test="PRD_COLOR !=null and PRD_COLOR !='' ">and p.PRD_COLOR like '%'||#{PRD_COLOR}||'%'</if>
+		<if test="BRAND !=null and BRAND !='' ">and p.BRAND=#{BRAND}</if>
+		<if test="PRD_NAME !=null and PRD_NAME !='' ">and p.PRD_NAME like '%'||#{PRD_NAME}||'%'</if>
+		<if test="PRD_SPEC !=null and PRD_SPEC !='' ">and p.PRD_SPEC like '%'||#{PRD_SPEC}||'%'</if>
+		<if test="STD_UNIT !=null and STD_UNIT !='' ">and p.STD_UNIT like '%'||#{STD_UNIT}||'%'</if>
+		<if test="STATE !=null and STATE !='' ">and p.STATE =#{STATE}</if>
+		<if test="BEGIN_CRE_TIME !=null and BEGIN_CRE_TIME !='' ">and p.CRE_TIME&gt;= to_date(#{BEGIN_CRE_TIME},'yyyy-MM-DD
+			HH24:MI:SS')</if>
+		<if test="END_CRE_TIME !=null and END_CRE_TIME !='' ">and P.CRE_TIME&lt;= to_date(#{END_CRE_TIME},'yyyy-MM-DD
+			HH24:MI:SS')</if>
+		<if test="DEL_FLAG !=null and DEL_FLAG !='' ">and <![CDATA[p.DEL_FLAG=#{DEL_FLAG}]]></if>
+		<if test="FINAL_NODE_FLAG !=null and FINAL_NODE_FLAG !='' ">and <![CDATA[p.FINAL_NODE_FLAG=#{FINAL_NODE_FLAG}]]></if>
+		<if test="PAR_PRD_NOQuery !=null and PAR_PRD_NOQuery !='' ">and ${PAR_PRD_NOQuery}</if>
+		<if test="PAR_PRD_NAMEQuery !=null and PAR_PRD_NAMEQuery !='' ">and ${PAR_PRD_NAMEQuery}</if>
+		<if test="LEDGERSQL !=null and LEDGERSQL !='' ">and ${LEDGERSQL}</if>
+		<if test="seachSTATE !=null and seachSTATE !='' ">and <![CDATA[p.STATE=#{seachSTATE}]]></if>
+
+		<if test="QXJBCON !=null and QXJBCON !='' ">
+			and ${QXJBCON}
+		</if>
+		<if test="PRD_NO_EQ !=null and PRD_NO_EQ !='' ">and <![CDATA[p.PRD_NO=#{PRD_NO_EQ}]]></if>
+		<if test="PRD_NAME_EQ !=null and PRD_NAME_EQ !='' ">and <![CDATA[p.PRD_NAME=#{PRD_NAME_EQ}]]></if>
+	</sql>
+	<sql id="orderSql">
+		<if test="orderField !=null and orderField !='' ">
+			order by
+			${orderField}
+		</if>
+	</sql>
+	<!-- 查询SQL -->
+	<sql id="coreSql">
+		<![CDATA[select p.PRD_ID,p.PRD_NO,p.PRD_NAME,p.PRD_SPEC,p.STD_UNIT,p.PRD_COLOR,
+		                p.PAR_PRD_NAME,p.BRAND,p.CRE_NAME,to_char(p.CRE_TIME,'yyyy-MM-DD HH24:MI:SS') CRE_TIME,
+		                p.DEPT_NAME,p.STATE,p.PRD_TYPE,p.PAR_PRD_NO,p.PRD_SUIT_FLAG
+				from BASE_PRODUCT p
+				]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+		<include refid="orderSql" />
+	</sql>
+
+	<!-- 分页查询 -->
+	<select id="pageQuery" parameterType="map"
+		resultType="java.util.HashMap">
+		
+		<include refid="coreSql" />
+		
+	</select>
+
+	<!-- 分页计数 -->
+	<select id="pageCount" parameterType="map" resultType="int">
+		<![CDATA[SELECT count(PRD_ID) cnt FROM BASE_PRODUCT p ]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+	</select>
+
+	<!-- 查询 -->
+	<select id="query" parameterType="map"
+		resultType="java.util.HashMap">
+		<include refid="coreSql" />
+	</select>
+	<!-- 根据ID查找 -->
+	<select id="loadById" parameterType="String"
+		resultType="java.util.HashMap">
+		<![CDATA[
+		SELECT
+			PRD_ID,
+			PRD_NO,
+			PRD_NAME,
+			PRD_SPEC,
+			PRD_COLOR,
+			BRAND,
+			STD_UNIT,
+			MEAS_UNIT,
+			RATIO,
+			PAR_PRD_ID,
+			PAR_PRD_NO,
+			PAR_PRD_NAME,
+			PRD_TYPE,
+			LENGTH,
+			WIDTH,
+			HEIGHT,
+			FACT_PRICE,
+			RET_PRICE_MIN,
+			to_char(BEG_DATE,'yyyy-mm-dd') BEG_DATE,
+			BAR_CODE,
+			BAR_CODE_OLD,
+			U_CMP_CODE,
+			PRD_SUIT_FLAG,
+			PIC_PATH,
+			FINAL_NODE_FLAG,
+			STATE,
+			REMARK,
+			CREATOR,
+			CRE_NAME,
+			to_char(CRE_TIME,'yyyy-MM-DD HH24:MI:SS') CRE_TIME,
+			UPDATOR,
+			UPD_NAME,
+			to_char(UPD_TIME,'yyyy-MM-DD HH24:MI:SS') UPD_TIME,
+			DEPT_ID,
+			DEPT_NAME,
+			ORG_ID,
+			ORG_NAME,
+			DEL_FLAG,
+			DTL_PATH,
+			PRVD_PRICE,
+			IS_CAN_FREE_FLAG,
+			IS_DISTRIBUT_FLAG,
+			IS_REBATE_FLAG
+			 FROM BASE_PRODUCT p WHERE p.PRD_ID = #{PRD_ID} and DEL_FLAG=0]]>
+	</select>
+	<!-- 查询主表是否存在重复编号 -->
+	<select id="getCountPRD_NO" parameterType="map" resultType="int">
+		select count(PRD_NO) from BASE_PRODUCT
+		where PRD_NO=#{PRD_NO}
+	</select>
+	<!-- 查询子表货品计量单位是否存在重复编号 -->
+	<select id="getCountNuitMEAS_UNIT_NO" parameterType="map"
+		resultType="int">
+		select count(MEAS_UNIT_NO) from BASE_PRD_UNIT where
+		MEAS_UNIT_NO=#{MEAS_UNIT_NO} and PRD_ID=#{PRD_ID}
+	</select>
+	<!-- 查询子表货品套是否存在重复编号 -->
+	<select id="getCountSuitPRD_NO" parameterType="map"
+		resultType="int">
+		select count(PRD_NO) from BASE_PRD_SUIT where PRD_NO=#{PRD_NO}
+		and MAIN_PRD_ID=#{MAIN_PRD_ID}
+	</select>
+	<!-- 未找到 -->
+	<select id="loadSTATE" parameterType="String"
+		resultType="String">
+		<![CDATA[ select STATE from BASE_PRODUCT p WHERE p.PRD_ID = #{PRD_ID} and DEL_FLAG=0]]>
+	</select>
+
+
+	<insert id="insert" parameterType="map">
+		<![CDATA[
+		 insert into BASE_PRODUCT(
+		 	PRD_ID,PRD_NO,PRD_NAME,PRD_SPEC,PRD_COLOR,BRAND,STD_UNIT,MEAS_UNIT,RATIO,PAR_PRD_ID,
+		 	PAR_PRD_NO,PAR_PRD_NAME,PRD_TYPE,LENGTH,WIDTH,HEIGHT,FACT_PRICE,RET_PRICE_MIN,BEG_DATE,
+		 	BAR_CODE,BAR_CODE_OLD,U_CMP_CODE,PRD_SUIT_FLAG,PIC_PATH,FINAL_NODE_FLAG,STATE,REMARK,CREATOR,CRE_NAME,
+		 	CRE_TIME,DEPT_ID,DEPT_NAME,ORG_ID,ORG_NAME,DEL_FLAG,DTL_PATH,LEDGER_ID,COMM_FLAG,PRVD_PRICE,IS_CAN_FREE_FLAG,IS_NO_STAND_FLAG,
+		 	IS_DISTRIBUT_FLAG,IS_REBATE_FLAG)
+		 values(
+		 	#{PRD_ID},#{PRD_NO},#{PRD_NAME},#{PRD_SPEC,jdbcType=VARCHAR},#{PRD_COLOR,jdbcType=VARCHAR},#{BRAND,jdbcType=VARCHAR},#{STD_UNIT,jdbcType=VARCHAR},#{MEAS_UNIT,jdbcType=VARCHAR},#{RATIO,jdbcType=VARCHAR},#{PAR_PRD_ID,jdbcType=VARCHAR},
+		 	#{PAR_PRD_NO,jdbcType=VARCHAR},#{PAR_PRD_NAME,jdbcType=VARCHAR},#{PRD_TYPE,jdbcType=VARCHAR},#{LENGTH,jdbcType=VARCHAR},#{WIDTH,jdbcType=VARCHAR},#{HEIGHT,jdbcType=VARCHAR},#{FACT_PRICE,jdbcType=VARCHAR},#{RET_PRICE_MIN,jdbcType=VARCHAR},
+		 	to_date(#{BEG_DATE,jdbcType=VARCHAR},'yyyy-mm-dd'),#{BAR_CODE,jdbcType=VARCHAR},#{BAR_CODE_OLD,jdbcType=VARCHAR},#{U_CMP_CODE,jdbcType=VARCHAR},#{PRD_SUIT_FLAG,jdbcType=VARCHAR},#{PIC_PATH,jdbcType=VARCHAR},#{FINAL_NODE_FLAG,jdbcType=VARCHAR},
+		 	#{STATE,jdbcType=VARCHAR},#{REMARK,jdbcType=VARCHAR},#{CREATOR,jdbcType=VARCHAR},#{CRE_NAME,jdbcType=VARCHAR},sysdate,#{DEPT_ID,jdbcType=VARCHAR},#{DEPT_NAME,jdbcType=VARCHAR},#{ORG_ID,jdbcType=VARCHAR},#{ORG_NAME,jdbcType=VARCHAR},#{DEL_FLAG,jdbcType=VARCHAR},#{DTL_PATH,jdbcType=VARCHAR},
+		 	#{LEDGER_ID,jdbcType=VARCHAR},#{COMM_FLAG,jdbcType=VARCHAR},#{PRVD_PRICE,jdbcType=VARCHAR},#{IS_CAN_FREE_FLAG,jdbcType=VARCHAR},#{IS_NO_STAND_FLAG,jdbcType=VARCHAR},#{IS_DISTRIBUT_FLAG,jdbcType=VARCHAR},#{IS_REBATE_FLAG,jdbcType=VARCHAR}
+		 )
+		]]>
+	</insert>
+
+	<insert id="insertPrdSpclTech" parameterType="java.util.List">
+	<foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+	
+		<![CDATA[
+		 insert into PRD_SPCL_TECH(
+		 	PRD_SPCL_TECH_ID,PRD_ID,SPCL_TECH_NAME,SPCL_TECH_TYPE,
+		 	CURRT_VAL,CURRT_VAL_TURN_BEG,CURRT_VAL_TURN_END,
+		 	PRICE_TURN_TYPE,PRICE_TURN_VAL,TUENED_VALS,DEL_FLAG,REMARK,TURN_TYPE)
+		 values(
+		 	#{item.PRD_SPCL_TECH_ID},#{item.PRD_ID},#{item.SPCL_TECH_NAME},#{item.SPCL_TECH_TYPE},#{item.CURRT_VAL},#{item.CURRT_VAL_TURN_BEG},#{item.CURRT_VAL_TURN_END},#{item.PRICE_TURN_TYPE},
+		 	#{item.PRICE_TURN_VAL},#{item.TUENED_VALS},#{item.DEL_FLAG},#{item.REMARK},#{item.TURN_TYPE}
+		 )
+		]]>
+		</foreach>  
+	</insert>
+
+	<update id="updatePrdSpclTech" parameterType="java.util.List">
+		<foreach collection="list" item="item" index="index"
+			separator="" open="begin" close="end;">
+		
+		 <![CDATA[ update PRD_SPCL_TECH ]]>
+			<set>
+				<if test="PRD_ID !=null and PRD_ID !='' "><![CDATA[PRD_ID = #{item.PRD_ID}]]>,
+				</if>
+				<if test="SPCL_TECH_NAME !=null and SPCL_TECH_NAME !='' "><![CDATA[SPCL_TECH_NAME = #{item.SPCL_TECH_NAME}]]>,
+				</if>
+				<if test="SPCL_TECH_TYPE !=null and SPCL_TECH_TYPE !='' "><![CDATA[SPCL_TECH_TYPE = #{item.SPCL_TECH_TYPE}]]>,
+				</if>
+				<if test="CURRT_VAL !=null and CURRT_VAL !='' "><![CDATA[CURRT_VAL = #{item.CURRT_VAL}]]>,
+				</if>
+				<if test="CURRT_VAL_TURN_BEG !=null and CURRT_VAL_TURN_BEG !='' "><![CDATA[CURRT_VAL_TURN_BEG = #{item.CURRT_VAL_TURN_BEG}]]>,
+				</if>
+				<if test="CURRT_VAL_TURN_END !=null and CURRT_VAL_TURN_END !='' "><![CDATA[CURRT_VAL_TURN_END = #{item.CURRT_VAL_TURN_END}]]>,
+				</if>
+				<if test="PRICE_TURN_TYPE !=null and PRICE_TURN_TYPE !='' "><![CDATA[PRICE_TURN_TYPE = #{item.PRICE_TURN_TYPE}]]>,
+				</if>
+				<if test="PRICE_TURN_VAL !=null and PRICE_TURN_VAL !='' "><![CDATA[PRICE_TURN_VAL = #{item.PRICE_TURN_VAL}]]>,
+				</if>
+				<if test="TUENED_VALS !=null and TUENED_VALS !='' "><![CDATA[TUENED_VALS = #{item.TUENED_VALS}]]>,
+				</if>
+				<if test="REMARK !=null and REMARK !='' "><![CDATA[REMARK = #{item.REMARK}]]>,
+				</if>
+				<if test="DEL_FLAG !=null and DEL_FLAG !='' "><![CDATA[DEL_FLAG = #{item.DEL_FLAG}]]>,
+				</if>
+				<if test="TURN_TYPE !=null and TURN_TYPE !='' "><![CDATA[TURN_TYPE = #{item.TURN_TYPE}]]>,
+				</if>
+			</set>
+		<![CDATA[ where PRD_SPCL_TECH_ID = #{item.PRD_SPCL_TECH_ID} ]]>
+		</foreach>
+	</update>
+
+	<update id="updateById" parameterType="map">
+		 <![CDATA[ update BASE_PRODUCT ]]>
+		<set>
+			<if test="PRD_NAME !=null and PRD_NAME !='' "><![CDATA[PRD_NAME = #{PRD_NAME}]]>,
+			</if>
+			<if test="PRD_SPEC !=null and PRD_SPEC !='' "><![CDATA[PRD_SPEC = #{PRD_SPEC}]]>,
+			</if>
+			<if test="PRD_COLOR !=null and PRD_COLOR !='' "><![CDATA[PRD_COLOR = #{PRD_COLOR}]]>,
+			</if>
+			<if test="BRAND !=null and BRAND !='' "><![CDATA[BRAND = #{BRAND}]]>,
+			</if>
+			<if test="STD_UNIT !=null and STD_UNIT !='' "><![CDATA[STD_UNIT = #{STD_UNIT}]]>,
+			</if>
+			<if test="MEAS_UNIT !=null and MEAS_UNIT !='' "><![CDATA[MEAS_UNIT = #{MEAS_UNIT}]]>,
+			</if>
+			<if test="RATIO !=null and RATIO !='' "><![CDATA[RATIO = #{RATIO}]]>,
+			</if>
+			<if test="PAR_PRD_ID !=null and PAR_PRD_ID !='' "><![CDATA[PAR_PRD_ID = #{PAR_PRD_ID}]]>,
+			</if>
+			<if test="PAR_PRD_NO !=null and PAR_PRD_NO !='' "><![CDATA[PAR_PRD_NO = #{PAR_PRD_NO}]]>,
+			</if>
+			<if test="PAR_PRD_NAME !=null and PAR_PRD_NAME !='' "><![CDATA[PAR_PRD_NAME = #{PAR_PRD_NAME}]]>,
+			</if>
+			<if test="PRD_TYPE !=null and PRD_TYPE !='' "><![CDATA[PRD_TYPE = #{PRD_TYPE}]]>,
+			</if>
+			<if test="LENGTH !=null and LENGTH !='' "><![CDATA[LENGTH = #{LENGTH}]]>,
+			</if>
+			<if test="WIDTH !=null and WIDTH !='' "><![CDATA[WIDTH = #{WIDTH}]]>,
+			</if>
+			<if test="HEIGHT !=null and HEIGHT !='' "><![CDATA[HEIGHT = #{HEIGHT}]]>,
+			</if>
+			<if test="FACT_PRICE !=null and FACT_PRICE !='' "><![CDATA[FACT_PRICE = #{FACT_PRICE}]]>,
+			</if>
+			<if test="RET_PRICE_MIN !=null and RET_PRICE_MIN !='' "><![CDATA[RET_PRICE_MIN = #{RET_PRICE_MIN}]]>,
+			</if>
+			<if test="BEG_DATE !=null and BEG_DATE !='' "><![CDATA[BEG_DATE = to_date(#{BEG_DATE},'yyyy-mm-dd')]]>,
+			</if>
+			<if test="BEG_DATE !=null and BEG_DATE !='' "><![CDATA[BAR_CODE = #{BEG_DATE}]]>,
+			</if>
+			<if test="BAR_CODE_OLD !=null and BAR_CODE_OLD !='' "><![CDATA[BAR_CODE_OLD = #{BAR_CODE_OLD}]]>,
+			</if>
+			<if test="U_CMP_CODE !=null and U_CMP_CODE !='' "><![CDATA[U_CMP_CODE = #{U_CMP_CODE}]]>,
+			</if>
+			<if test="PRD_SUIT_FLAG !=null and PRD_SUIT_FLAG !='' "><![CDATA[PRD_SUIT_FLAG = #{PRD_SUIT_FLAG}]]>,
+			</if>
+			<if test="PIC_PATH !=null and PIC_PATH !='' "><![CDATA[PIC_PATH = #{PIC_PATH}]]>,
+			</if>
+			<if test="FINAL_NODE_FLAG !=null and FINAL_NODE_FLAG !='' "><![CDATA[FINAL_NODE_FLAG = #{FINAL_NODE_FLAG}]]>,
+			</if>
+			<if test="STATE !=null and STATE !='' "><![CDATA[STATE = #{STATE}]]>,
+			</if>
+			<if test="REMARK !=null and REMARK !='' "><![CDATA[REMARK = #{REMARK}]]>,
+			</if>
+			<if test="UPDATOR !=null and UPDATOR !='' "><![CDATA[UPDATOR = #{UPDATOR}]]>,
+			</if>
+			<if test="UPD_NAME !=null and UPD_NAME !='' "><![CDATA[UPD_NAME = #{UPD_NAME}]]>,
+			</if>
+			<if test="UPD_TIME !=null and UPD_TIME !='' "><![CDATA[UPD_TIME=sysdate]]>,
+			</if>
+			<if test="DTL_PATH !=null and DTL_PATH !='' "><![CDATA[DTL_PATH=#{DTL_PATH}]]>,
+			</if>
+			<if test="IS_CAN_FREE_FLAG !=null and IS_CAN_FREE_FLAG !='' "><![CDATA[IS_CAN_FREE_FLAG=#{IS_CAN_FREE_FLAG}]]>,
+			</if>
+			<if test="PRVD_PRICE !=null and PRVD_PRICE !='' "><![CDATA[PRVD_PRICE=#{PRVD_PRICE}]]>,
+			</if>
+			<if test="IS_DISTRIBUT_FLAG !=null and IS_DISTRIBUT_FLAG !='' "><![CDATA[IS_DISTRIBUT_FLAG=#{IS_DISTRIBUT_FLAG}]]>,
+			</if>
+			<if test="IS_REBATE_FLAG !=null and IS_REBATE_FLAG !='' "><![CDATA[IS_REBATE_FLAG=#{IS_REBATE_FLAG}]]>,
+			</if>
+
+		</set>
+		<![CDATA[ where PRD_ID = #{PRD_ID} ]]>
+	</update>
+
+	<update id="updateByNo" parameterType="map">
+		 <![CDATA[ update BASE_PRODUCT ]]>
+		<set>
+			<if test="PRD_NAME !=null and PRD_NAME !='' "><![CDATA[PRD_NAME = #{PRD_NAME}]]>,
+			</if>
+			<if test="PRD_SPEC !=null and PRD_SPEC !='' "><![CDATA[PRD_SPEC = #{PRD_SPEC}]]>,
+			</if>
+			<if test="PRD_COLOR !=null and PRD_COLOR !='' "><![CDATA[PRD_COLOR = #{PRD_COLOR}]]>,
+			</if>
+			<if test="BRAND !=null and BRAND !='' "><![CDATA[BRAND = #{BRAND}]]>,
+			</if>
+			<if test="STD_UNIT !=null and STD_UNIT !='' "><![CDATA[STD_UNIT = #{STD_UNIT}]]>,
+			</if>
+			<if test="MEAS_UNIT !=null and MEAS_UNIT !='' "><![CDATA[MEAS_UNIT = #{MEAS_UNIT}]]>,
+			</if>
+			<if test="RATIO !=null and RATIO !='' "><![CDATA[RATIO = #{RATIO}]]>,
+			</if>
+			<if test="PAR_PRD_ID !=null and PAR_PRD_ID !='' "><![CDATA[PAR_PRD_ID = #{PAR_PRD_ID}]]>,
+			</if>
+			<if test="PAR_PRD_NO !=null and PAR_PRD_NO !='' "><![CDATA[PAR_PRD_NO = #{PAR_PRD_NO}]]>,
+			</if>
+			<if test="PAR_PRD_NAME !=null and PAR_PRD_NAME !='' "><![CDATA[PAR_PRD_NAME = #{PAR_PRD_NAME}]]>,
+			</if>
+			<if test="PRD_TYPE !=null and PRD_TYPE !='' "><![CDATA[PRD_TYPE = #{PRD_TYPE}]]>,
+			</if>
+			<if test="LENGTH !=null and LENGTH !='' "><![CDATA[LENGTH = #{LENGTH}]]>,
+			</if>
+			<if test="WIDTH !=null and WIDTH !='' "><![CDATA[WIDTH = #{WIDTH}]]>,
+			</if>
+			<if test="HEIGHT !=null and HEIGHT !='' "><![CDATA[HEIGHT = #{HEIGHT}]]>,
+			</if>
+			<if test="FACT_PRICE !=null and FACT_PRICE !='' "><![CDATA[FACT_PRICE = #{FACT_PRICE}]]>,
+			</if>
+			<if test="RET_PRICE_MIN !=null and RET_PRICE_MIN !='' "><![CDATA[RET_PRICE_MIN = #{RET_PRICE_MIN}]]>,
+			</if>
+			<if test="BEG_DATE !=null and BEG_DATE !='' "><![CDATA[BEG_DATE = to_date(#{BEG_DATE},'yyyy-mm-dd')]]>,
+			</if>
+			<if test="BEG_DATE !=null and BEG_DATE !='' "><![CDATA[BAR_CODE = #{BEG_DATE}]]>,
+			</if>
+			<if test="BAR_CODE_OLD !=null and BAR_CODE_OLD !='' "><![CDATA[BAR_CODE_OLD = #{BAR_CODE_OLD}]]>,
+			</if>
+			<if test="U_CMP_CODE !=null and U_CMP_CODE !='' "><![CDATA[U_CMP_CODE = #{U_CMP_CODE}]]>,
+			</if>
+			<if test="PRD_SUIT_FLAG !=null and PRD_SUIT_FLAG !='' "><![CDATA[PRD_SUIT_FLAG = #{PRD_SUIT_FLAG}]]>,
+			</if>
+			<if test="PIC_PATH !=null and PIC_PATH !='' "><![CDATA[PIC_PATH = #{PIC_PATH}]]>,
+			</if>
+			<if test="FINAL_NODE_FLAG !=null and FINAL_NODE_FLAG !='' "><![CDATA[FINAL_NODE_FLAG = #{FINAL_NODE_FLAG}]]>,
+			</if>
+			<if test="STATE !=null and STATE !='' "><![CDATA[STATE = #{STATE}]]>,
+			</if>
+			<if test="REMARK !=null and REMARK !='' "><![CDATA[REMARK = #{REMARK}]]>,
+			</if>
+			<if test="UPDATOR !=null and UPDATOR !='' "><![CDATA[UPDATOR = #{UPDATOR}]]>,
+			</if>
+			<if test="UPD_NAME !=null and UPD_NAME !='' "><![CDATA[UPD_NAME = #{UPD_NAME}]]>,
+			</if>
+			<if test="UPD_TIME !=null and UPD_TIME !='' "><![CDATA[UPD_TIME=sysdate]]>,
+			</if>
+			<if test="DTL_PATH !=null and DTL_PATH !='' "><![CDATA[DTL_PATH=#{DTL_PATH}]]>,
+			</if>
+			<if test="IS_CAN_FREE_FLAG !=null and IS_CAN_FREE_FLAG !='' "><![CDATA[IS_CAN_FREE_FLAG=#{IS_CAN_FREE_FLAG}]]>,
+			</if>
+			<if test="PRVD_PRICE !=null and PRVD_PRICE !='' "><![CDATA[PRVD_PRICE=#{PRVD_PRICE}]]>,
+			</if>
+			<if test="IS_DISTRIBUT_FLAG !=null and IS_DISTRIBUT_FLAG !='' "><![CDATA[IS_DISTRIBUT_FLAG=#{IS_DISTRIBUT_FLAG}]]>,
+			</if>
+		</set>
+		<![CDATA[ where PRD_NO = #{PRD_NO} ]]>
+	</update>
+
+
+	<!-- 软删除 -->
+	<update id="delete" parameterType="map">	
+		<![CDATA[ update BASE_PRODUCT set DEL_FLAG=#{DEL_FLAG}
+		where PRD_ID in(select PRD_ID from BASE_PRODUCT
+                           start with PRD_ID = #{PRD_ID}
+                          connect by prior PRD_ID = PAR_PRD_ID) ]]>
+	</update>
+	<!-- 修改状态 -->
+	<update id="updateStateById" parameterType="map">	
+		<![CDATA[ update BASE_PRODUCT ]]>
+		<set>
+			<if test="STATE !=null and STATE !='' "><![CDATA[STATE = #{STATE}]]>,
+			</if>
+			<if test="UPDATOR !=null and UPDATOR !='' "><![CDATA[UPDATOR = #{UPDATOR}]]>,
+			</if>
+			<if test="UPD_NAME !=null and UPD_NAME !='' "><![CDATA[UPD_NAME = #{UPD_NAME}]]>,
+			</if>
+			<if test="UPD_TIME !=null and UPD_TIME !='' "><![CDATA[UPD_TIME=sysdate]]>,
+			</if>
+		</set>
+		<![CDATA[ where PRD_ID in(select PRD_ID from BASE_PRODUCT
+                           start with PRD_ID = #{PRD_ID}
+                          connect by prior PRD_ID = PAR_PRD_ID) ]]>
+	</update>
+	<!-- 查询树 -->
+	<select id="queryTree" parameterType="String"
+		resultType="com.centit.base.product.model.ProductTree">
+  		<![CDATA[
+  		  SELECT DISTINCT p.PRD_NO id , '【' || p.PRD_NO || '】' || p.PRD_NAME name,p.PAR_PRD_ID PID
+       FROM BASE_PRODUCT p WHERE DEL_FLAG = 0 and STATE IN ('启用','停用') and FINAL_NODE_FLAG=0
+        order  by p.PRD_NO
+			]]>
+	</select>
+	
+	<!-- 查询树 -->
+	<select id="queryTree4Ledger" parameterType="String"
+		resultType="com.centit.base.product.model.ProductTree">
+		<![CDATA[
+			SELECT DISTINCT p.PRD_NO id, p.PRD_NAME name, p.PAR_PRD_ID PID
+			  FROM BASE_PRODUCT p
+			  left join BASE_PRODUCT_LEDGER a
+			    on a.PRD_ID = p.PRD_ID
+			   and a.DEL_FLAG = 0
+			 WHERE p.DEL_FLAG = 0 and p.STATE = '启用' and p.FINAL_NODE_FLAG = 0
+			   and a.LEDGER_ID=#{LEDGER_ID}
+			 order by p.PRD_NO
+		]]>
+	</select>
+
+	<!-- 明细操作开始 -->
+
+	<!--明细查询条件定义 -->
+	<sql id="queryDynSqlDEl">
+		<if test="DEL_FLAG !=null and DEL_FLAG !='' ">
+			and DEL_FLAG=#{DEL_FLAG}
+		</if>
+	</sql>
+	<!-- 查询SQL -->
+	<sql id="orderSqlField">
+		<if test="orderField !=null and orderField !='' ">
+			order by
+			${orderField}
+		</if>
+	</sql>
+	<!-- 查询货品计量单位 -->
+	<sql id="coreSqlUnit">
+		<![CDATA[ 
+	     select 
+			PRD_UNIT_ID,
+			PRD_ID,
+			MEAS_UNIT_ID,
+			MEAS_UNIT_NO,
+			MEAS_UNIT_NAME,
+			MEAS_UNIT_TYPE,
+			RATIO
+	       from BASE_PRD_UNIT 
+	   ]]>
+	</sql>
+	<!-- 查询货品套 -->
+	<sql id="coreSqlSuit">
+		<![CDATA[ 
+	     select 
+			PRD_UNIT_ID,
+			PRD_ID,
+			PRD_NO,
+			PRD_NAME,
+			PRD_SPEC,
+			PRD_COLOR,
+			BRAND,
+			STD_UNIT,
+			MAIN_PRD_ID,
+			PRVD_PRICE,
+			COMP_NUM,
+			MAIN_BOM_FLAG
+	       from BASE_PRD_SUIT
+	   ]]>
+	</sql>
+	<!-- 根据主表ID查询货品计量单位明细 -->
+	<select id="queryUnitByFkId" parameterType="map"
+		resultType="java.util.HashMap">
+		<include refid="coreSqlUnit" />
+		<where>
+			PRD_ID=#{PRD_ID}
+		</where>
+
+		<include refid="queryDynSqlDEl" />
+
+		<if test="orderField !=null and orderField !=''">
+			<include refid="orderSqlField" />
+		</if>
+	</select>
+	<!-- 根据主表ID查询货品套明细 -->
+	<select id="querySuitByFkId" parameterType="map"
+		resultType="java.util.HashMap">
+		<include refid="coreSqlSuit" />
+		<where>
+			MAIN_PRD_ID=#{MAIN_PRD_ID}
+		</where>
+
+		<include refid="queryDynSqlDEl" />
+
+		<if test="orderField !=null and orderField !=''">
+			<include refid="orderSqlField" />
+		</if>
+	</select>
+
+	<!--根据明细表IDS查询货品计量单位明细 -->
+	<select id="loadUnitByIds" parameterType="map"
+		resultType="java.util.HashMap">
+		<include refid="coreSqlUnit" />
+		<where>
+			PRD_UNIT_ID in (${PRD_UNIT_IDS})
+		</where>
+
+		<include refid="queryDynSqlDEl" />
+
+		<if test="orderField !=null and orderField !=''">
+			<include refid="orderSqlField" />
+		</if>
+	</select>
+	<!--根据明细表IDS查询货品套明细 -->
+	<select id="loadSuitByIds" parameterType="map"
+		resultType="java.util.HashMap">
+		<include refid="coreSqlSuit" />
+		<where>
+			PRD_UNIT_ID in (${PRD_UNIT_IDS})
+		</where>
+
+		<include refid="queryDynSqlDEl" />
+
+		<if test="orderField !=null and orderField !=''">
+			<include refid="orderSqlField" />
+		</if>
+	</select>
+
+	<!--货品计量单位明细表更新 -->
+	<update id="updateUnitById" parameterType="java.util.List">
+	<foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+	
+	<![CDATA[ update BASE_PRD_UNIT ]]>
+		<set>
+			<if test="PRD_ID !=null and PRD_ID !='' "><![CDATA[PRD_ID = #{item.PRD_ID} ]]>,
+			</if>
+			<if test="MEAS_UNIT_ID !=null and MEAS_UNIT_ID !='' "><![CDATA[MEAS_UNIT_ID = #{item.MEAS_UNIT_ID} ]]>,
+			</if>
+			<if test="MEAS_UNIT_NO !=null and MEAS_UNIT_NO !='' "><![CDATA[MEAS_UNIT_NO = #{item.MEAS_UNIT_NO} ]]>,
+			</if>
+			<if test="MEAS_UNIT_NAME !=null and MEAS_UNIT_NAME !='' "><![CDATA[MEAS_UNIT_NAME = #{item.MEAS_UNIT_NAME} ]]>,
+			</if>
+			<if test="MEAS_UNIT_TYPE !=null and MEAS_UNIT_TYPE !='' "><![CDATA[MEAS_UNIT_TYPE = #{item.MEAS_UNIT_TYPE} ]]>,
+			</if>
+			<if test="RATIO !=null and RATIO !='' "><![CDATA[RATIO = #{item.RATIO} ]]>,
+			</if>
+		</set>
+	<![CDATA[ where PRD_UNIT_ID = #{item.PRD_UNIT_ID}]]>
+	</foreach>
+	</update>
+	<!--货品套明细表更新 -->
+	<update id="updateSuitById" parameterType="java.util.List">
+		<foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+	
+	<![CDATA[ update BASE_PRD_SUIT ]]>
+		<set>
+			<if test="PRD_ID !=null and PRD_ID !='' "><![CDATA[PRD_ID = #{item.PRD_ID} ]]>,
+			</if>
+			<if test="PRD_NO !=null and PRD_NO !='' "><![CDATA[PRD_NO = #{item.PRD_NO} ]]></if>
+			<if test="PRD_NAME !=null and PRD_NAME !='' "><![CDATA[PRD_NAME = #{item.PRD_NAME} ]]>,
+			</if>
+			<if test="PRD_SPEC !=null and PRD_SPEC !='' "><![CDATA[PRD_SPEC = #{item.PRD_SPEC} ]]>,
+			</if>
+			<if test="PRD_COLOR !=null and PRD_COLOR !='' "><![CDATA[PRD_COLOR = #{item.PRD_COLOR} ]]>,
+			</if>
+			<if test="BRAND !=null and BRAND !='' "><![CDATA[BRAND = #{item.BRAND} ]]>,
+			</if>
+			<if test="STD_UNIT !=null and STD_UNIT !='' "><![CDATA[STD_UNIT = #{item.STD_UNIT} ]]>,
+			</if>
+			<if test="COMP_NUM !=null and COMP_NUM !='' "><![CDATA[COMP_NUM = #{item.COMP_NUM} ]]>,
+			</if>
+			<if test="PRVD_PRICE !=null and PRVD_PRICE !='' "><![CDATA[PRVD_PRICE = #{item.PRVD_PRICE} ]]>,
+			</if>
+			<if test="MAIN_BOM_FLAG !=null and MAIN_BOM_FLAG !='' "><![CDATA[MAIN_BOM_FLAG = #{item.MAIN_BOM_FLAG} ]]>,
+			</if>
+		</set>
+	<![CDATA[ where PRD_UNIT_ID = #{item.PRD_UNIT_ID}]]>
+	</foreach>
+	</update>
+
+	<!--货品计量单位明细表插入 -->
+	<insert id="insertUnit" parameterType="java.util.List">
+	<foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+	
+  <![CDATA[
+	  insert into BASE_PRD_UNIT(
+	  	PRD_UNIT_ID,PRD_ID,MEAS_UNIT_ID,MEAS_UNIT_NO,MEAS_UNIT_NAME,MEAS_UNIT_TYPE,RATIO,DEL_FLAG
+	  )values(
+		#{item.PRD_UNIT_ID},#{item.PRD_ID},#{item.MEAS_UNIT_ID},#{item.MEAS_UNIT_NO},#{item.MEAS_UNIT_NAME},#{item.MEAS_UNIT_TYPE},#{item.RATIO},#{item.DEL_FLAG}
+	  )
+   ]]>
+   </foreach>
+	</insert>
+
+	<!--货品套明细表插入 -->
+	<insert id="insertSuit" parameterType="java.util.List">
+	<foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+	
+  <![CDATA[
+	  insert into BASE_PRD_SUIT(
+	  	PRD_UNIT_ID,PRD_ID,PRD_NO,PRD_NAME,PRD_SPEC,PRD_COLOR,BRAND,STD_UNIT,DEL_FLAG,COMP_NUM,MAIN_PRD_ID,PRVD_PRICE,MAIN_BOM_FLAG
+	  )values(
+		#{item.PRD_UNIT_ID},#{item.PRD_ID},#{item.PRD_NO},#{item.PRD_NAME},#{item.PRD_SPEC},#{item.PRD_COLOR},#{item.BRAND},#{item.STD_UNIT},#{item.DEL_FLAG},#{item.COMP_NUM},#{item.MAIN_PRD_ID},#{item.PRVD_PRICE},#{item.MAIN_BOM_FLAG}
+	  )
+   ]]>
+   </foreach>
+	</insert>
+
+	<!--根据货品计量单位明细主键ID删除明细 -->
+	<delete id="delUnitByFkId" parameterType="map">
+	<![CDATA[ update BASE_PRD_UNIT 
+	                 set DEL_FLAG = #{DEL_FLAG}	 
+ 	  where 
+	       PRD_UNIT_ID in (${PRD_UNIT_IDS})
+    ]]>
+	</delete>
+	<!--根据货品套明细主键ID删除明细 -->
+	<delete id="delSuitByFkId" parameterType="map">
+	<![CDATA[ update BASE_PRD_SUIT 
+	                 set DEL_FLAG = #{DEL_FLAG}	 
+ 	  where 
+	       PRD_UNIT_ID in (${PRD_UNIT_IDS})
+    ]]>
+	</delete>
+	<!--根据主键ID删除明细的子表货品计量单位 -->
+	<delete id="delGUnitByProId" parameterType="map">
+	<![CDATA[ update BASE_PRD_UNIT 
+	                 set DEL_FLAG = #{DEL_FLAG}	 
+ 	  where 
+	       PRD_ID = #{PRD_ID}
+    ]]>
+	</delete>
+	<!--根据主键ID删除明细的子表货品套 -->
+	<delete id="delGSuitByProId" parameterType="map">
+	<![CDATA[ update BASE_PRD_SUIT 
+	                 set DEL_FLAG = #{DEL_FLAG}	 
+ 	  where 
+	       PRD_ID = #{PRD_ID}
+    ]]>
+	</delete>
+	<select id="getBrand" parameterType="map" resultType="string">
+		select distinct BRAND from BASE_BRAND where DEL_FLAG=#{DEL_FLAG} and STATE
+		in (${STATE})
+	</select>
+
+	<select id="queryPrdId" parameterType="map"
+		resultType="java.util.HashMap">
+		select
+		PRD_SPCL_TECH_ID,PRD_ID,SPCL_TECH_NAME,SPCL_TECH_TYPE,CURRT_VAL,CURRT_VAL_TURN_BEG,CURRT_VAL_TURN_END,
+		PRICE_TURN_TYPE,PRICE_TURN_VAL,TUENED_VALS,REMARK,DEL_FLAG,TURN_TYPE
+		from PRD_SPCL_TECH where PRD_ID = #{PRD_ID} and DEL_FLAG=#{DEL_FLAG}
+		and ${WHERESQL}
+	</select>
+	<select id="queryPrdSpcTechId" parameterType="String"
+		resultType="java.util.HashMap">
+		select
+		PRD_SPCL_TECH_ID,PRD_ID,SPCL_TECH_NAME,SPCL_TECH_TYPE,CURRT_VAL,CURRT_VAL_TURN_BEG,CURRT_VAL_TURN_END,
+		PRICE_TURN_TYPE,PRICE_TURN_VAL,TUENED_VALS,REMARK,DEL_FLAG,TURN_TYPE
+		from PRD_SPCL_TECH where PRD_SPCL_TECH_ID = #{PRD_SPCL_TECH_ID}
+	</select>
+	<delete id="delPrdSpcTechById" parameterType="map">
+	<![CDATA[ update PRD_SPCL_TECH 
+	                 set DEL_FLAG = #{DEL_FLAG}	 
+ 	  where 
+	       PRD_SPCL_TECH_ID = #{PRD_SPCL_TECH_ID}
+    ]]>
+	</delete>
+	<select id="queryPrdExp" parameterType="map"
+		resultType="java.util.HashMap">
+	<![CDATA[
+		select p.PRD_NO,p.PRD_NAME,p.PRD_SPEC,p.PRD_TYPE,p.PRVD_PRICE,p.FACT_PRICE,p.STD_UNIT from BASE_PRODUCT p
+	]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+
+		<include refid="orderSql" />
+
+	</select>
+
+	<update id="updateByPrdNo" parameterType="map">
+<![CDATA[ update BASE_PRODUCT ]]>
+		<set>
+			<if test="PRD_NAME !=null and PRD_NAME !='' "><![CDATA[PRD_NAME = #{PRD_NAME}]]>,
+			</if>
+			<if test="PRD_SPEC !=null and PRD_SPEC !='' "><![CDATA[PRD_SPEC = #{PRD_SPEC}]]>,
+			</if>
+			<if test="PRVD_PRICE !=null and PRVD_PRICE !='' "><![CDATA[PRVD_PRICE=#{PRVD_PRICE}]]>,
+			</if>
+			<if test="FACT_PRICE !=null and FACT_PRICE !='' "><![CDATA[FACT_PRICE=#{FACT_PRICE}]]>,
+			</if>
+		</set>
+<![CDATA[ where PRD_NO = #{PRD_NO} ]]>
+	</update>
+	<insert id="insertTemp" parameterType="java.util.List">
+	<foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+	
+		insert into BASE_PRODUCT_IMP
+		(PRD_ID,
+		PRD_NO,
+		PRD_NAME,
+		PRD_SPEC,
+		PRD_COLOR,
+		BRAND,
+		STD_UNIT,
+		MEAS_UNIT,
+		RATIO,
+		PAR_PRD_ID,
+		PAR_PRD_NO,
+		PAR_PRD_NAME,
+		PRD_TYPE,
+		LENGTH,
+		WIDTH,
+		HEIGHT,
+		FACT_PRICE,
+		RET_PRICE_MIN,
+		BEG_DATE,
+		BAR_CODE,
+		BAR_CODE_OLD,
+		U_CMP_CODE,
+		PRD_SUIT_FLAG,
+		FINAL_NODE_FLAG,
+		REMARK,
+		PRVD_PRICE,
+		IS_CAN_FREE_FLAG,
+		SESSIONID,
+		COMM_FLAG,
+		IS_NO_STAND_FLAG,
+		PRD_CLASS_TYPE,
+		STATE,
+		CREATOR,
+		CRE_NAME,
+		CRE_TIME,
+		UPDATOR,
+		UPD_NAME,
+		UPD_TIME,
+		DEPT_ID,
+		DEPT_NAME,
+		ORG_ID,
+		ORG_NAME,
+		DEL_FLAG,
+		LEDGER_ID
+		)values(
+		#{item.PRD_ID},
+		#{item.PRD_NO},
+		#{item.PRD_NAME},
+		#{item.PRD_SPEC},
+		#{item.PRD_COLOR},
+		#{item.BRAND},
+		#{item.STD_UNIT},
+		#{item.MEAS_UNIT},
+		#{item.RATIO},
+		#{item.PAR_PRD_ID},
+		#{item.PAR_PRD_NO},
+		#{item.PAR_PRD_NAME},
+		#{item.PRD_TYPE},
+		#{item.LENGTH},
+		#{item.WIDTH},
+		#{item.HEIGHT},
+		#{item.FACT_PRICE},
+		#{item.RET_PRICE_MIN},
+		to_date(#{item.BEG_DATE},'yyyy-mm-dd'),
+		#{item.BAR_CODE},
+		#{item.BAR_CODE_OLD},
+		#{item.U_CMP_CODE},
+		#{item.PRD_SUIT_FLAG},
+		#{item.FINAL_NODE_FLAG},
+		#{item.REMARK},
+		#{item.PRVD_PRICE},
+		#{item.IS_CAN_FREE_FLAG},
+		#{item.SESSIONID},
+		#{item.COMM_FLAG},
+		#{item.IS_NO_STAND_FLAG},
+		#{item.PRD_CLASS_TYPE},
+		#{item.STATE},
+		#{item.CREATOR},
+		#{item.CRE_NAME},
+		item.sysdate,
+		#{item.UPDATOR},
+		#{item.UPD_NAME},
+		item.sysdate,
+		#{item.DEPT_ID},
+		#{item.DEPT_NAME},
+		#{item.ORG_ID},
+		#{item.ORG_NAME},
+		#{item.DEL_FLAG},
+		#{item.LEDGER_ID}
+		)
+	</foreach>
+	</insert>
+	<select id="checkMustFld" parameterType="string"
+		resultType="java.util.HashMap">
+		select PRD_NO,PRD_NAME,BRAND,STD_UNIT,PRVD_PRICE
+		from BASE_PRODUCT_IMP
+		where (PRD_NO is null or PRD_NO ='' )
+		or (PRD_NAME is null or PRD_NAME ='' )
+		or (BRAND is null or BRAND ='' )
+		or (STD_UNIT is null or STD_UNIT ='' )
+		or (PRVD_PRICE is null or PRVD_PRICE ='' )
+		and SESSIONID = #{SESSIONID}
+	</select>
+	<select id="checkDRPMustFld" parameterType="string"
+		resultType="java.util.HashMap">
+		select PRD_NO,PRD_NAME,PRD_SPEC,STD_UNIT,PRVD_PRICE,FACT_PRICE
+		from BASE_PRODUCT_IMP
+		where (PRD_NO is null or PRD_NO ='' )
+		or (PRD_NAME is null or PRD_NAME ='' )
+		or (PRD_SPEC is null or PRD_SPEC ='' )
+		or (STD_UNIT is null or STD_UNIT ='' )
+		or (PRVD_PRICE is null or PRVD_PRICE ='' )
+		or (FACT_PRICE is null or FACT_PRICE ='' )
+		and SESSIONID = #{SESSIONID}
+	</select>
+	<!-- 检查是是否有重记录 -->
+	<select id="checkPdtRepeat" parameterType="string"
+		resultType="java.util.HashMap">
+		select PRD_NO
+		from BASE_PRODUCT_IMP
+		where SESSIONID = #{SESSIONID}
+		group by PRD_NO
+		having count(PRD_NO) > 1
+	</select>
+	<select id="checkPrdLedger" parameterType="map"
+		resultType="string">
+		select a.PRD_NO
+		from BASE_PRODUCT a
+		left join BASE_PRODUCT_IMP b
+		on a.PRD_NO = b.PRD_NO
+		where a.DEL_FLAG = 0 and b.PRD_NO is not null
+		and SESSIONID = #{SESSIONID}
+		and ${SQL}
+	</select>
+	<select id="checkPrdBrand" parameterType="string"
+		resultType="string">
+		select BRAND
+		from BASE_PRODUCT_IMP
+		where SESSIONID = #{SESSIONID}
+		and BRAND is not null
+		and BRAND not in (select BRAND from BASE_BRAND where DEL_FLAG = 0)
+	</select>
+	<select id="checkPrdStdUnit" resultType="string"
+		parameterType="string">
+		select STD_UNIT
+		from BASE_PRODUCT_IMP
+		where SESSIONID = #{SESSIONID}
+		and STD_UNIT is not null
+		and STD_UNIT not in (select MEAS_UNIT_NAME from BASE_UNIT where DEL_FLAG
+		= 0)
+	</select>
+	<select id="checkPrdMeasUnit" resultType="string"
+		parameterType="string">
+		select MEAS_UNIT
+		from BASE_PRODUCT_IMP
+		where SESSIONID = #{SESSIONID}
+		and MEAS_UNIT is not null
+		and MEAS_UNIT not in (select MEAS_UNIT_NAME from BASE_UNIT where DEL_FLAG
+		= 0)
+	</select>
+	<select id="queryNoByName" resultType="string"
+		parameterType="string">
+		select t.MEAS_UNIT_NO from BASE_UNIT t where t.MEAS_UNIT_NAME = #{unitName}
+	</select>
+	
+	<select id="querySlByNo" resultType="java.util.HashMap"
+		parameterType="String">
+		select t.TAXRATE,t.TAXCODE from nc_materialrateview t where t.MATCODE = #{code}
+	</select>
+	
+	<!-- 验证有上级货品编号无上级货品名称的 -->
+	<select id="checkNoParPrdInfo" parameterType="string"
+		resultType="string">
+		select PAR_PRD_NO
+		from BASE_PRODUCT_IMP
+		where PAR_PRD_NO is not null
+		and PAR_PRD_NAME is null
+		and SESSIONID = #{SESSIONID}
+		and PAR_PRD_NO not in (select PRD_NO
+		from BASE_PRODUCT
+		where FINAL_NODE_FLAG = 0
+		and DEL_FLAG = 0)
+	</select>
+	<!-- 验证无上级货品编号有上级货品名称的 -->
+	<select id="checkNameParPrdInfo" parameterType="string"
+		resultType="string">
+		select PAR_PRD_NAME
+		from BASE_PRODUCT_IMP
+		where PAR_PRD_NAME is not null
+		and PAR_PRD_NO is null
+		and SESSIONID = #{SESSIONID}
+		and PAR_PRD_NAME not in (select PRD_NAME
+		from BASE_PRODUCT
+		where FINAL_NODE_FLAG = 0
+		and DEL_FLAG = 0)
+	</select>
+	<!-- 验证有上级货品编号有上级货品名称的 -->
+	<select id="checkParPrdInfo" parameterType="string"
+		resultType="java.util.HashMap">
+		select PAR_PRD_NO,PAR_PRD_NAME
+		from BASE_PRODUCT_IMP
+		where PAR_PRD_NAME is not null
+		and PAR_PRD_NO is not null
+		and SESSIONID = #{SESSIONID}
+		and (PAR_PRD_NO,PAR_PRD_NAME) not in (select PRD_NO,PRD_NAME
+		from BASE_PRODUCT
+		where FINAL_NODE_FLAG = 0
+		and DEL_FLAG = 0)
+	</select>
+	<select id="checkPrdHead" parameterType="map"
+		resultType="string">
+		select PRD_NO from BASE_PRODUCT_IMP where SESSIONID = #{SESSIONID} and
+		PRD_NO not like '${LEDGER_ID}%'
+	</select>
+	<select id="checkPrdNum" parameterType="string"
+		resultType="string">
+		select to_number(PRD_NO) from BASE_PRODUCT_IMP where SESSIONID =
+		#{SESSIONID}
+	</select>
+	<update id="upParPrdInfo" parameterType="map">
+		update BASE_PRODUCT_IMP a
+		set (PAR_PRD_ID, PAR_PRD_NO, PAR_PRD_NAME) =
+		(select b.PRD_ID, b.PRD_NO, b.PRD_NAME
+		from BASE_PRODUCT b
+		where FINAL_NODE_FLAG = 0
+		and DEL_FLAG = 0
+		and ${SQL})
+		where SESSIONID = #{SESSIONID} and ${MAINSQL}
+	</update>
+	<update id="upDrpPrdInfo" parameterType="string">
+		update BASE_PRODUCT a
+		set (a.PRD_NAME,
+		a.PRD_SPEC,
+		a.STD_UNIT,
+		a.PRVD_PRICE,
+		a.FACT_PRICE,
+		a.REMARK,
+		a.UPDATOR,
+		a.UPD_NAME,
+		a.UPD_TIME,
+		a.PAR_PRD_ID,
+		a.PAR_PRD_NO,
+		a.PAR_PRD_NAME) =
+		(select b.PRD_NAME,
+		b.PRD_SPEC,
+		b.STD_UNIT,
+		b.PRVD_PRICE,
+		b.FACT_PRICE,
+		b.REMARK,
+		b.UPDATOR,
+		b.UPD_NAME,
+		b.UPD_TIME,
+		b.PAR_PRD_ID,
+		b.PAR_PRD_NO,
+		b.PAR_PRD_NAME
+		from BASE_PRODUCT_IMP b
+		where b.SESSIONID = #{SESSIONID}
+		and a.PRD_NO = b.PRD_NO)
+		where a.DEL_FLAG = 0
+		and a.PRD_NO in
+		(select PRD_NO from BASE_PRODUCT_IMP where SESSIONID = #{SESSIONID})
+	</update>
+	<update id="upErpPrdInfo" parameterType="string">
+		update BASE_PRODUCT a
+		set (a.PRD_NAME,
+		a.PRD_SPEC,
+		a.BRAND,
+		a.STD_UNIT,
+		a.PRVD_PRICE,
+		a.PRD_COLOR,
+		a.MEAS_UNIT,
+		a.RATIO,
+		a.PAR_PRD_ID,
+		a.PAR_PRD_NO,
+		a.PAR_PRD_NAME,
+		a.LENGTH,
+		a.WIDTH,
+		a.HEIGHT,
+		a.FACT_PRICE,
+		a.RET_PRICE_MIN,
+		a.IS_CAN_FREE_FLAG,
+		a.BEG_DATE,
+		a.BAR_CODE,
+		a.BAR_CODE_OLD,
+		a.U_CMP_CODE,
+		a.REMARK,
+		a.UPDATOR,
+		a.UPD_NAME,
+		a.UPD_TIME
+		) =
+		(select b.PRD_NAME,
+		b.PRD_SPEC,
+		b.BRAND,
+		b.STD_UNIT,
+		b.PRVD_PRICE,
+		b.PRD_COLOR,
+		b.MEAS_UNIT,
+		b.RATIO,
+		b.PAR_PRD_ID,
+		b.PAR_PRD_NO,
+		b.PAR_PRD_NAME,
+		b.LENGTH,
+		b.WIDTH,
+		b.HEIGHT,
+		b.FACT_PRICE,
+		b.RET_PRICE_MIN,
+		b.IS_CAN_FREE_FLAG,
+		b.BEG_DATE,
+		b.BAR_CODE,
+		b.BAR_CODE_OLD,
+		b.U_CMP_CODE,
+		b.REMARK,
+		b.UPDATOR,
+		b.UPD_NAME,
+		b.UPD_TIME
+		from BASE_PRODUCT_IMP b
+		where b.SESSIONID = #{SESSIONID}
+		and a.PRD_NO = b.PRD_NO)
+		where a.DEL_FLAG = 0
+		and a.PRD_NO in
+		(select PRD_NO from BASE_PRODUCT_IMP where SESSIONID = #{SESSIONID})
+	</update>
+	<insert id="insertDrpPrdInfo" parameterType="string">
+		insert into BASE_PRODUCT
+		(PRD_ID,
+		PRD_NO,
+		PRD_NAME,
+		PRD_SPEC,
+		STD_UNIT,
+		PRVD_PRICE,
+		FACT_PRICE,
+		REMARK,
+		COMM_FLAG,
+		IS_NO_STAND_FLAG,
+		FINAL_NODE_FLAG,
+		PRD_SUIT_FLAG,
+		PRD_CLASS_TYPE,
+		PRD_TYPE,
+		STATE,
+		CREATOR,
+		CRE_NAME,
+		CRE_TIME,
+		DEPT_ID,
+		DEPT_NAME,
+		ORG_ID,
+		ORG_NAME,
+		DEL_FLAG,
+		LEDGER_ID,
+		PAR_PRD_ID,
+		PAR_PRD_NO,
+		PAR_PRD_NAME)
+		select PRD_ID,
+		PRD_NO,
+		PRD_NAME,
+		PRD_SPEC,
+		STD_UNIT,
+		PRVD_PRICE,
+		FACT_PRICE,
+		REMARK,
+		COMM_FLAG,
+		IS_NO_STAND_FLAG,
+		FINAL_NODE_FLAG,
+		PRD_SUIT_FLAG,
+		PRD_CLASS_TYPE,
+		PRD_TYPE,
+		STATE,
+		CREATOR,
+		CRE_NAME,
+		CRE_TIME,
+		DEPT_ID,
+		DEPT_NAME,
+		ORG_ID,
+		ORG_NAME,
+		DEL_FLAG,
+		LEDGER_ID,
+		PAR_PRD_ID,
+		PAR_PRD_NO,
+		PAR_PRD_NAME
+		from BASE_PRODUCT_IMP
+		where SESSIONID = #{SESSIONID}
+		and PRD_NO not in (select PRD_NO from BASE_PRODUCT where DEL_FLAG = 0)
+	</insert>
+	<insert id="insertErpPrdInfo" parameterType="string">
+		insert into BASE_PRODUCT
+		(PRD_ID,
+		PRD_NO,
+		PRD_NAME,
+		PRD_SPEC,
+		BRAND,
+		STD_UNIT,
+		PRVD_PRICE,
+		PRD_COLOR,
+		MEAS_UNIT,
+		RATIO,
+		PAR_PRD_ID,
+		PAR_PRD_NO,
+		PAR_PRD_NAME,
+		LENGTH,
+		WIDTH,
+		HEIGHT,
+		FACT_PRICE,
+		RET_PRICE_MIN,
+		IS_CAN_FREE_FLAG,
+		BEG_DATE,
+		BAR_CODE,
+		BAR_CODE_OLD,
+		U_CMP_CODE,
+		REMARK,
+		COMM_FLAG,
+		IS_NO_STAND_FLAG,
+		FINAL_NODE_FLAG,
+		PRD_SUIT_FLAG,
+		PRD_CLASS_TYPE,
+		STATE,
+		CREATOR,
+		CRE_NAME,
+		CRE_TIME,
+		DEPT_ID,
+		DEPT_NAME,
+		ORG_ID,
+		ORG_NAME,
+		DEL_FLAG,
+		LEDGER_ID)
+		select PRD_ID,
+		PRD_NO,
+		PRD_NAME,
+		PRD_SPEC,
+		BRAND,
+		STD_UNIT,
+		PRVD_PRICE,
+		PRD_COLOR,
+		MEAS_UNIT,
+		RATIO,
+		PAR_PRD_ID,
+		PAR_PRD_NO,
+		PAR_PRD_NAME,
+		LENGTH,
+		WIDTH,
+		HEIGHT,
+		FACT_PRICE,
+		RET_PRICE_MIN,
+		IS_CAN_FREE_FLAG,
+		BEG_DATE,
+		BAR_CODE,
+		BAR_CODE_OLD,
+		U_CMP_CODE,
+		REMARK,
+		COMM_FLAG,
+		IS_NO_STAND_FLAG,
+		FINAL_NODE_FLAG,
+		PRD_SUIT_FLAG,
+		PRD_CLASS_TYPE,
+		STATE,
+		CREATOR,
+		CRE_NAME,
+		CRE_TIME,
+		DEPT_ID,
+		DEPT_NAME,
+		ORG_ID,
+		ORG_NAME,
+		DEL_FLAG,
+		LEDGER_ID
+		from BASE_PRODUCT_IMP
+		where SESSIONID = #{SESSIONID}
+		and PRD_NO not in (select PRD_NO from BASE_PRODUCT where DEL_FLAG = 0)
+	</insert>
+	<delete id="delPrdTemp" parameterType="string">
+		delete from BASE_PRODUCT_IMP where SESSIONID = #{SESSIONID}
+	</delete>
+	<select id="getPrdSuitInfo" parameterType="string"
+		resultType="java.util.HashMap">
+		select a.STATE,
+		a.PRD_SUIT_FLAG,
+		(select count(1) from BASE_PRD_SUIT b where b.MAIN_PRD_ID=a.PRD_ID and
+		b.DEL_FLAG=0)CNT
+		from BASE_PRODUCT a
+		where a.PRD_ID=#{PRD_ID}
+	</select>
+	<select id="getPrdIdByUnitIds" parameterType="string"
+		resultType="string">
+		select max(MAIN_PRD_ID) MAIN_PRD_ID from BASE_PRD_SUIT where PRD_UNIT_ID in
+		(${PRD_UNIT_IDS})
+	</select>
+	<select id="getPrdSuitPriceInfo" parameterType="string"
+		resultType="java.util.HashMap">
+		select NVL(a.PRVD_PRICE,0)PRVD_PRICE,
+		a.STATE,
+		NVL((select sum(NVL(b.COMP_NUM,0)*NVL(b.PRVD_PRICE,0))PRICE from BASE_PRD_SUIT b
+		where b.MAIN_PRD_ID=a.PRD_ID and b.DEL_FLAG=0 group by
+		MAIN_PRD_ID),0)PRICE
+		from BASE_PRODUCT a
+		where a.PRD_ID=#{PRD_ID}
+	</select>
+
+	<select id="checkPrdNo" parameterType="map" resultType="int">
+		select count(u.PRD_NO) from BASE_PRODUCT u
+		where u.DEL_FLAG = 0 and u.PRD_NO=#{PRD_NO}
+	</select>
+
+	<select id="getParPrdId" parameterType="map" resultType="string">
+		select PRD_ID
+		from BASE_PRODUCT u
+		where DEL_FLAG = 0
+		and FINAL_NODE_FLAG = 0
+		and PRD_NO = #{PAR_PRD_NO}
+	</select>
+
+
+
+		<select id="getLedgerChrgList" parameterType="string" resultType="java.util.HashMap">
+			select 
+				a.PRD_LEDGER_ID,
+				a.PRD_ID,
+				a.LEDGER_ID,
+				a.LEDGER_NAME,
+				a.LEDGER_NAME_ABBR,
+				a.CREATOR,
+				a.CRE_NAME,
+				to_char(a.CRE_TIME,'yyyy-MM-DD HH24:MI:SS') CRE_TIME,
+				a.UPDATOR,
+				a.UPD_NAME,
+				to_char(a.UPD_TIME,'yyyy-MM-DD HH24:MI:SS') UPD_TIME,
+				a.DEL_FLAG
+			from BASE_PRODUCT_LEDGER a 
+			where a.PRD_ID=#{PRD_ID} and a.DEL_FLAG='0'
+		</select>
+		<select id="getLedgerChrgListByIds" parameterType="string" resultType="java.util.HashMap">
+			select 
+				a.PRD_LEDGER_ID,
+				a.PRD_ID,
+				a.LEDGER_ID,
+				a.LEDGER_NAME,
+				a.LEDGER_NAME_ABBR,
+				a.CREATOR,
+				a.CRE_NAME,
+				to_char(a.CRE_TIME,'yyyy-MM-DD HH24:MI:SS') CRE_TIME,
+				a.UPDATOR,
+				a.UPD_NAME,
+				to_char(a.UPD_TIME,'yyyy-MM-DD HH24:MI:SS') UPD_TIME,
+				a.DEL_FLAG
+			from BASE_PRODUCT_LEDGER a 
+			where a.PRD_LEDGER_ID  in (${PRD_LEDGER_IDS}) and a.DEL_FLAG='0'
+		</select>
+		<update id="delLedChrgByLedIds" parameterType="map">
+			update BASE_PRODUCT_LEDGER set
+			UPDATOR=#{UPDATOR},
+			UPD_NAME=#{UPD_NAME},
+			UPD_TIME=sysdate,
+			DEL_FLAG=#{DEL_FLAG}
+			where PRD_LEDGER_ID in (${PRD_LEDGER_IDS})
+		</update>
+		<update id="delLedChrgByLedChannId" parameterType="map">
+			update BASE_PRODUCT_LEDGER set
+			UPDATOR=#{UPDATOR},
+			UPD_NAME=#{UPD_NAME},
+			UPD_TIME=sysdate,
+			DEL_FLAG=#{DEL_FLAG}
+			where PRD_ID = #{PRD_ID}
+		</update>
+		
+		<update id="updateBpLedgerNameAbbr">
+			update BASE_PRODUCT_LEDGER set ledger_name_abbr=(select ztjc 
+			from t_sys_ztxx where t_sys_ztxx.ztxxid=BASE_PRODUCT_LEDGER.ledger_id)
+			where ledger_name_abbr is null
+		</update>
+		
+		<update id="updateTwoIDAndName">
+			update base_product set 
+			TWO_ID = (SELECT(
+					CASE
+					WHEN d.prd_id IS NOT NULL THEN
+						c.prd_id
+					ELSE
+						(
+							CASE
+							WHEN c.prd_id IS NOT NULL THEN
+								b.prd_id
+							ELSE
+								''
+							END
+						)
+					END
+				) TWO_ID
+			FROM
+				base_product a
+			LEFT JOIN base_product b ON a.par_prd_id = b.prd_id
+			LEFT JOIN base_product c ON c.prd_id = b.par_prd_id
+			LEFT JOIN base_product d ON d.prd_id = c.par_prd_id 
+			where a.final_node_flag = 1 and a.PRD_ID = base_product.PRD_ID),
+			TWO_NAME = (SELECT(
+					CASE
+					WHEN d1.prd_name IS NOT NULL THEN
+						c1.prd_name
+					ELSE
+						(
+							CASE
+							WHEN c1.prd_name IS NOT NULL THEN
+								b1.prd_name
+							ELSE
+								''
+							END
+						)
+					END
+				) TWO_NAME
+			FROM
+				base_product a1
+			LEFT JOIN base_product b1 ON a1.par_prd_id = b1.prd_id
+			LEFT JOIN base_product c1 ON c1.prd_id = b1.par_prd_id
+			LEFT JOIN base_product d1 ON d1.prd_id = c1.par_prd_id 
+			where a1.final_node_flag = 1 and a1.PRD_ID = base_product.PRD_ID)
+			where final_node_flag = 1
+		</update>
+		
+		<insert id="insertLegerChrg" parameterType="map">
+			<foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+				insert into BASE_PRODUCT_LEDGER(
+					PRD_LEDGER_ID,
+					PRD_ID,
+					LEDGER_ID,
+					LEDGER_NAME,
+					LEDGER_NAME_ABBR,
+					CREATOR,
+					CRE_NAME,
+					CRE_TIME,
+					DEL_FLAG
+				)values(
+					#{item.PRD_LEDGER_ID,jdbcType=VARCHAR},
+					#{item.PRD_ID,jdbcType=VARCHAR},
+					#{item.LEDGER_ID,jdbcType=VARCHAR},
+					#{item.LEDGER_NAME,jdbcType=VARCHAR},
+					#{item.LEDGER_NAME_ABBR,jdbcType=VARCHAR},
+					#{item.CREATOR,jdbcType=VARCHAR},
+					#{item.CRE_NAME,jdbcType=VARCHAR},
+					sysdate,
+					#{item.DEL_FLAG,jdbcType=VARCHAR}
+				);
+			</foreach>
+		</insert>
+		
+	<select id="checkLadgerDup" parameterType="string" resultType="string">
+		select LEDGER_NAME
+			from BASE_PRODUCT_LEDGER
+			where PRD_ID =#{PRD_ID} and DEL_FLAG=0
+			group by LEDGER_ID,LEDGER_NAME
+			having count(LEDGER_ID)>1
+	</select>
+	
+	<!-- 查询物料分类中最大的同步时间 -->
+	<select id="queryTypeMaxTbTime" resultType="String" >
+		select MAX(t.TB_TIME) AS TB_TIME from BASE_PRODUCT t where t.FINAL_NODE_FLAG = 0
+	</select>
+	
+	<!-- 查询物料中最大的同步时间 -->
+	<select id="queryMaxTbTime" resultType="String" >
+		select MAX(t.TB_TIME) AS TB_TIME from BASE_PRODUCT t where t.FINAL_NODE_FLAG = 1
+	</select>
+	
+	<!-- 查询从NC过来需要新插入的物料分类数据 -->
+	<select id="queryInsertNcMarbasclass" resultType="map" parameterType="map">
+		SELECT
+			MARCLASSCODE AS PRD_ID,
+			MARCLASSCODE AS PRD_NO,
+			MARCLASSNAME AS PRD_NAME,
+			trim(ENABLESTATE) AS STATE,
+			PARENTCODE AS PAR_PRD_ID,
+			PARENTCODE AS PAR_PRD_NO,
+			PARENTNAME AS PAR_PRD_NAME,
+			ORGCODE AS LEDGER_ID,
+			ORGNAME AS LEDGER_NAME,
+			'0' AS FINAL_NODE_FLAG,
+			'0' AS DEL_FLAG,
+			'' AS TASK_RARIO,
+			TS AS TB_TIME 
+		FROM
+			nc_marbasclassview t1
+		WHERE
+		    t1.MARCLASSCODE like #{code}||'%' and 
+			NOT EXISTS (
+				SELECT
+					1
+				FROM
+					BASE_PRODUCT t2
+				WHERE
+					T1.MARCLASSCODE = t2.PRD_NO
+			)
+		<if test="syncTime !=null and syncTime !='' ">
+		 <!-- and <![CDATA[ TS >= to_date(#{syncTime},'yyyy-MM-DD HH24:MI:SS')]]> -->
+		 and TS > #{syncTime}
+		</if>	
+				
+	</select>
+	
+	<!-- 查询从NC过来需要更新的物料分类数据 -->
+	<select id="queryUpdateNcMarbasclass" resultType="map" parameterType="map">
+		SELECT
+			MARCLASSCODE AS PRD_ID,
+			MARCLASSCODE AS PRD_NO,
+			MARCLASSNAME AS PRD_NAME,
+			trim(ENABLESTATE) AS STATE,
+			PARENTCODE AS PAR_PRD_ID,
+			PARENTCODE AS PAR_PRD_NO,
+			PARENTNAME AS PAR_PRD_NAME,
+			ORGCODE  AS LEDGER_ID,
+			ORGNAME AS LEDGER_NAME,
+			'0' AS FINAL_NODE_FLAG,
+			'0' AS DEL_FLAG,
+			'' AS TASK_RARIO,
+			TS AS TB_TIME 
+		FROM
+			nc_marbasclassview t1
+		WHERE
+		     t1.MARCLASSCODE like #{code}||'%' and 
+			 EXISTS (
+				SELECT
+					1
+				FROM
+					BASE_PRODUCT t2
+				WHERE
+					T1.MARCLASSCODE = t2.PRD_NO
+			)			
+		<if test="syncTime !=null and syncTime !='' ">
+		 <!-- and <![CDATA[ TS >= to_date(#{syncTime},'yyyy-MM-DD HH24:MI:SS')]]> -->
+		 and TS > #{syncTime}
+		</if>
+	</select>
+	
+	<!-- 批量插入 -->
+	<insert id="insertPrdList" parameterType="java.util.List">
+	   <foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+		<![CDATA[
+		 insert into BASE_PRODUCT(
+		 	PRD_ID,PRD_NO,PRD_NAME,PRD_SPEC,PRD_COLOR,BRAND,STD_UNIT,MEAS_UNIT,RATIO,PAR_PRD_ID,
+		 	PAR_PRD_NO,PAR_PRD_NAME,PRD_TYPE,LENGTH,WIDTH,HEIGHT,FACT_PRICE,RET_PRICE_MIN,BEG_DATE,
+		 	BAR_CODE,BAR_CODE_OLD,U_CMP_CODE,PRD_SUIT_FLAG,PIC_PATH,FINAL_NODE_FLAG,STATE,REMARK,CREATOR,CRE_NAME,
+		 	CRE_TIME,DEPT_ID,DEPT_NAME,ORG_ID,ORG_NAME,DEL_FLAG,DTL_PATH,LEDGER_ID,COMM_FLAG,PRVD_PRICE,IS_CAN_FREE_FLAG,IS_NO_STAND_FLAG,
+		 	IS_DISTRIBUT_FLAG,IS_REBATE_FLAG,TASK_RARIO,TB_TIME)
+		 values(
+		 	#{item.PRD_ID},#{item.PRD_NO},#{item.PRD_NAME},#{item.PRD_SPEC,jdbcType=VARCHAR},#{item.PRD_COLOR,jdbcType=VARCHAR},#{item.BRAND,jdbcType=VARCHAR},#{item.STD_UNIT,jdbcType=VARCHAR},#{item.MEAS_UNIT,jdbcType=VARCHAR},#{item.RATIO,jdbcType=VARCHAR},#{item.PAR_PRD_ID,jdbcType=VARCHAR},
+		 	#{item.PAR_PRD_NO,jdbcType=VARCHAR},#{item.PAR_PRD_NAME,jdbcType=VARCHAR},#{item.PRD_TYPE,jdbcType=VARCHAR},#{item.LENGTH,jdbcType=VARCHAR},#{item.WIDTH,jdbcType=VARCHAR},#{item.HEIGHT,jdbcType=VARCHAR},#{item.FACT_PRICE,jdbcType=VARCHAR},#{item.RET_PRICE_MIN,jdbcType=VARCHAR},
+		 	to_date(#{item.BEG_DATE,jdbcType=VARCHAR},'yyyy-mm-dd'),#{item.BAR_CODE,jdbcType=VARCHAR},#{item.BAR_CODE_OLD,jdbcType=VARCHAR},#{item.U_CMP_CODE,jdbcType=VARCHAR},#{item.PRD_SUIT_FLAG,jdbcType=VARCHAR},#{item.PIC_PATH,jdbcType=VARCHAR},#{item.FINAL_NODE_FLAG,jdbcType=VARCHAR},
+		 	#{item.STATE,jdbcType=VARCHAR},#{item.REMARK,jdbcType=VARCHAR},#{item.CREATOR,jdbcType=VARCHAR},#{item.CRE_NAME,jdbcType=VARCHAR},sysdate,#{item.DEPT_ID,jdbcType=VARCHAR},#{item.DEPT_NAME,jdbcType=VARCHAR},#{item.ORG_ID,jdbcType=VARCHAR},#{item.ORG_NAME,jdbcType=VARCHAR},#{item.DEL_FLAG,jdbcType=VARCHAR},#{item.DTL_PATH,jdbcType=VARCHAR},
+		 	#{item.LEDGER_ID,jdbcType=VARCHAR},#{item.COMM_FLAG,jdbcType=VARCHAR},#{item.PRVD_PRICE,jdbcType=VARCHAR},#{item.IS_CAN_FREE_FLAG,jdbcType=VARCHAR},#{item.IS_NO_STAND_FLAG,jdbcType=VARCHAR},#{item.IS_DISTRIBUT_FLAG,jdbcType=VARCHAR},
+		 	#{item.IS_REBATE_FLAG,jdbcType=VARCHAR},
+		 	#{item.TASK_RARIO,jdbcType=VARCHAR},
+		 	to_date(#{item.TB_TIME,jdbcType=VARCHAR},'yyyy-mm-dd hh24:mi:ss')
+		 );
+		]]>
+	  </foreach>
+	</insert>
+	
+	<update id="updatePrdList" parameterType="java.util.List">
+	  <foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+	    <![CDATA[ update BASE_PRODUCT ]]>
+		<set>
+			<if test="item.PRD_NAME !=null and item.PRD_NAME !='' "><![CDATA[PRD_NAME = #{item.PRD_NAME}]]>,
+			</if>
+			<if test="item.PRD_SPEC !=null and item.PRD_SPEC !='' "><![CDATA[PRD_SPEC = #{item.PRD_SPEC}]]>,
+			</if>
+			<if test="item.PRD_COLOR !=null and item.PRD_COLOR !='' "><![CDATA[PRD_COLOR = #{item.PRD_COLOR}]]>,
+			</if>
+			<if test="item.BRAND !=null and item.BRAND !='' "><![CDATA[BRAND = #{item.BRAND}]]>,
+			</if>
+			<if test="item.STD_UNIT !=null and item.STD_UNIT !='' "><![CDATA[STD_UNIT = #{item.STD_UNIT}]]>,
+			</if>
+			<if test="item.MEAS_UNIT !=null and item.MEAS_UNIT !='' "><![CDATA[MEAS_UNIT = #{item.MEAS_UNIT}]]>,
+			</if>
+			<if test="item.RATIO !=null and item.RATIO !='' "><![CDATA[RATIO = #{item.RATIO}]]>,
+			</if>
+			<if test="item.PAR_PRD_ID !=null and item.PAR_PRD_ID !='' "><![CDATA[PAR_PRD_ID = #{item.PAR_PRD_ID}]]>,
+			</if>
+			<if test="item.PAR_PRD_NO !=null and item.PAR_PRD_NO !='' "><![CDATA[PAR_PRD_NO = #{item.PAR_PRD_NO}]]>,
+			</if>
+			<if test="item.PAR_PRD_NAME !=null and item.PAR_PRD_NAME !='' "><![CDATA[PAR_PRD_NAME = #{item.PAR_PRD_NAME}]]>,
+			</if>
+			<if test="item.PRD_TYPE !=null and item.PRD_TYPE !='' "><![CDATA[PRD_TYPE = #{item.PRD_TYPE}]]>,
+			</if>
+			<if test="item.LENGTH !=null and item.LENGTH !='' "><![CDATA[LENGTH = #{item.LENGTH}]]>,
+			</if>
+			<if test="item.WIDTH !=null and item.WIDTH !='' "><![CDATA[WIDTH = #{item.WIDTH}]]>,
+			</if>
+			<if test="item.HEIGHT !=null and item.HEIGHT !='' "><![CDATA[HEIGHT = #{item.HEIGHT}]]>,
+			</if>
+			<if test="item.FACT_PRICE !=null and item.FACT_PRICE !='' "><![CDATA[FACT_PRICE = #{item.FACT_PRICE}]]>,
+			</if>
+			<if test="item.RET_PRICE_MIN !=null and item.RET_PRICE_MIN !='' "><![CDATA[RET_PRICE_MIN = #{item.RET_PRICE_MIN}]]>,
+			</if>
+			<if test="item.BEG_DATE !=null and item.BEG_DATE !='' "><![CDATA[BEG_DATE = to_date(#{item.BEG_DATE},'yyyy-mm-dd')]]>,
+			</if>
+			<if test="item.BEG_DATE !=null and item.BEG_DATE !='' "><![CDATA[BAR_CODE = #{item.BEG_DATE}]]>,
+			</if>
+			<if test="item.BAR_CODE_OLD !=null and item.BAR_CODE_OLD !='' "><![CDATA[BAR_CODE_OLD = #{item.BAR_CODE_OLD}]]>,
+			</if>
+			<if test="item.U_CMP_CODE !=null and item.U_CMP_CODE !='' "><![CDATA[U_CMP_CODE = #{item.U_CMP_CODE}]]>,
+			</if>
+			<if test="item.PRD_SUIT_FLAG !=null and item.PRD_SUIT_FLAG !='' "><![CDATA[PRD_SUIT_FLAG = #{item.PRD_SUIT_FLAG}]]>,
+			</if>
+			<if test="item.PIC_PATH !=null and item.PIC_PATH !='' "><![CDATA[PIC_PATH = #{item.PIC_PATH}]]>,
+			</if>
+			<if test="item.FINAL_NODE_FLAG !=null and item.FINAL_NODE_FLAG !='' "><![CDATA[FINAL_NODE_FLAG = #{item.FINAL_NODE_FLAG}]]>,
+			</if>
+			<if test="item.STATE !=null and item.STATE !='' "><![CDATA[STATE = #{item.STATE}]]>,
+			</if>
+			<if test="item.REMARK !=null and item.REMARK !='' "><![CDATA[REMARK = #{item.REMARK}]]>,
+			</if>
+			<if test="item.UPDATOR !=null and item.UPDATOR !='' "><![CDATA[UPDATOR = #{item.UPDATOR}]]>,
+			</if>
+			<if test="item.UPD_NAME !=null and item.UPD_NAME !='' "><![CDATA[UPD_NAME = #{item.UPD_NAME}]]>,
+			</if>
+			<if test="item.UPD_TIME !=null and item.UPD_TIME !='' "><![CDATA[UPD_TIME=sysdate]]>,
+			</if>
+			<if test="item.DTL_PATH !=null and item.DTL_PATH !='' "><![CDATA[DTL_PATH=#{item.DTL_PATH}]]>,
+			</if>
+			<if test="item.IS_CAN_FREE_FLAG !=null and item.IS_CAN_FREE_FLAG !='' "><![CDATA[IS_CAN_FREE_FLAG=#{item.IS_CAN_FREE_FLAG}]]>,
+			</if>
+			<if test="item.PRVD_PRICE !=null and item.PRVD_PRICE !='' "><![CDATA[PRVD_PRICE=#{item.PRVD_PRICE}]]>,
+			</if>
+			<if test="item.IS_DISTRIBUT_FLAG !=null and item.IS_DISTRIBUT_FLAG !='' "><![CDATA[IS_DISTRIBUT_FLAG=#{item.IS_DISTRIBUT_FLAG}]]>,
+			</if>
+			<if test="item.IS_REBATE_FLAG !=null and item.IS_REBATE_FLAG !='' "><![CDATA[IS_REBATE_FLAG=#{item.IS_REBATE_FLAG}]]>,
+			</if>
+			<if test="item.TASK_RARIO !=null and item.TASK_RARIO !='' "><![CDATA[TASK_RARIO=#{item.TASK_RARIO}]]>,
+			</if>
+			<if test="item.TB_TIME !=null and item.TB_TIME !='' "><![CDATA[TB_TIME = to_date(#{item.TB_TIME},'yyyy-mm-dd hh24:mi:ss')]]>,
+			</if>
+
+		</set>
+		<![CDATA[ where PRD_ID = #{item.PRD_ID}; ]]>
+	  </foreach>
+	</update>
+	
+	<select id="getPrdLedgerByPrdAndLeder" parameterType="map" resultType="java.util.HashMap">
+			select 
+				a.PRD_LEDGER_ID,
+				a.PRD_ID,
+				a.LEDGER_ID,
+				a.LEDGER_NAME,
+				a.LEDGER_NAME_ABBR,
+				a.CREATOR,
+				a.CRE_NAME,
+				to_char(a.CRE_TIME,'yyyy-MM-DD HH24:MI:SS') CRE_TIME,
+				a.UPDATOR,
+				a.UPD_NAME,
+				to_char(a.UPD_TIME,'yyyy-MM-DD HH24:MI:SS') UPD_TIME,
+				a.DEL_FLAG
+			from BASE_PRODUCT_LEDGER a 
+			where a.PRD_ID=#{PRD_ID} and a.LEDGER_ID=#{LEDGER_ID} and a.DEL_FLAG='0'
+	</select>
+	
+	<update id="updatePrdLedgerId" parameterType="java.util.List">
+		<foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+			<![CDATA[ update BASE_PRODUCT_LEDGER ]]>
+			<set>
+				<if test="item.PRD_ID !=null and item.PRD_ID !='' "><![CDATA[PRD_ID = #{item.PRD_ID}]]>,</if>
+				<if test="item.LEDGER_ID !=null and item.LEDGER_ID !='' "><![CDATA[LEDGER_ID = #{item.LEDGER_ID}]]>,</if>
+				<if test="item.LEDGER_NAME !=null and item.LEDGER_NAME !='' "><![CDATA[LEDGER_NAME = #{item.LEDGER_NAME}]]>,</if>
+			</set>
+			<![CDATA[ where PRD_LEDGER_ID = #{item.PRD_LEDGER_ID}; ]]>
+		</foreach>
+	</update>
+	
+	<!-- 查询从NC过来需要新插入的物料数据 -->
+	<select id="queryInsertNcPrd" resultType="map" parameterType="map">
+		SELECT
+			CODE AS PRD_ID,
+			CODE AS PRD_NO,
+		    MATERIALMNECODE AS U_CMP_CODE,
+			NAME AS PRD_NAME,
+		    MATERIALSPEC AS PRD_SPEC,
+			BD_MARBASCLASSCODE AS PAR_PRD_ID,
+			BD_MARBASCLASSCODE AS PAR_PRD_NO,
+			BD_MARBASCLASSNAME AS PAR_PRD_NAME,
+			REPLACE(DEF18, '~' ,'0') AS TASK_RARIO,
+			MEASDOCNAME AS STD_UNIT,
+			MATERIALCONVERTNAME AS MEAS_UNIT,
+			MEASRATE AS RATIO,
+			trim(ENABLESTATE) AS STATE,
+			ORGINFO AS LEDGERINFO,
+			<!-- ORGCODE AS LEDGER_ID,
+			ORGNAME AS LEDGER_NAME, -->
+			'1' AS FINAL_NODE_FLAG,
+			'0' AS DEL_FLAG,
+			GRAPHID AS TASK_RARIO,
+			TS AS TB_TIME 
+		FROM
+			nc_materialview t1
+		WHERE
+			NOT EXISTS (
+				SELECT
+					1
+				FROM
+					BASE_PRODUCT t2
+				WHERE
+					T1.CODE = t2.PRD_NO
+			)
+		<if test="syncTime !=null and syncTime !='' ">
+		 <!-- and <![CDATA[ TS >= to_date(#{syncTime},'yyyy-MM-DD HH24:MI:SS')]]> -->
+		 and TS > #{syncTime}
+		</if>
+	</select>
+	
+	<!-- 查询从NC过来需要更新的物料数据 -->
+	<select id="queryUpdateNcPrd" resultType="map" parameterType="map">
+		SELECT
+			CODE AS PRD_ID,
+			CODE AS PRD_NO,
+		    MATERIALMNECODE AS U_CMP_CODE,
+			NAME AS PRD_NAME,
+		    MATERIALSPEC AS PRD_SPEC,
+			BD_MARBASCLASSCODE AS PAR_PRD_ID,
+			BD_MARBASCLASSCODE AS PAR_PRD_NO,
+			BD_MARBASCLASSNAME AS PAR_PRD_NAME,
+			REPLACE(DEF18, '~' ,'0') AS TASK_RARIO,
+			MEASDOCNAME AS STD_UNIT,
+			MATERIALCONVERTNAME AS MEAS_UNIT,
+			MEASRATE AS RATIO,
+			trim(ENABLESTATE) AS STATE,
+			ORGINFO AS LEDGERINFO,
+			<!-- ORGCODE AS LEDGER_ID,
+			ORGNAME AS LEDGER_NAME, -->
+			'1' AS FINAL_NODE_FLAG,
+			'0' AS DEL_FLAG,
+			GRAPHID AS TASK_RARIO,
+			TS AS TB_TIME 
+		FROM
+			nc_materialview t1
+		WHERE
+			 EXISTS (
+				SELECT
+					1
+				FROM
+					BASE_PRODUCT t2
+				WHERE
+					T1.CODE = t2.PRD_NO
+			)
+		<if test="syncTime !=null and syncTime !='' ">
+		 <!-- and <![CDATA[ TS >= to_date(#{syncTime},'yyyy-MM-DD HH24:MI:SS')]]> -->
+		 and TS > #{syncTime}
+		</if>
+	</select>				
+	
+	
+	<select id="getLedgerChrgByIds" parameterType="string" resultType="java.util.HashMap">
+			select 
+				a.PRD_LEDGER_ID,
+				a.PRD_ID,
+				a.LEDGER_ID,
+				a.LEDGER_NAME,
+				a.LEDGER_NAME_ABBR
+			from BASE_PRODUCT_LEDGER a 
+			where a.PRD_LEDGER_ID  in (${PRD_LEDGER_IDS}) 
+		</select>
+		
+		<select id="getLedgerChrgBySubId" parameterType="map" resultType="int">
+			select 
+				count(1) cnt
+			from BASE_PRODUCT a 
+			left join BASE_PRODUCT_LEDGER b on a.PRD_ID = b.PRD_ID 
+			where a.PAR_PRD_ID = #{PRD_ID} and b.LEDGER_ID=#{LEDGER_ID} and b.DEL_FLAG='0'
+		</select>
+		
+		<select id="getLedgerChrgById" parameterType="map" resultType="int">
+			select 
+				count(1) cnt
+			from BASE_PRODUCT a 
+			left join BASE_PRODUCT_LEDGER b on a.PRD_ID = b.PRD_ID 
+			where a.PRD_ID = #{PRD_ID} and b.LEDGER_ID=#{LEDGER_ID} and b.DEL_FLAG='0'
+		</select>
+		
+		
+		<select id="getSubPrdInfo" parameterType="string" resultType="string">
+			select PRD_ID from BASE_PRODUCT 
+			where PRD_ID != #{PRD_ID}
+			start with PRD_ID = #{PRD_ID}
+			connect by prior  PAR_PRD_ID=PRD_ID 
+			order by PAR_PRD_ID
+		</select>
+		
+		<delete  id="delLedgerChrgByPrdId" parameterType="map">
+			delete BASE_PRODUCT_LEDGER where PRD_ID =#{PRD_ID} AND LEDGER_ID =#{LEDGER_ID}
+		</delete>
+		<insert id="insterLedgerChrgByPrdId" parameterType="map">
+			insert into base_product_ledger(
+				PRD_LEDGER_ID,
+				PRD_ID,
+				LEDGER_ID,
+				LEDGER_NAME,
+				CREATOR,
+				CRE_NAME,
+				CRE_TIME,
+				DEL_FLAG,
+				LEDGER_NAME_ABBR
+			)values(
+				#{PRD_LEDGER_ID},
+				#{PRD_ID},
+				#{LEDGER_ID},
+				#{LEDGER_NAME},
+				#{CREATOR},
+				#{CRE_NAME},
+				sysdate,
+				#{DEL_FLAG},
+				#{LEDGER_NAME_ABBR}
+			)
+		</insert>
+	
+</mapper>

@@ -1,0 +1,462 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.centit.base.provider.mapper.ProviderMapper">
+	<resultMap id="providerModel" type="com.centit.base.provider.model.ProviderModel">
+		<result column="PRVD_ID" property="PRVD_ID" />
+		<result column="PRVD_NO" property="PRVD_NO" />
+		<result column="PRVD_NAME" property="PRVD_NAME" />
+		<result column="PRVD_TYPE" property="PRVD_TYPE" />
+		<result column="PRVD_LVL" property="PRVD_LVL" />
+		<result column="PRVD_NATRUE" property="PRVD_NATRUE" />
+		<result column="ZONE_ID" property="ZONE_ID" />
+		<result column="NATION" property="NATION" />
+		<result column="PROV" property="PROV" />
+		<result column="CITY" property="CITY" />
+		<result column="COUNTY" property="COUNTY" />
+		<result column="PRVD_CY" property="PRVD_CY" />
+		<result column="PRVD_CAP" property="PRVD_CAP" />
+		<result column="PERSON_BUSS" property="PERSON_BUSS" />
+		<result column="PERSON_CON" property="PERSON_CON" />
+		<result column="TEL" property="TEL" />
+		<result column="MOBILE_PHONE" property="MOBILE_PHONE" />
+		<result column="TAX" property="TAX" />
+		<result column="POST" property="POST" />
+		<result column="ADDRESS" property="ADDRESS" />
+		<result column="EMAIL" property="EMAIL" />
+		<result column="WEB" property="WEB" />
+		<result column="LEGAL_REPRE" property="LEGAL_REPRE" />
+		<result column="BUSS_LIC" property="BUSS_LIC" />
+		<result column="INVOICE_TI" property="INVOICE_TI" />
+		<result column="INVOICE_ADDR" property="INVOICE_ADDR" />
+		<result column="OPENING_BANK" property="OPENING_BANK" />
+		<result column="BANK_ACCT" property="BANK_ACCT" />
+		<result column="FI_CMP_NO" property="FI_CMP_NO" />
+		<result column="STATE" property="STATE" />
+		<result column="REMARK" property="REMARK" />
+		<result column="CREATOR" property="CREATOR" />
+		<result column="CRE_NAME" property="CRE_NAME" />
+		<result column="CRE_TIME" property="CRE_TIME" />
+		<result column="UPDATOR" property="UPDATOR" />
+		<result column="UPD_NAME" property="UPD_NAME" />
+		<result column="UPD_TIME" property="UPD_TIME" />
+		<result column="DEPT_ID" property="DEPT_ID" />
+		<result column="DEPT_NAME" property="DEPT_NAME" />
+		<result column="ORG_ID" property="ORG_ID" />
+		<result column="ORG_NAME" property="ORG_NAME" />
+		<result column="LEDGER_ID" property="LEDGER_ID" />
+		<result column="LEDGER_NAME" property="LEDGER_NAME" />
+		<result column="DEL_FLAG" property="DEL_FLAG" />
+		<result column="DEFAULT_FLAG" property="DEFAULT_FLAG" />
+	</resultMap>
+
+	<!-- 动态查询 and 列表排序   -->
+	<sql id="queryDynSql">
+		<if test="PRVD_NO !=null and PRVD_NO !='' ">
+			and u.PRVD_NO like '%'||#{PRVD_NO}||'%'</if>
+		<if test="PRVD_NAME !=null and PRVD_NAME !='' ">
+			and u.PRVD_NAME like '%'||#{PRVD_NAME}||'%'</if>
+		<if test="PRVD_TYPE !=null and PRVD_TYPE !='' ">
+			and u.PRVD_TYPE =#{PRVD_TYPE}
+		</if>
+		<if test="STATE !=null and STATE !='' ">
+			and u.STATE=#{STATE}
+		</if>
+		<if test="PROV !=null and PROV !='' ">
+			and u.PROV=#{PROV}
+		</if>
+		<if test="CITY !=null and CITY !='' ">
+			and u.CITY=#{CITY}
+		</if>
+		<if test="PERSON_BUSS !=null and PERSON_BUSS !='' ">
+			and u.PERSON_BUSS=#{PERSON_BUSS}
+		</if>
+		<if test="CRE_TIME_FROM !=null and CRE_TIME_FROM !='' ">
+			and <![CDATA[ u.CRE_TIME <= to_date(#{CRE_TIME_FROM},'yyyy-MM-DD HH24:MI:SS')]]>
+		</if>
+		<if test="CRE_TIME_TO !=null and CRE_TIME_TO !='' ">
+			and <![CDATA[ u.CRE_TIME <= to_date(#{CRE_TIME_TO},'yyyy-MM-DD HH24:MI:SS')]]>
+		</if>
+		<if test="DEL_FLAG !=null and DEL_FLAG !='' ">
+			and DEL_FLAG=#{DEL_FLAG}
+		</if>
+	</sql>
+	<sql id="orderSql">
+		order by  
+		<if test="orderField != null and orderField != ''">
+			${orderField},
+		</if>
+		u.CRE_TIME DESC
+	</sql>
+
+	<sql id="coreSql">
+		  <![CDATA[ 
+		  SELECT 
+			u.PRVD_ID,u.PRVD_NO,u.PRVD_NAME, u.PRVD_TYPE, 
+			u.PROV, u.CITY, u.PERSON_BUSS, u.CRE_NAME,
+			to_char(u.CRE_TIME,'yyyy-MM-DD HH24:MI:SS') CRE_TIME, u.DEPT_NAME, u.STATE 
+		  FROM 
+			BASE_PROVIDER u
+		   ]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+		<include refid="orderSql" />
+	</sql>
+
+	<!-- 分页查询 -->
+	<select id="pageQuery" parameterType="map" resultType="java.util.HashMap">
+		<include refid="coreSql" />
+	</select>
+
+	<!-- 分页计数 -->
+	<select id="pageCount" parameterType="map" resultType="int">
+		<![CDATA[SELECT 
+					count(PRVD_ID) cnt 
+				 from 
+					BASE_PROVIDER u
+		]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+	</select>
+
+	<!-- 查询 -->
+	<select id="query" parameterType="map" resultType="java.util.HashMap">
+		<include refid="coreSql" />
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+		<include refid="orderSql" />
+	</select>
+
+	<!-- 根据ID查找 -->
+	<select id="loadById" parameterType="map" resultType="java.util.HashMap">
+		<![CDATA[
+		select 
+			u.PRVD_ID,u.PRVD_NO,u.PRVD_NAME,u.PRVD_TYPE ,u.PRVD_LVL ,
+			u.PRVD_NATRUE ,u.NATION ,u.PROV ,u.CITY ,u.COUNTY ,u.PRVD_CY ,u.PRVD_CAP,
+			u.PERSON_BUSS,u.PERSON_CON,u.POST ,u.TEL,u.TAX,u.EMAIL,
+			u.WEB,u.LEGAL_REPRE,u.BUSS_LIC,u.INVOICE_TI,u.INVOICE_ADDR,
+			u.BANK_ACCT,u.FI_CMP_NO,u.CRE_NAME,to_char(u.CRE_TIME,'yyyy-MM-DD HH24:MI:SS') CRE_TIME ,u.UPD_NAME,
+			to_char(u.UPD_TIME,'yyyy-MM-DD HH24:MI:SS') UPD_TIME,u.DEPT_NAME,
+			u.ORG_NAME ,u.LEDGER_NAME,u.STATE,u.ADDRESS,u.REMARK,u.DEFAULT_FLAG 
+		FROM 
+			BASE_PROVIDER u
+		where
+			u.PRVD_ID = #{PRVD_ID}
+		]]>
+	</select>
+
+	<!-- 新增 -->
+	<insert id="insert" parameterType="map">
+		<![CDATA[
+		 	INSERT INTO  BASE_PROVIDER( 
+			PRVD_ID,PRVD_NO,PRVD_NAME,PRVD_TYPE,PRVD_LVL,PRVD_NATRUE,ZONE_ID,NATION,PROV,CITY,COUNTY,
+			PRVD_CY,PRVD_CAP,PERSON_BUSS,PERSON_CON,TEL,TAX,POST,ADDRESS,EMAIL,WEB,LEGAL_REPRE,BUSS_LIC,
+			INVOICE_TI,INVOICE_ADDR,BANK_ACCT,FI_CMP_NO,STATE,REMARK,CREATOR,CRE_NAME,CRE_TIME,UPDATOR,
+			UPD_NAME,UPD_TIME,DEPT_ID,DEPT_NAME,ORG_ID,ORG_NAME,LEDGER_ID,LEDGER_NAME,DEL_FLAG,DEFAULT_FLAG
+		 	)values(
+			#{PRVD_ID,jdbcType=VARCHAR},
+			#{PRVD_NO,jdbcType=VARCHAR},
+			#{PRVD_NAME,jdbcType=VARCHAR},
+			#{PRVD_TYPE,jdbcType=VARCHAR},
+			#{PRVD_LVL,jdbcType=VARCHAR},
+			#{PRVD_NATRUE,jdbcType=VARCHAR},
+			#{ZONE_ID,jdbcType=VARCHAR},
+			#{NATION,jdbcType=VARCHAR},
+			#{PROV,jdbcType=VARCHAR},
+			#{CITY,jdbcType=VARCHAR},
+			#{COUNTY,jdbcType=VARCHAR},
+			#{PRVD_CY,jdbcType=VARCHAR},
+			#{PRVD_CAP,jdbcType=VARCHAR},
+			#{PERSON_BUSS,jdbcType=VARCHAR},
+			#{PERSON_CON,jdbcType=VARCHAR},
+			#{TEL,jdbcType=VARCHAR},
+			#{TAX,jdbcType=VARCHAR},
+			#{POST,jdbcType=VARCHAR},
+			#{ADDRESS,jdbcType=VARCHAR},
+			#{EMAIL,jdbcType=VARCHAR},
+			#{WEB,jdbcType=VARCHAR},
+			#{LEGAL_REPRE,jdbcType=VARCHAR},
+			#{BUSS_LIC,jdbcType=VARCHAR},
+			#{INVOICE_TI,jdbcType=VARCHAR},#{INVOICE_ADDR,jdbcType=VARCHAR},#{BANK_ACCT,jdbcType=VARCHAR},#{FI_CMP_NO,jdbcType=VARCHAR},
+			#{STATE,jdbcType=VARCHAR},#{REMARK,jdbcType=VARCHAR},#{CREATOR,jdbcType=VARCHAR},#{CRE_NAME,jdbcType=VARCHAR},sysdate,
+			#{UPDATOR,jdbcType=VARCHAR},
+			#{UPD_NAME,jdbcType=VARCHAR},sysdate,#{DEPT_ID,jdbcType=VARCHAR},#{DEPT_NAME,jdbcType=VARCHAR},#{ORG_ID,jdbcType=VARCHAR},
+			#{ORG_NAME,jdbcType=VARCHAR},#{LEDGER_ID,jdbcType=VARCHAR},#{LEDGER_NAME,jdbcType=VARCHAR},0,#{DEFAULT_FLAG,jdbcType=VARCHAR}
+			)
+		]]>
+	</insert>
+
+	<!-- 根据ID修改 -->
+	<update id="updateById" parameterType="map">
+		<![CDATA[ UPDATE BASE_PROVIDER ]]>
+		<set>
+			<if test="PRVD_NAME != null ">
+			PRVD_NAME = #{PRVD_NAME},</if>
+			<if test="PRVD_TYPE != null ">
+			PRVD_TYPE = #{PRVD_TYPE},</if>
+			<if test="PRVD_LVL != null ">
+			PRVD_LVL = #{PRVD_LVL},</if>
+			<if test="PRVD_NATRUE != null ">
+			PRVD_NATRUE = #{PRVD_NATRUE},</if>
+			<if test="PRVD_CY != null ">
+			PRVD_CY = #{PRVD_CY},</if>
+			<if test="PRVD_CAP != null ">
+			PRVD_CAP = #{PRVD_CAP},</if>
+			<if test="PERSON_BUSS != null ">
+			PERSON_BUSS = #{PERSON_BUSS},</if>
+			<if test="PERSON_CON != null ">
+			PERSON_CON = #{PERSON_CON},</if>
+			 <if test="TEL != null ">
+			 TEL= #{TEL},</if>
+			 <if test="TAX != null ">
+			 TAX= #{TAX},</if>
+			 <if test="POST != null ">
+			 POST= #{POST},</if>
+			 <if test="EMAIL != null ">
+			 EMAIL= #{EMAIL},</if>
+			 <if test="WEB != null ">
+			 WEB= #{WEB},</if>
+			 <if test="LEGAL_REPRE != null ">
+			 LEGAL_REPRE= #{LEGAL_REPRE},</if>
+			 <if test="BUSS_LIC != null ">
+			 BUSS_LIC= #{BUSS_LIC},</if>
+			 <if test="INVOICE_TI != null ">
+			 INVOICE_TI= #{INVOICE_TI},</if>
+			 <if test="INVOICE_ADDR != null ">
+			 INVOICE_ADDR= #{INVOICE_ADDR},</if>
+			 <if test="DEFAULT_FLAG != null ">
+			 DEFAULT_FLAG= #{DEFAULT_FLAG},</if>
+			 <if test="BANK_ACCT != null ">
+			 BANK_ACCT= #{BANK_ACCT},</if>
+			 <if test="FI_CMP_NO != null ">
+			 FI_CMP_NO= #{FI_CMP_NO},</if>
+			 <if test="ADDRESS != null ">
+			 ADDRESS= #{ADDRESS},</if>
+			 <if test="REMARK != null ">
+			 REMARK= #{REMARK},</if>
+			 <if test="UPDATOR != null ">
+			 UPDATOR= #{UPDATOR},</if>
+			 <if test="DEL_FLAG != null ">
+			 DEL_FLAG= #{DEL_FLAG},</if>
+			 
+			 <if test="STATE != null ">
+			 STATE= #{STATE},</if>
+			 <if test="UPD_NAME != null ">
+			 UPD_NAME= #{UPD_NAME},</if>
+			 <if test="UPD_TIME != null ">
+			 UPD_TIME= sysdate,</if>
+		</set>
+		<![CDATA[ WHERE PRVD_ID = #{PRVD_ID} ]]>
+	</update>
+
+	<!-- 删除 -->
+	<delete id="delete" parameterType="map">
+		<![CDATA[ 
+		 UPDATE BASE_PROVIDER 
+		   SET 
+		   UPDATOR = #{UPDATOR},
+		   UPD_NAME = #{UPD_NAME},
+		   UPD_TIME = sysdate,
+		   DEL_FLAG = #{DEL_FLAG},
+		   REMARK = REMARK ||' PRVD_ID：'||#{PRVD_ID}
+	      WHERE PRVD_ID = #{PRVD_ID}
+	     ]]>
+	</delete>
+	
+	<!-- 查询供应商表中最大的同步时间 -->
+	<select id="queryMaxTbTime" resultType="String" >
+		select MAX(TB_TIME) AS TB_TIME from BASE_PROVIDER
+	</select>
+	
+	<!-- 查询从NC过来需要新插入的供应商 -->
+	<select id="queryInsertNcPrvd" resultType="map" parameterType="map">
+		 SELECT
+			SUPPLIERCODE AS PRVD_ID,
+			SUPPLIERCODE AS PRVD_NO,
+			SUPPLIERNAME AS PRVD_NAME,
+			CONTRYNAME AS NATION,
+			AREACLNAME AS PROV,
+			LINKMANNAME AS PERSON_CON,
+			PHONE AS MOBILE,
+			CELL AS TEL,
+			FAX1 AS TAX,
+			DETAILINFO AS ADDRESS,
+			BANKDOCNAME AS BANK_NAME,
+			ACCNUM AS BANK_ACCT,
+			TAXPAYERID AS BUSS_LIC,
+			ORGINFO AS LEDGERINFO,
+			<!-- ORGCODE AS LEDGER_ID,
+			ORGNAME AS LEDGER_NAME, -->
+			trim(ENABLESTATE) AS STATE,
+			'0' AS DEL_FLAG,
+			TS AS TB_TIME
+		FROM
+			NC_SUPPLIERVIEW t1 
+		WHERE
+		    ROWID in (select max(ROWID) from nc_supplierview group by SUPPLIERCODE) and 
+			NOT EXISTS (
+				SELECT
+					1
+				FROM
+					BASE_PROVIDER t2
+				WHERE
+					T1.SUPPLIERCODE = t2.PRVD_ID
+			) 
+		<if test="syncTime !=null and syncTime !='' ">
+		 <!-- and <![CDATA[ TS >= to_date(#{syncTime},'yyyy-MM-DD HH24:MI:SS')]]> -->
+		 and TS > #{syncTime}
+		</if>
+	</select>
+	
+	<!-- 查询从NC过来需要更新的供应商 -->
+	<select id="queryUpdateNcPrvd" resultType="map" parameterType="map">
+		 SELECT
+			SUPPLIERCODE AS PRVD_ID,
+			SUPPLIERCODE AS PRVD_NO,
+			SUPPLIERNAME AS PRVD_NAME,
+			CONTRYNAME AS NATION,
+			AREACLNAME AS PROV,
+			LINKMANNAME AS PERSON_CON,
+			PHONE AS MOBILE,
+			CELL AS TEL,
+			FAX1 AS TAX,
+			DETAILINFO AS ADDRESS,
+			BANKDOCNAME AS BANK_NAME,
+			ACCNUM AS BANK_ACCT,
+			TAXPAYERID AS BUSS_LIC,
+			ORGINFO AS LEDGERINFO,
+			<!-- ORGCODE AS LEDGER_ID,
+			ORGNAME AS LEDGER_NAME, -->
+			trim(ENABLESTATE) AS STATE,
+			'0' AS DEL_FLAG,
+			TS AS TB_TIME 
+		FROM
+			NC_SUPPLIERVIEW t1 
+		WHERE
+		    ROWID in (select max(ROWID) from nc_supplierview group by SUPPLIERCODE) and 
+			EXISTS (
+				SELECT
+					1
+				FROM
+					BASE_PROVIDER t2
+				WHERE
+					T1.SUPPLIERCODE = t2.PRVD_ID
+			) 
+		<if test="syncTime !=null and syncTime !='' ">
+		 <!-- and <![CDATA[ TS >= to_date(#{syncTime},'yyyy-MM-DD HH24:MI:SS')]]> -->
+		 and TS > #{syncTime}
+		</if>
+	</select>
+	
+	<insert id="insertPrvdList" parameterType="java.util.List">
+	    <foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+	       <![CDATA[
+		 	INSERT INTO  BASE_PROVIDER( 
+				PRVD_ID,PRVD_NO,PRVD_NAME,PRVD_TYPE,PRVD_LVL,PRVD_NATRUE,ZONE_ID,NATION,PROV,CITY,COUNTY,
+				PRVD_CY,PRVD_CAP,PERSON_BUSS,PERSON_CON,TEL,TAX,POST,ADDRESS,EMAIL,WEB,LEGAL_REPRE,BUSS_LIC,
+				INVOICE_TI,INVOICE_ADDR,BANK_ACCT,FI_CMP_NO,STATE,REMARK,CREATOR,CRE_NAME,CRE_TIME,UPDATOR,
+				UPD_NAME,UPD_TIME,DEPT_ID,DEPT_NAME,ORG_ID,ORG_NAME,LEDGER_ID,LEDGER_NAME,DEL_FLAG,DEFAULT_FLAG,
+				TB_TIME 
+		 	)values(
+				#{item.PRVD_ID,jdbcType=VARCHAR},
+				#{item.PRVD_NO,jdbcType=VARCHAR},
+				#{item.PRVD_NAME,jdbcType=VARCHAR},
+				#{item.PRVD_TYPE,jdbcType=VARCHAR},
+				#{item.PRVD_LVL,jdbcType=VARCHAR},
+				#{item.PRVD_NATRUE,jdbcType=VARCHAR},
+				#{item.ZONE_ID,jdbcType=VARCHAR},
+				#{item.NATION,jdbcType=VARCHAR},
+				#{item.PROV,jdbcType=VARCHAR},
+				#{item.CITY,jdbcType=VARCHAR},
+				#{item.COUNTY,jdbcType=VARCHAR},
+				#{item.PRVD_CY,jdbcType=VARCHAR},
+				#{item.PRVD_CAP,jdbcType=VARCHAR},
+				#{item.PERSON_BUSS,jdbcType=VARCHAR},
+				#{item.PERSON_CON,jdbcType=VARCHAR},
+				#{item.TEL,jdbcType=VARCHAR},
+				#{item.TAX,jdbcType=VARCHAR},
+				#{item.POST,jdbcType=VARCHAR},
+				#{item.ADDRESS,jdbcType=VARCHAR},
+				#{item.EMAIL,jdbcType=VARCHAR},
+				#{item.WEB,jdbcType=VARCHAR},
+				#{item.LEGAL_REPRE,jdbcType=VARCHAR},
+				#{item.BUSS_LIC,jdbcType=VARCHAR},
+				#{item.INVOICE_TI,jdbcType=VARCHAR},#{item.INVOICE_ADDR,jdbcType=VARCHAR},#{item.BANK_ACCT,jdbcType=VARCHAR},#{item.FI_CMP_NO,jdbcType=VARCHAR},
+				#{item.STATE,jdbcType=VARCHAR},#{item.REMARK,jdbcType=VARCHAR},#{item.CREATOR,jdbcType=VARCHAR},#{item.CRE_NAME,jdbcType=VARCHAR},sysdate,
+				#{item.UPDATOR,jdbcType=VARCHAR},
+				#{item.UPD_NAME,jdbcType=VARCHAR},sysdate,#{item.DEPT_ID,jdbcType=VARCHAR},#{item.DEPT_NAME,jdbcType=VARCHAR},#{item.ORG_ID,jdbcType=VARCHAR},
+				#{item.ORG_NAME,jdbcType=VARCHAR},#{item.LEDGER_ID,jdbcType=VARCHAR},#{item.LEDGER_NAME,jdbcType=VARCHAR},0,#{item.DEFAULT_FLAG,jdbcType=VARCHAR},
+				to_date(#{item.TB_TIME,jdbcType=VARCHAR},'yyyy-mm-dd hh24:mi:ss')
+			);]]>
+	    </foreach>
+	</insert>
+	
+	<update id="updatePrvdList" parameterType="java.util.List">
+	  <foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+	    <![CDATA[ UPDATE BASE_PROVIDER ]]>
+		<set>
+			<if test="item.PRVD_NAME != null and item.PRVD_NAME !=''">
+			PRVD_NAME = #{item.PRVD_NAME},</if>
+			<if test="item.PRVD_TYPE != null and item.PRVD_TYPE !='' ">
+			PRVD_TYPE = #{item.PRVD_TYPE},</if>
+			<if test="item.PRVD_LVL != null and item.PRVD_LVL !='' ">
+			PRVD_LVL = #{item.PRVD_LVL},</if>
+			<if test="item.PRVD_NATRUE != null and item.PRVD_NATRUE !='' ">
+			PRVD_NATRUE = #{item.PRVD_NATRUE},</if>
+			<if test="item.PRVD_CY != null and item.PRVD_CY !='' ">
+			PRVD_CY = #{item.PRVD_CY},</if>
+			<if test="item.PRVD_CAP != null and item.PRVD_CAP !='' ">
+			PRVD_CAP = #{item.PRVD_CAP},</if>
+			<if test="item.PERSON_BUSS != null and item.PERSON_BUSS !='' ">
+			PERSON_BUSS = #{item.PERSON_BUSS},</if>
+			<if test="item.PERSON_CON != null and item.PERSON_CON !='' ">
+			PERSON_CON = #{item.PERSON_CON},</if>
+			 <if test="item.TEL != null and item.TEL !='' ">
+			 TEL= #{item.TEL},</if>
+			 <if test="item.TAX != null and item.TAX !='' ">
+			 TAX= #{TAX},</if>
+			 <if test="item.POST != null and item.POST !='' ">
+			 POST= #{item.POST},</if>
+			 <if test="item.EMAIL != null and item.EMAIL !='' ">
+			 EMAIL= #{EMAIL},</if>
+			 <if test="item.WEB != null and item.WEB !='' ">
+			 WEB= #{item.WEB},</if>
+			 <if test="item.LEGAL_REPRE != null and item.LEGAL_REPRE !='' ">
+			 LEGAL_REPRE= #{item.LEGAL_REPRE},</if>
+			 <if test="item.BUSS_LIC != null and item.BUSS_LIC !='' ">
+			 BUSS_LIC= #{item.BUSS_LIC},</if>
+			 <if test="item.INVOICE_TI != null and item.INVOICE_TI !='' ">
+			 INVOICE_TI= #{item.INVOICE_TI},</if>
+			 <if test="item.INVOICE_ADDR != null and item.INVOICE_ADDR !='' ">
+			 INVOICE_ADDR= #{item.INVOICE_ADDR},</if>
+			 <if test="item.DEFAULT_FLAG != null and item.DEFAULT_FLAG !='' ">
+			 DEFAULT_FLAG= #{item.DEFAULT_FLAG},</if>
+			 <if test="item.BANK_ACCT != null and item.BANK_ACCT !='' ">
+			 BANK_ACCT= #{item.BANK_ACCT},</if>
+			 <if test="item.FI_CMP_NO != null and item.FI_CMP_NO !='' ">
+			 FI_CMP_NO= #{item.FI_CMP_NO},</if>
+			 <if test="item.ADDRESS != null and item.ADDRESS !='' ">
+			 ADDRESS= #{item.ADDRESS},</if>
+			 <if test="item.REMARK != null and item.REMARK !='' ">
+			 REMARK= #{item.REMARK},</if>
+			 <if test="item.UPDATOR != null and item.UPDATOR !='' ">
+			 UPDATOR= #{item.UPDATOR},</if>
+			 <if test="item.DEL_FLAG != null and item.DEL_FLAG !='' ">
+			 DEL_FLAG= #{item.DEL_FLAG},</if>
+			 <if test="item.STATE != null and item.STATE !='' ">
+			 STATE= #{item.STATE},</if>
+			 <if test="item.UPD_NAME != null and item.UPD_NAME !='' ">
+			 UPD_NAME= #{item.UPD_NAME},</if>
+			 <if test="item.UPD_TIME != null and item.UPD_TIME !='' ">
+			 UPD_TIME= sysdate,</if>
+			 <if test="item.TB_TIME != null and item.TB_TIME !='' ">
+			 TB_TIME= to_date(#{item.TB_TIME},'yyyy-mm-dd hh24:mi:ss'),</if>
+		</set>
+		<![CDATA[ WHERE PRVD_ID = #{item.PRVD_ID}; ]]>
+	  </foreach>
+	</update>
+	
+</mapper>
+

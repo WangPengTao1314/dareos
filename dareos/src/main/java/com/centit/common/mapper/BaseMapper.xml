@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.centit.common.mapper.BaseMapper">
+
+
+	<select id="selcomList" resultType="java.util.HashMap" parameterType="map">
+		${sql}
+	</select>
+	
+	<insert id="insert"  parameterType="map">
+		${sql}
+	</insert>
+	
+	<update id="update"  parameterType="map">
+		${sql}
+	</update>
+	
+	<select id="getRowNum" parameterType="string" resultType="int">
+		select count(*) NUM from ${tabName} where ${conDition}
+	</select>
+	
+	<select id="getSeqByNo" parameterType="string" resultType="int">
+		select ${no}.NEXTVAL from dual
+	</select>
+	
+	<delete id="delSeq" parameterType="string">
+		drop sequence ${no}
+	</delete>
+	<insert id="insertSeq" parameterType="string">
+		create sequence  ${no}
+	</insert>
+	
+	<select id="getIntBySql" parameterType="string" resultType="int">
+		${sql}
+	</select>
+	
+	
+</mapper>
+
+
+

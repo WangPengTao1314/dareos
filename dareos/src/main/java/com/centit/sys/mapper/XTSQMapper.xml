@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.centit.sys.mapper.XTSQMapper">
+	<!-- 
+		*@module 系统管理
+		*@func 系统授权
+		*@version 1.1
+		*@author 吴亚林
+		*  -->
+
+	
+	<!-- 新增 -->
+	<insert id="insert" parameterType="map">
+		<![CDATA[ INSERT INTO T_SYS_XTSQ (XTSQID, XTYHID, XTMKID) VALUES (#{XTSQID}, #{XTYHID}, #{XTMKID}) ]]>
+	</insert>
+	
+	<!-- 删除部门 -->
+	<delete id="delete" parameterType="String">
+		<![CDATA[ DELETE FROM T_SYS_XTSQ X WHERE X.XTYHID = #{XTYHID} ]]>
+	</delete>
+	
+	<!-- 加载 -->
+	<select id="loadById" parameterType="string" resultType="java.util.HashMap">
+		<![CDATA[ SELECT A.XTSQID, A.XTMKID, B.MKBH, B.MKMC, C.YHM
+				  FROM T_SYS_XTSQ A
+				  LEFT JOIN T_SYS_XTMK B
+				    ON A.XTMKID = B.XTMKID
+				  LEFT JOIN T_SYS_XTYH C
+				    ON A.XTYHID = C.XTYHID 
+				  WHERE A.XTYHID=#{XTYHID} ORDER BY B.MKBH ]]>
+	</select>
+</mapper>
+

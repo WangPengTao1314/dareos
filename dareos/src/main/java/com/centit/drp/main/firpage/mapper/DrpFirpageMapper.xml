@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.centit.drp.main.firpage.mapper.DrpFirpageMapper">
+
+	<resultMap id="ZTWHModel" type="com.centit.sys.model.ZTWHModel" />
+	
+	<!-- 促销SQL -->
+	<select id="queryPrmt" parameterType="map" resultType="java.util.HashMap">
+	  <![CDATA[ 
+	  select row_.*, rownum rownum_
+	  from
+		(select 
+			u.PRMT_PLAN_ID,
+			u.PRMT_PLAN_NO,
+			u.PRMT_PLAN_NAME,
+			u.PRMT_TYPE,
+			to_char(u.EFFCT_DATE_BEG,'yyyy-MM-DD') EFFCT_DATE_BEG,
+			to_char(u.EFFCT_DATE_END,'yyyy-MM-DD') EFFCT_DATE_END,
+			u.REMARK,
+			u.CRE_NAME,
+			u.CREATOR,
+			to_char(u.CRE_TIME,'yyyy-MM-DD HH24:MI:SS') CRE_TIME,
+			u.UPD_NAME,
+			u.UPDATOR,
+			to_char(u.UPD_TIME,'yyyy-MM-DD HH24:MI:SS') UPD_TIME,
+			u.DEPT_ID,
+			u.DEPT_NAME,
+			u.ORG_ID,
+			u.ORG_NAME,
+			u.LEDGER_ID,
+			u.LEDGER_NAME,
+			u.STATE,
+			u.DEL_FLAG
+	      from ERP_PRMT_PLAN u 
+	       where u.PRMT_PLAN_ID in(select distinct b.PRMT_PLAN_ID from ERP_PRMT_EFFCT_AREA b 
+	        where b.AREA_ID in(select AREA_ID  from BASE_AREA  
+	               start with  AREA_ID=(select AREA_ID  from BASE_CHANN where  CHANN_ID=#{CHANN_ID})
+	               connect by PRIOR  AREA_ID_P = AREA_ID)
+	      ) 
+	      and u.STATE=#{STATE}
+	      and u.EFFCT_DATE_BEG <= sysdate
+	      and u.EFFCT_DATE_END >= sysdate
+	      order by u.CRE_TIME desc) row_
+	      where rownum <=#{size}
+			 
+	   ]]>
+	   
+	</select> 
+	
+	<!-- 查询 公告 先查询用户所属的渠道ID  然后再渠道表查出 渠道所属的区域ID  然后去公告生效区域查询 公告ID -->
+	 
+	<select id="queryNotice" parameterType="map" resultType="java.util.HashMap">
+	  	<![CDATA[ 
+	  select row_.*, rownum rownum_
+	    from
+	  	(select u.NOTICE_ID,(case when length(u.NOTICE)>300 then substr(u.NOTICE, 0, 300)||'...' else u.NOTICE end ) NOTICE,
+				(case when length(u.NOTICE_TITLE)>16 then substr(u.NOTICE_TITLE, 0, 16)||'...' else u.NOTICE_TITLE end ) NOTICE_TITLE,
+				NOTICE_TYPE,
+				NOTICE_LVL,
+				NOTICE_OBJ,
+				to_char(u.STATIME,'yyyy-MM-DD') STATIME,
+				to_char(u.ENDTIME,'yyyy-MM-DD') ENDTIME,
+				u.ISSUER_ID,u.ISSUER_NAME,
+				u.ZTXXID,u.STATE,u.CREATER,u.CRENAME,u.UPDNAME,
+				to_char(u.CRETIME,'yyyy-MM-DD')CRETIME,
+			    to_char(u.UPDTIME,'yyyy-MM-DD')UPDTIME,
+			    u.UPDATER,u.DELFLAG
+			 from T_SYS_NOTICE u
+			 where 1=1
+	          and (u.NOTICE_OBJ = #{NOTICE_OBJ} or u.NOTICE_OBJ ='1')
+	         
+	          and u.DELFLAG='0'
+	           and u.NOTICE_ID in (
+				select distinct NOTICE_ID from t_sys_notc_dept
+				where DEPT_ID
+				in(
+				select LEDGER_ID
+				from BASE_XTYH_LEDGER_CHRG
+				where DEL_FLAG=0 and XTYHID=#{USERID}
+				)
+			)
+	         order by u.NOTICE_TYPE, u.CRETIME desc)row_
+	      where rownum <#{size}]]>
+	</select>
+	
+
+	 <!-- ==============================================促销  查询更多================================================================== -->
+	
+	<!-- 动态查询 and 列表分页 -->
+	     <sql id="queryDynSql_prmt"> 
+	     	<if test="STATE !=null and STATE !='' ">
+	     		and u.STATE in (${STATE})
+	     	</if>
+			<if test="XTYHID !=null and XTYHID !='' ">
+				and u.PRMT_PLAN_ID in( 
+					select 
+						distinct b.PRMT_PLAN_ID 
+					from ERP_PRMT_EFFCT_AREA b 
+					where b.AREA_ID in (
+						select 
+							AREA_ID 
+						from BASE_AREA 
+						start with AREA_ID=(
+							select 
+								AREA_ID 
+							from BASE_CHANN 
+							where CHANN_ID=#{CHANN_ID} 
+						) connect by PRIOR AREA_ID_P = AREA_ID) )
+			</if>
+			<if test="PRMT_PLAN_NO !=null and PRMT_PLAN_NO !='' ">
+				and u.PRMT_PLAN_NO like '%'||#{PRMT_PLAN_NO}||'%'
+			</if>
+			<if test="PRMT_PLAN_NAME !=null and PRMT_PLAN_NAME !='' ">
+				and u.PRMT_PLAN_NAME like '%'||#{PRMT_PLAN_NAME}||'%'	    
+			</if>
+			<if test="PRMT_TYPE !=null and PRMT_TYPE !='' ">
+				and u.PRMT_TYPE = #{PRMT_TYPE}
+			</if>
+			<if test="EFFCT_DATE_BEG !=null and EFFCT_DATE_BEG !='' ">
+				and u.EFFCT_DATE_BEG &gt;= to_date(#{EFFCT_DATE_BEG},'yyyy-MM-DD')
+			</if>
+			<if test="EFFCT_DATE_END !=null and EFFCT_DATE_END !='' ">
+				and u.EFFCT_DATE_END &lt;= to_date(#{EFFCT_DATE_END},'yyyy-MM-DD')
+			</if>
+	     
+	     </sql>
+		<sql id="orderSql_prmt">
+			 u.CRE_TIME DESC
+		</sql>
+		<!-- 查询SQL -->
+		<sql id="coreSql_prmt">
+			<![CDATA[   
+			    select 
+					u.PRMT_PLAN_ID,
+					u.PRMT_PLAN_NO,
+					u.PRMT_PLAN_NAME,
+					u.PRMT_TYPE,
+					to_char(u.EFFCT_DATE_BEG,'yyyy-MM-DD') EFFCT_DATE_BEG,
+					to_char(u.EFFCT_DATE_END,'yyyy-MM-DD') EFFCT_DATE_END,
+					u.REMARK,
+					u.CRE_NAME,
+					u.CREATOR,
+					to_char(u.CRE_TIME,'yyyy-MM-DD HH24:MI:SS') CRE_TIME,
+					u.UPD_NAME,
+					u.UPDATOR,
+					to_char(u.UPD_TIME,'yyyy-MM-DD HH24:MI:SS') UPD_TIME,
+					u.DEPT_ID,
+					u.DEPT_NAME,
+					u.ORG_ID,
+					u.ORG_NAME,
+					u.LEDGER_ID,
+					u.LEDGER_NAME,
+					u.STATE,
+					u.DEL_FLAG
+			     from ERP_PRMT_PLAN u 
+			 ]]>
+			<where>
+				<include refid="queryDynSql_prmt" />
+			</where>
+			<include refid="orderSql_prmt"/>
+		</sql>
+		
+		<!-- 分页查询 -->
+		<select id="pageQueryPrmt" parameterType="map"
+			resultType="java.util.HashMap">
+			<include refid="coreSql_prmt" />
+		</select>
+	
+	
+	  <!-- ==============================================公告信息 查询更多================================================================== -->
+	
+		<!-- 动态查询 and 列表分页 -->
+
+		<!-- 查询SQL -->
+		<sql id="coreSql_notice">
+			<![CDATA[  select u.NOTICE_ID,
+					       (case
+					         when length(u.NOTICE) > 40 then
+					          substr(u.NOTICE, 0, 40) || '...'
+					         else
+					          u.NOTICE
+					       end) NOTICE,
+					       
+					       u.NOTICE_TITLE,
+					       u.NOTICE_TYPE,
+					       u.NOTICE_OBJ,
+					       u.NOTICE_LVL,
+					       
+					       to_char(u.STATIME, 'yyyy-MM-DD HH24:MI:SS') STATIME,
+					       to_char(u.ENDTIME, 'yyyy-MM-DD HH24:MI:SS') ENDTIME,
+					       u.ISSUER_ID,
+					       u.ISSUER_NAME,
+					       u.ZTXXID,
+					       u.STATE,
+					       u.CREATER,
+					       u.CRENAME,
+					       u.UPDNAME,
+					       to_char(u.CRETIME, 'yyyy-MM-DD HH24:MI:SS') CRETIME,
+					       to_char(u.UPDTIME, 'yyyy-MM-DD HH24:MI:SS') UPDTIME,
+					       u.UPDATER,
+					       u.DELFLAG
+					  from T_SYS_NOTICE u
+			 ]]>
+			 <where>
+				<include refid="querySql_List" />
+			</where>
+			<![CDATA[ order by u.NOTICE_TYPE, u.CRETIME desc  ]]>
+		</sql>
+		<sql id="querySql_List"> 
+			<![CDATA[  
+						1 = 1
+					   and u.STATIME <= sysdate
+					   and u.ENDTIME >= sysdate
+					   and u.DELFLAG = '0'
+					   and u.NOTICE_ID in
+					       (select distinct NOTICE_ID
+					          from t_sys_notc_dept
+					         where DEPT_ID in (select LEDGER_ID
+					                             from BASE_XTYH_LEDGER_CHRG
+					                            where DEL_FLAG = 0
+					                              and XTYHID = #{USERID}))
+			
+			 ]]>
+	     	<if test="NOTICE_OBJ !=null and NOTICE_OBJ !='' ">
+	     		 and (u.NOTICE_OBJ = #{NOTICE_OBJ} or u.NOTICE_OBJ = '1')
+	     	</if>
+			<if test="NOTICE_TITLE !=null and NOTICE_TITLE !='' ">
+				and u.NOTICE_TITLE  like '%'||#{NOTICE_TITLE}||'%'
+			</if>
+			<if test="NOTICE_TYPE !=null and NOTICE_TYPE !='' ">
+				and u.NOTICE_TYPE  like '%'||#{NOTICE_TYPE}||'%'
+			</if>
+			<if test="NOTICE_LVL !=null and NOTICE_LVL !='' ">
+				and u.NOTICE_LVL  like '%'||#{NOTICE_LVL}||'%'
+			</if>
+	     
+	     </sql>
+		
+		<!-- 分页查询 -->
+		<select id="pageQueryNotice" parameterType="map"
+			resultType="java.util.HashMap">
+			<include refid="coreSql_notice" />
+		</select>
+
+
+	<select id="queryStore" parameterType="string" resultType="java.util.HashMap">
+	<![CDATA[
+	
+	   select  t.PRD_NO,t.PRD_NAME,t.STORE_NUM from           
+	   (select temp.PRD_ID,stock.PRD_NO,stock.PRD_NAME,temp.STORE_NUM,stock.SAFE_STORE_NUM ,temp.LEDGER_ID from 
+	   (select acct.PRD_ID,acct.LEDGER_ID, sum(NVL(acct.STORE_NUM,0))STORE_NUM
+	              from DRP_STORE_ACCT acct
+	              group by acct.PRD_ID, acct.LEDGER_ID) temp 
+	               ,DRP_RESV_STOCK stock where temp.PRD_ID = stock.PRD_ID
+	               and stock.STATE='启用'
+	               and stock.DEL_FLAG=0
+	               and temp.STORE_NUM < stock.SAFE_STORE_NUM) t where t.LEDGER_ID=#{LEDGER_ID} and ROWNUM <=4
+	
+	 ]]>
+			 
+	</select>
+		
+		
+		<!-- 查询 代发货预订单   待入库  待退货  -->
+		<select id="queryCount" parameterType="map" resultType="java.util.HashMap">
+			<![CDATA[
+			   select 
+			     (select count(0)  FROM DRP_ADVC_ORDER where STATE='待发货') as DRP_ADVC_ORDER,
+	            (select count(0)  FROM DRP_STOREIN_NOTICE where STATE='提交')  as DRP_STOREIN_NOTICE,
+	            ( select count(0)  FROM DRP_PRD_RETURN_REQ where STATE='提交')  as DRP_PRD_RETURN_REQ
+	            from dual
+			]]>
+		</select>
+		
+		<!-- 查询  待发货预订单    -->
+		<select id="queryOrderCount" parameterType="map" resultType="int">
+			<![CDATA[
+			   select count(0)  FROM DRP_ADVC_ORDER u where STATE=#{STATE}
+			    and LEDGER_ID=#{LEDGER_ID}
+			    and BILL_TYPE=#{BILL_TYPE}
+			    and DEL_FLAG=#{DEL_FLAG}
+			]]>
+		 <if test="QXJBCON !=null and QXJBCON !='' "> and  ${QXJBCON}</if>
+		</select>
+		<!-- 查询  待退货  -->
+	   <select id="queryPrdRetuenReqCount" parameterType="map" resultType="int">
+			<![CDATA[
+	             select count(0) FROM DRP_PRD_RETURN_REQ  where 1=1
+			]]>
+			<if test="LEDGER_ID !=null and LEDGER_ID !='' "> and LEDGER_ID = #{LEDGER_ID} </if>
+			<if test="QXJBCON !=null and QXJBCON !='' "> and ${QXJBCON} </if>
+			
+		</select>
+		
+	   <!-- 查询  待入库  -->
+	   <select id="queryStoreIn" parameterType="map" resultType="int">
+			<![CDATA[
+	             select count(0)  FROM DRP_STOREIN_NOTICE  where 1=1
+			]]>
+			<if test="LEDGER_ID !=null and LEDGER_ID !='' "> and LEDGER_ID = #{LEDGER_ID} </if>
+			<if test="QXJBCON !=null and QXJBCON !='' "> and ${QXJBCON} </if>
+			
+		</select>
+		
+		
+		    <!-- 首页柱状图  当月 按货品前5分组   -->
+		<select id="queryBar" parameterType="map" resultType="java.util.HashMap">
+			<![CDATA[
+			   select row_.*, rownum rownum_
+				  from (
+				        
+				        select b.PRD_NO, b.PRD_NAME, sum(b.ORDER_NUM) ORDER_NUM
+				          from DRP_ADVC_ORDER_DTL b
+				         where b.ADVC_ORDER_ID in
+				               (select t.ADVC_ORDER_ID from DRP_ADVC_ORDER t where 1=1
+				                 and t.STATE !='未提交' and LEDGER_ID=#{LEDGER_ID}
+				               )
+				         group by b.PRD_NO, b.PRD_NAME
+				         order by sum(b.ORDER_NUM) desc
+				        
+				        ) row_
+				 where rownum <= 5
+			]]>
+		</select>
+		<select id="queryGoodsCount" resultType="int" parameterType="map">
+			select count(1) from DRP_GOODS_ORDER where STATE=#{STATE} and ORDER_CHANN_ID in ${CHANNS_CHARG} and DEL_FLAG=0 
+		</select>
+		<select id="queryTurnoverplanCount" resultType="int" parameterType="map">
+			select count(1) from ERP_SALE_ORDER u where u.STATE in (${STATE}) 
+			and  u.ORDER_CHANN_ID in ${CHANNS_CHARG} and u.DEL_FLAG=#{DEL_FLAG}
+			and u.SALE_ORDER_ID in(
+			Select t.SALE_ORDER_ID 
+			from ERP_SALE_ORDER_DTL t  
+			where t.DEL_FLAG = 0 
+			)
+		</select>
+		<select id="queryTurnoverhdCount" resultType="int" parameterType="map">
+		select count(1)
+		  from ERP_DELIVER_ORDER u
+		 where u.STATE in (${STATE})
+		   and u.ORDER_CHANN_ID in ${CHANNS_CHARG}
+		   and u.DEL_FLAG = #{DEL_FLAG}
+		</select>
+		
+		<!-- 查询待审核工艺单 -->
+		<select id="queryTechorderAuditCount" resultType="int" parameterType="map">
+		select count(1)
+		  from ERP_TECH_ORDER t,ERP_TECH_ORDER_DTL u
+		 where t.TECH_ORDER_ID = u.TECH_ORDER_ID
+	       and u.STATE in (${STATE})
+		   and t.ORDER_CHANN_ID in ${CHANNS_CHARG}
+		   and t.DEL_FLAG = #{DEL_FLAG}
+		   and u.DEL_FLAG = #{DEL_FLAG}
+		</select>
+		
+		<!-- 查询待核价工艺单 -->
+		<select id="queryTechorderCount" resultType="int" parameterType="map">
+		select count(1)
+		  from ERP_TECH_ORDER u
+		 where u.STATE in (${STATE})
+		   and u.ORDER_CHANN_ID in ${CHANNS_CHARG}
+		   and u.DEL_FLAG = #{DEL_FLAG}
+		</select>
+		
+		<!-- 查询发运单 -->
+		<select id="queryDeliver" resultType="java.util.HashMap" parameterType="map">
+			<![CDATA[
+		  select row_.*, rownum rownum_  from 
+		(    select 
+			u.DELIVER_ORDER_ID,
+			u.DELIVER_ORDER_NO,
+			u.DELIVER_TYPE,
+			u.TRUCK_TYPE,
+			u.CHANN_TYPE,
+			u.AREA_SER_ID,
+			u.AREA_SER_NO,
+			u.AREA_SER_NAME,
+			u.SEND_CHANN_ID,
+			u.SEND_CHANN_NO,
+			u.SEND_CHANN_NAME,
+			u.RECV_CHANN_ID,
+			u.RECV_CHANN_NO,
+			u.RECV_CHANN_NAME,
+			to_char(u.ADVC_SEND_DATE,'yyyy-MM-DD') ADVC_SEND_DATE,
+			u.TOTAL_VOLUME,
+			u.STATE,
+			u.REMARK,
+			u.SHIP_POINT_ID,
+			u.SHIP_POINT_NAME,
+			u.APPCH_TIME,
+			u.CRE_NAME,
+			u.CREATOR,
+			to_char(u.CRE_TIME,'yyyy-MM-DD HH24:MI:SS') CRE_TIME,
+			u.UPD_NAME,
+			u.UPDATOR,
+			to_char(u.UPD_TIME,'yyyy-MM-DD HH24:MI:SS') UPD_TIME,
+			u.DEPT_ID,
+			u.DEPT_NAME,
+			u.ORG_ID,
+			u.ORG_NAME,
+			u.LEDGER_ID,
+			u.LEDGER_NAME,
+			u.DEL_FLAG,
+			u.BILL_TYPE,
+			u.ORDER_CHANN_ID,
+			u.ORDER_CHANN_NO,
+			u.ORDER_CHANN_NAME,
+			u.FROM_BILL_NO,
+			u.FROM_BILL_ID,
+			NVL(u.IS_ALL_FREEZE_FLAG,0)IS_ALL_FREEZE_FLAG,
+			u.RECV_ADDR_NO,
+			u.JOIN_DELIVER_ORDER_NO
+			from ERP_DELIVER_ORDER u
+			where u.ORDER_CHANN_ID=#{ZTXXID} and u.DEL_FLAG=#{DEL_FLAG}
+			 
+		)row_
+				 where rownum <= 5
+				
+				]]>
+		</select>
+</mapper>
+
+
+

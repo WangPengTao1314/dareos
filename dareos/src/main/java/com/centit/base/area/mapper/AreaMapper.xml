@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- 
+ *@module 基础数据
+ *@func  区域分管信息
+ *@version 1.1
+ *@author  
+ *  -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.centit.base.area.mapper.AreaMapper">
+
+
+	<!-- 使用LLGL装载结果集 -->
+	<resultMap type="com.centit.base.area.model.AreaTree" id="AreaTree"></resultMap>
+	<resultMap id="AreaModel" type="com.centit.base.area.model.AreaModel">
+		<result column="AREA_ID" property="AREA_ID" />
+		<result column="AREA_NO" property="AREA_NO" />
+		<result column="AREA_NAME" property="AREA_NAME" />
+		<result column="AREA_ID_P" property="AREA_ID_P" />
+		<result column="AREA_NO_P" property="AREA_NO_P" />
+		<result column="AREA_NAME_P" property="AREA_NAME_P" />
+		<result column="STATE" property="STATE" />
+		<result column="CREATOR" property="CREATOR" />
+		<result column="CRE_NAME" property="CRE_NAME" />
+		<result column="CRE_TIME" property="CRE_TIME" />
+		
+		<result column="UPDATOR" property="UPDATOR" />
+		<result column="UPD_NAME" property="UPD_NAME" />
+		<result column="UPD_TIME" property="UPD_TIME" />
+		<result column="DEPT_ID" property="DEPT_ID" />
+		<result column="DEPT_NAME" property="DEPT_NAME" />
+		<result column="ORG_ID" property="ORG_ID" />
+		<result column="ORG_NAME" property="ORG_NAME" />
+		<result column="LEDGER_ID" property="LEDGER_ID" />
+		<result column="LEDGER_NAME" property="LEDGER_NAME" />
+	</resultMap>
+	
+		 	<!-- 查询SQL -->
+	<sql id="coreSql">
+		<![CDATA[select  u.AREA_ID,u.AREA_NO,u.AREA_NAME ,u.AREA_ID_P,u.AREA_NO_P,u.AREA_NAME_P,
+		 u.STATE,u.CREATOR,u.CRE_NAME,
+		 to_char(u.CRE_TIME,'yyyy-MM-DD HH24:MI:SS') CRE_TIME,u.UPDATOR,u.UPD_NAME,
+		 to_char(u.UPD_TIME,'yyyy-MM-DD HH24:MI:SS') UPD_TIME,u.DEPT_ID,u.DEPT_NAME,u.ORG_ID,u.ORG_NAME,
+		 u.LEDGER_ID,u.LEDGER_NAME,u.DEL_FLAG  from BASE_AREA u ]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+			<include refid="orderSql" />
+	</sql>
+	
+	   <!-- 动态查询 and 列表分页 -->
+	<sql id="queryDynSql">
+	    <if test="AREA_ID !=null and AREA_ID !='' "> 
+	    		and (u.AREA_ID = #{AREA_ID} OR u.AREA_ID_P = #{AREA_ID})
+		</if>
+		<if test="AREA_NO !=null and AREA_NO !='' "> 
+				and u.AREA_NO = #{AREA_NO}		
+		</if>
+		<if test="AREA_NAME !=null and AREA_NAME !='' ">
+			 	and u.AREA_NAME LIKE '%'|| #{AREA_NAME} ||'%'		
+		</if>
+		<if test="AREA_NO_P !=null and AREA_NO_P !='' "> 
+				and u.AREA_NO_P LIKE '%'|| #{AREA_NO_P} ||'%'
+		</if>
+		<if test="AREA_NAME_P !=null and AREA_NAME_P !='' "> 
+				and u.AREA_NAME_P LIKE '%'||#{AREA_NAME_P}||'%'		
+		</if>
+		<if test="STATE !=null and STATE !='' "> 
+				and u.STATE = #{STATE}	  
+		</if>
+		<if test="DEL_FLAG !=null and DEL_FLAG !='' "> 
+				and u.DEL_FLAG = #{DEL_FLAG}	  
+		</if>
+		<if test="QXJBCON !=null and QXJBCON !='' "> 
+				and ${QXJBCON}	  
+		</if>
+	</sql>
+	<sql id="orderSql">
+		order by 
+	   <if test="orderField != null and orderField != ''">
+	    		order by  ${orderField},
+	    	</if>
+		u.CRE_TIME　desc
+	</sql>
+	
+	<!-- 分页查询 -->
+	<select id="pageQuery" parameterType="map"
+		resultType="java.util.HashMap">
+		<include refid="coreSql" />
+	</select>
+
+	
+	<!-- 区域树 -->
+	<select id="queryTree" parameterType="String" resultMap="AreaTree">
+ 		<![CDATA[
+		select AREA_ID id,AREA_NO||'('||AREA_NAME||')' name ,AREA_ID_P pid from BASE_AREA where DEL_FLAG=0
+		]]>
+	</select>
+	
+	
+    <select id="loadById" parameterType="String"
+		resultType="java.util.HashMap">
+		<![CDATA[  select u.AREA_ID,u.AREA_NO,u.AREA_NAME ,u.AREA_ID_P,u.AREA_NO_P,u.AREA_NAME_P,
+		 u.STATE,u.CREATOR,u.CRE_NAME,
+		 to_char(u.CRE_TIME,'yyyy-MM-DD HH24:MI:SS') CRE_TIME,u.UPDATOR,u.UPD_NAME,
+		 to_char(u.UPD_TIME,'yyyy-MM-DD HH24:MI:SS') UPD_TIME,u.DEPT_ID,u.DEPT_NAME,u.ORG_ID,u.ORG_NAME,
+		 u.LEDGER_ID,u.LEDGER_NAME,u.DEL_FLAG from BASE_AREA u
+					where u.AREA_ID = #{AREA_ID}]]>
+	</select>
+	
+	
+	<select id="queryBhForInt" parameterType="map" resultType="int">
+			select count(AREA_NO) from BASE_AREA where AREA_NO=#{AREA_NO} 
+			<if test="AREA_ID !=null and AREA_ID !='' "> 
+	    		<![CDATA[ and AREA_ID != #{AREA_ID}]]>
+			</if>
+	</select>
+
+	<select id="loadAreaState" parameterType="String" resultType="String">
+		<![CDATA[ select STATE from BASE_AREA WHERE AREA_ID = #{AREA_ID_P}]]>
+	</select>
+	
+	
+	<insert id="insert" parameterType="map">
+		<![CDATA[
+		 insert into BASE_AREA(AREA_ID,AREA_NO,AREA_NAME ,AREA_ID_P,AREA_NO_P,AREA_NAME_P,
+		 STATE,CREATOR,CRE_NAME,CRE_TIME,DEPT_ID,DEPT_NAME,ORG_ID,ORG_NAME,
+		 LEDGER_ID,LEDGER_NAME,DEL_FLAG)
+		 values(#{AREA_ID},#{AREA_NO},#{AREA_NAME} ,#{AREA_ID_P},#{AREA_NO_P},#{AREA_NAME_P},
+		 #{STATE},#{CREATOR},#{CRE_NAME},sysdate,#{DEPT_ID},
+		 #{DEPT_NAME},#{ORG_ID},#{ORG_NAME},#{LEDGER_ID},#{LEDGER_NAME},#{DEL_FLAG})
+		]]>
+	</insert>
+
+	<update id="updateById" parameterType="map">
+		 <![CDATA[ update BASE_AREA ]]>
+		<set>
+			<if test="AREA_NO !=null">AREA_NO = #{AREA_NO},</if>
+			<if test="AREA_NAME !=null">AREA_NAME = #{AREA_NAME},</if>
+			<if test="AREA_ID_P !=null">AREA_ID_P = #{AREA_ID_P},</if>
+			<if test="AREA_NO_P !=null">AREA_NO_P = #{AREA_NO_P},</if>
+			<if test="AREA_NAME_P !=null">AREA_NAME_P = #{AREA_NAME_P},</if>
+			<if test="STATE !=null">STATE = #{STATE},</if>
+			<if test="UPDATOR !=null">UPDATOR = #{UPDATOR},</if>
+			<if test="UPD_NAME !=null">UPD_NAME = #{UPD_NAME},</if>
+		</set>
+		<![CDATA[, UPD_TIME = sysdate]]>
+		<![CDATA[ where AREA_ID = #{AREA_ID} ]]>
+	</update>
+	
+	
+	 
+	<delete id="delete" parameterType="String">
+	<![CDATA[delete from BASE_AREA 
+							where AREA_ID in(select AREA_ID from BASE_AREA
+                              start with AREA_ID = #{AREA_ID}
+                              connect by prior AREA_ID = AREA_ID_P)
+     ]]>
+	</delete>
+	
+	
+	<update id="updateStateById" parameterType="map">	
+		<![CDATA[ update BASE_AREA ]]>
+		<set>
+			<if test="STATE !=null">STATE = #{STATE},</if>
+			<if test="UPDATOR !=null">UPDATOR = #{UPDATOR},</if>
+			<if test="UPD_NAME !=null">UPD_NAME = #{UPD_NAME},</if>
+			<if test="DEL_FLAG !=null">DEL_FLAG = #{DEL_FLAG},</if>
+		</set>
+		<![CDATA[, UPD_TIME = sysdate]]>
+		<![CDATA[ where AREA_ID in(select AREA_ID from BASE_AREA
+                           start with AREA_ID = #{AREA_ID}
+                          connect by prior AREA_ID = AREA_ID_P) ]]>	
+	</update>
+	
+	<!-- 根据用户ID删除 区域扁平表 -->
+	<delete id="deleteareaflat" parameterType="String">
+	<![CDATA[delete from BASE_AREA_CHRG_FLAT where CHRG_PSON_ID in(${CHRGIDS})]]>
+	</delete>
+	
+	<!-- 根据区域分管编号 查询 与之相关的区域id 包含其下级区域 -->
+	<insert id="insertareaflat" parameterType="java.util.List">
+		<foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+			<![CDATA[
+			 insert into BASE_AREA_CHRG_FLAT(AREA_CHRG_FLAT_ID,AREA_ID,CHRG_PSON_ID,CHRG_TYPE)
+			  select a.AREA_ID,a.AREA_ID,b.CHRG_ID,b.JOB 
+			  from BASE_AREA a , 
+			       BASE_AREA_CHRG b 
+			  where (a.AREA_ID=b.AREA_ID or a.AREA_ID_P=b.AREA_ID ) 
+			  and b.CHRG_NO =#{item.CHRG_NO}
+			  and b.DEL_FLAG=#{item.DEL_FLAG}
+			]]>
+		</foreach>
+	</insert>
+	
+	 <!-- 根据用户ID与区域ID删除 区域扁平表 -->
+	<delete id="deleteAreaflatByAreaID" parameterType="map">
+	<![CDATA[delete from BASE_AREA_CHRG_FLAT where AREA_ID = #{AREA_ID} ]]>
+		<if test="CHRG_IDS != null and CHRG_IDS !='' ">
+			CHRG_PSON_ID in(${CHRG_IDS})
+		</if>
+	</delete>
+	
+</mapper>
+

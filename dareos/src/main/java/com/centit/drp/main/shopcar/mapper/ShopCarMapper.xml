@@ -1,0 +1,494 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.centit.drp.main.shopcar.mapper.ShopCarMapper">
+	<resultMap id="shopcarMap" type="com.centit.drp.main.shopcar.model.ShopcarModel">
+		<result column="SHOP_CART_ID" property="SHOP_CART_ID" />
+		<result column="PRD_ID" property="PRD_ID" />
+		<result column="PRD_NO" property="PRD_NO" />
+		<result column="PRD_NAME" property="PRD_NAME" />
+		<result column="PRD_SPEC" property="PRD_SPEC" />
+		<result column="PRD_SIZE" property="PRD_SIZE" />
+		<result column="PRD_COLOR" property="PRD_COLOR" />
+		<result column="BRAND" property="BRAND" />
+		<result column="STD_UNIT" property="STD_UNIT" />
+		<result column="SPCL_TECH_FLAG" property="SPCL_TECH_FLAG" />
+		<result column="PRICE" property="PRICE" />
+		<result column="DECT_RATE" property="DECT_RATE" />
+		<result column="DECT_PRICE" property="DECT_PRICE" />
+		<result column="ORDER_NUM" property="ORDER_NUM" />
+		<result column="ORDER_AMOUNT" property="ORDER_AMOUNT" />
+		<result column="SESSION_ID" property="SESSION_ID" />
+		<result column="DEAL_FLAG" property="DEAL_FLAG" />
+		<result column="VOLUME" property="VOLUME" />
+		<result column="TOTAL_VOLUME" property="TOTAL_VOLUME" />
+		<result column="SPCL_TECH_ID" property="SPCL_TECH_ID" />
+		<result column="ORDER_RECV_DATE" property="ORDER_RECV_DATE" />
+		<result column="TECH_MULT" property="TECH_MULT" />
+		<result column="TECH_AMOUNT" property="TECH_AMOUNT" />
+		<result column="REMARK" property="REMARK" />
+		<result column="LEDGER_ID" property="LEDGER_ID" />
+		<result column="PIC_PATH" property="PIC_PATH" />
+		
+	</resultMap>
+
+	<!-- 动态查询 and 列表排序 -->
+	<sql id="queryDynSql">
+		<if test="LEDGER_ID !=null and LEDGER_ID !='' ">
+			and u.LEDGER_ID = #{LEDGER_ID}</if>
+		<if test="DEL_FLAG !=null and DEL_FLAG !='' ">
+			and u.DEL_FLAG = #{DEL_FLAG}</if>
+		<if test="DEAL_FLAG !=null and DEAL_FLAG !='' ">
+			and u.DEAL_FLAG = #{DEAL_FLAG}
+		</if>
+		<!-- <if test="sql !=null and sql !='' ">
+			and sql = ${sql}
+		</if> -->
+		<if test="SHOP_CART_TYPE !=null and SHOP_CART_TYPE !='' ">
+			and u.SHOP_CART_TYPE = #{SHOP_CART_TYPE},
+		</if>
+		<if test="PRDNOS !=null and PRDNOS !='' ">
+			and PRDNOS = ${PRDNOS}
+		</if>
+		<if test="QXJBCON !=null and QXJBCON !='' ">
+			and ${QXJBCON}
+		</if>
+	</sql>
+	
+	<sql id="orderSql">
+	order by
+		<if test="orderField != null and orderField != ''">
+			  ${orderField}
+		</if>
+	</sql>
+
+	<sql id="coreSql">
+		  <![CDATA[ 
+		  SELECT 
+			u.SHOP_CART_ID,
+			u.PRD_ID,
+			u.PRD_NO,
+			u.PRD_NAME,
+			u.PRD_SPEC,
+			u.PRD_SIZE,
+			u.PRD_COLOR,
+			u.BRAND,
+			u.STD_UNIT,
+			u.PRICE,
+			u.DECT_RATE,
+			u.DECT_PRICE,
+			u.ORDER_NUM,
+			u.ORDER_AMOUNT,
+			u.REMARK,
+			u.HOLE_SPEC,
+			u.PRD_QUALITY,
+			u.PRD_TOWARD,
+			u.PRD_GLASS,
+			u.PRD_OTHER,
+			u.PRD_SERIES,
+			u.LEDGER_ID,
+			a.ATT_PATH,
+			p.PIC_PATH
+		  FROM DRP_SHOP_CART u 
+			left join BASE_ATT a on u.SHOP_CART_ID = a.FROM_BILL_ID
+		left join BASE_PRODUCT p on u.PRD_ID = p.PRD_ID
+		   ]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+		<include refid="orderSql" />
+	</sql>
+
+	<!-- 分页查询 -->
+	<select id="pageQuery" parameterType="map" resultType="java.util.HashMap">
+		<include refid="coreSql" />
+	</select>
+
+	<!-- 分页计数 -->
+	<select id="pageCount" parameterType="map" resultType="int">
+		<![CDATA[
+		select count(0)
+		from DRP_SHOP_CART u 
+		left join BASE_PRODUCT b on u.PRD_ID=b.PRD_ID
+		left join DRP_SPCL_TECH c on u.SPCL_TECH_ID = c.SPCL_TECH_ID and c.USE_FLAG = 1
+		]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+	</select>
+
+	<!-- 根据ID修改 -->
+	<update id="update" parameterType="java.util.List">
+		<foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+		<![CDATA[ update DRP_SHOP_CART ]]>
+		<set>
+			<!-- <if test="SPCL_TECH_ID != null ">
+			SPCL_TECH_ID = #{SPCL_TECH_ID},</if> -->
+			<if test="item.ORDER_NUM != null ">
+			ORDER_NUM = #{item.ORDER_NUM},</if>
+			<if test="item.DEAL_FLAG != null ">
+			DEAL_FLAG = #{item.DEAL_FLAG},</if>
+ 			<if test="item.UPDATOR != null ">
+			UPDATOR = #{item.UPDATOR},</if>
+			<if test="item.UPD_NAME != null ">
+			UPD_NAME = #{item.UPD_NAME},</if>
+			<if test="item.UPD_TIME != null ">
+			UPD_TIME = sysdate,</if>
+			<if test="item.REMARK != null ">
+			REMARK = #{item.REMARK},</if>
+			<if test="item.ORDER_RECV_DATE != null ">
+			<![CDATA[ORDER_RECV_DATE = to_date(#{item.ORDER_RECV_DATE},'yyyy-MM-DD') ]]>,</if>
+		</set>
+		<![CDATA[ WHERE SHOP_CART_ID = #{item.SHOP_CART_ID}]]> ;
+		</foreach> 
+	</update>
+	<!-- 购物车临时工艺表转购物车工艺表 -->
+	<insert id="insertSpcl" parameterType="map">
+		<![CDATA[
+			insert into DRP_CART_SPCL_TECH(
+				CART_SPCL_TECH_ID,
+				SHOP_CART_ID,
+				TECH_TYPE,
+				REMARK
+			)values(
+				#{CART_SPCL_TECH_ID},
+				#{SHOP_CART_ID},
+				#{TECH_TYPE},
+				#{REMARK}
+			)
+		]]>
+	</insert>
+	<!-- 新增 订货订单 -->
+	<insert id="insert" parameterType="map">
+		insert into DRP_GOODS_ORDER(
+			GOODS_ORDER_ID,
+			GOODS_ORDER_NO,
+			ORDER_CHANN_ID,
+			ORDER_CHANN_NO,
+			ORDER_CHANN_NAME,
+			BILL_TYPE,
+			IS_USE_REBATE,
+			RECV_CHANN_ID,
+			RECV_CHANN_NO,
+			RECV_CHANN_NAME,
+			PERSON_CON,
+			TEL,
+			RECV_ADDR,
+			STATE,
+			CREATOR,
+			CRE_NAME,
+			CRE_TIME,
+			DEPT_ID,
+			DEPT_NAME,
+			ORG_ID,
+			ORG_NAME,
+			DEL_FLAG,
+			AREA_ID,
+			AREA_NO,
+			AREA_NAME,
+			RECV_ADDR_NO,
+			CHANN_ID,
+			CHANN_NO,
+			CHANN_NAME,
+			ORDER_TRACE_ID,
+			LEDGER_ID,
+			LEDGER_NAME,
+			TRANSPORT_SETTLE,
+			CUST_NAME,
+			CUST_TEL,
+			CUST_ADDR,
+			REMARK,
+			PRINT_NAME,
+			SALE_ID,
+			SALE_NAME,
+			SALEDEPT_NAME,
+			SALEDEPT_ID,
+			CHANN_ID_P,
+			CHANN_NO_P,
+			CHANN_NAME_P
+		)values(
+			#{GOODS_ORDER_ID,jdbcType=VARCHAR},
+			#{GOODS_ORDER_NO,jdbcType=VARCHAR},
+			#{ORDER_CHANN_ID,jdbcType=VARCHAR},
+			#{ORDER_CHANN_NO,jdbcType=VARCHAR},
+			#{ORDER_CHANN_NAME,jdbcType=VARCHAR},
+			#{BILL_TYPE,jdbcType=VARCHAR},
+			#{IS_USE_REBATE,jdbcType=VARCHAR},
+			#{RECV_CHANN_ID,jdbcType=VARCHAR},
+			#{RECV_CHANN_NO,jdbcType=VARCHAR},
+			#{RECV_CHANN_NAME,jdbcType=VARCHAR},
+			#{PERSON_CON,jdbcType=VARCHAR},
+			#{TEL,jdbcType=VARCHAR},
+			#{RECV_ADDR,jdbcType=VARCHAR},
+			#{STATE,jdbcType=VARCHAR},
+			#{CREATOR,jdbcType=VARCHAR},
+			#{CRE_NAME,jdbcType=VARCHAR},
+			sysdate,
+			#{DEPT_ID,jdbcType=VARCHAR},
+			#{DEPT_NAME,jdbcType=VARCHAR},
+			#{ORG_ID,jdbcType=VARCHAR},
+			#{ORG_NAME,jdbcType=VARCHAR},
+			#{DEL_FLAG,jdbcType=VARCHAR},
+			#{AREA_ID,jdbcType=VARCHAR},
+			#{AREA_NO,jdbcType=VARCHAR},
+			#{AREA_NAME,jdbcType=VARCHAR},
+			#{RECV_ADDR_NO,jdbcType=VARCHAR},
+			#{CHANN_ID,jdbcType=VARCHAR},
+			#{CHANN_NO,jdbcType=VARCHAR},
+			#{CHANN_NAME,jdbcType=VARCHAR},
+			#{ORDER_TRACE_ID,jdbcType=VARCHAR},
+			#{LEDGER_ID,jdbcType=VARCHAR},
+			#{LEDGER_NAME,jdbcType=VARCHAR},
+			#{TRANSPORT_SETTLE,jdbcType=VARCHAR},
+			#{CUST_NAME,jdbcType=VARCHAR},
+			#{CUST_TEL,jdbcType=VARCHAR},
+			#{CUST_ADDR,jdbcType=VARCHAR},
+			#{REMARK,jdbcType=VARCHAR},
+			#{PRINT_NAME,jdbcType=VARCHAR},
+			#{SALE_ID,jdbcType=VARCHAR},
+			#{SALE_NAME,jdbcType=VARCHAR},
+			#{SALEDEPT_NAME,jdbcType=VARCHAR},
+			#{SALEDEPT_ID,jdbcType=VARCHAR},
+			#{CHANN_ID_P,jdbcType=VARCHAR},
+			#{CHANN_NO_P,jdbcType=VARCHAR},
+			#{CHANN_NAME_P,jdbcType=VARCHAR}
+			
+		)
+	</insert>
+	<insert id="insertDtl" parameterType="java.util.List" >
+		<foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+		insert into DRP_GOODS_ORDER_DTL(
+			GOODS_ORDER_DTL_ID,
+			GOODS_ORDER_ID,
+			PRD_ID,
+			PRD_NO,
+			PRD_NAME,
+			PRD_SPEC,
+			PRD_COLOR,
+			BRAND,
+			STD_UNIT,
+			PRICE,
+			DECT_RATE,
+			DECT_PRICE,
+			ORDER_NUM,
+			ORDER_AMOUNT,
+			DEL_FLAG,
+			IS_NO_STAND_FLAG,
+			REMARK,
+			ROW_NO,
+			PRD_SIZE
+		)values(
+			#{item.GOODS_ORDER_DTL_ID,jdbcType=VARCHAR},
+			#{item.GOODS_ORDER_ID,jdbcType=VARCHAR},
+			#{item.PRD_ID,jdbcType=VARCHAR},
+			#{item.PRD_NO,jdbcType=VARCHAR},
+			#{item.PRD_NAME,jdbcType=VARCHAR},
+			#{item.PRD_SPEC,jdbcType=VARCHAR},
+			#{item.PRD_COLOR,jdbcType=VARCHAR},
+			#{item.BRAND,jdbcType=VARCHAR},
+			#{item.STD_UNIT,jdbcType=VARCHAR},
+			#{item.PRICE,jdbcType=VARCHAR},
+			#{item.DECT_RATE,jdbcType=VARCHAR},
+			#{item.DECT_PRICE,jdbcType=VARCHAR},
+			#{item.ORDER_NUM,jdbcType=VARCHAR},
+			#{item.ORDER_AMOUNT,jdbcType=VARCHAR},
+			#{item.DEL_FLAG,jdbcType=VARCHAR},
+			#{item.IS_NO_STAND_FLAG,jdbcType=VARCHAR},
+			#{item.REMARK,jdbcType=VARCHAR},
+			#{item.ROW_NO,jdbcType=VARCHAR},
+			#{item.PRD_SIZE,jdbcType=VARCHAR}
+		);
+		</foreach>  
+	</insert>
+	<!-- 修改渠道信息信用获取方式 -->
+	<select id="getChannCreDit" parameterType="string" resultType="java.util.HashMap">
+		<![CDATA[
+	    SELECT 
+	   a.CHANN_ID,
+       a.CHANN_NO,
+       a.CHANN_NAME,
+       a.AREA_ID,
+       a.AREA_NO,
+       a.CHANN_ABBR,
+       a.AREA_NAME,
+       a.PERSON_CON,
+       a.TEL,
+       a.ADDRESS,
+       a.CHANN_ID_P,
+       a.CHANN_NO_P,
+       a.CHANN_NAME_P
+      FROM BASE_CHANN a  where a.CHANN_ID = #{CHANN_ID}
+		]]>
+	</select>
+	<!-- 删除 -->
+	<delete id="delete" parameterType="map">
+		<![CDATA[ 
+		 UPDATE DRP_SHOP_CART 
+	     SET DEL_FLAG = #{DEL_FLAG} ,UPD_NAME = #{UPD_NAME}  ,UPDATOR = #{UPDATOR} ,UPD_TIME=sysdate
+ 	     WHERE 
+	     SHOP_CART_ID in (${SHOP_CART_IDS})
+	     ]]>
+	</delete>
+	<!-- 根据货品id获取货品体积 -->
+	<select id="getPrdVOLUME" resultType="int" parameterType="string">
+		SELECT VOLUME FROM BASE_PRODUCT WHERE PRD_ID = #{PRD_ID}
+	</select>
+	<update id="upShopCar" parameterType="map">
+	UPDATE DRP_SHOP_CART SET GOODS_ORDER_ID = #{GOODS_ORDER_ID}
+	WHERE SHOP_CART_ID in (${SHOP_CART_IDS})
+	</update>
+	<update id="upPrice" parameterType="map">
+		UPDATE DRP_SHOP_CART SET 
+			PRICE = #{PRICE},
+			DECT_RATE = #{DECT_RATE},
+			DECT_PRICE = #{DECT_PRICE},
+			ORDER_NUM = #{ORDER_NUM},
+			ORDER_AMOUNT = #{ORDER_AMOUNT}
+		WHERE SHOP_CART_ID = #{SHOP_CART_ID}
+	</update>
+	<!-- 根据传进来的工艺单id查询合并后的数据 -->
+	<select id="getPrdInfo" parameterType="string" resultType="java.util.HashMap">
+		<![CDATA[
+			SELECT 
+				a.PRD_ID,
+				a.PRD_NO,
+				a.PRD_NAME,
+				a.PRD_SPEC,
+				a.PRD_SIZE,
+				a.PRD_COLOR,
+				a.BRAND,
+				a.STD_UNIT,
+				a.PRICE,
+				a.DECT_RATE,
+				a.DECT_PRICE,
+				a.SHOP_CART_TYPE,
+				sum(a.ORDER_NUM) ORDER_NUM,
+				sum(a.ORDER_AMOUNT) ORDER_AMOUNT,
+				a.SPCL_TECH_ID,
+				a.VOLUME,
+				sum((a.ORDER_NUM*a.VOLUME)) TOTAL_VOLUME,
+				b.SPCL_TECH_FLAG,
+				to_char(a.ORDER_RECV_DATE,'yyyy-MM-DD')ORDER_RECV_DATE,
+				sum(NVL(b.TECH_MULT,0)) TECH_MULT,
+				sum(NVL(b.TECH_AMOUNT,0)) TECH_AMOUNT,
+				a.REMARK
+			FROM DRP_SHOP_CART a
+			LEFT JOIN DRP_SPCL_TECH b on a.SPCL_TECH_ID=b.SPCL_TECH_ID and b.USE_FLAG=1
+			WHERE  a.SHOP_CART_ID in (${_parameter})
+			GROUP BY
+				a.PRD_ID,
+				a.PRD_NO,
+				a.PRD_NAME,
+				a.PRD_SPEC,
+				a.PRD_SIZE,
+				a.PRD_COLOR,
+				a.BRAND,
+				a.STD_UNIT,
+				a.PRICE,
+				a.DECT_RATE,
+				a.DECT_PRICE,
+				a.VOLUME,
+				a.SPCL_TECH_ID,
+				b.SPCL_TECH_FLAG,
+				a.ORDER_RECV_DATE,
+				a.SHOP_CART_TYPE,
+				a.REMARK,
+				decode(a.REMARK,'','NULL',a.REMARK||rownum)
+		]]>
+	</select>
+	<!-- 更新处理标记 -->
+	<update id="upDeal" parameterType="map">
+		<![CDATA[
+			UPDATE DRP_SHOP_CART SET DEAL_FLAG = #{DEAL_FLAG},SESSION_ID=#{SESSION_ID} WHERE SHOP_CART_ID in (${SHOP_CART_IDS})
+		]]>
+	</update>
+	<select id="getDate" resultType="string">
+	select to_char(sysdate,'yyyy-mm-dd') from dual
+	</select>
+	<select id="getCHANN_TYPE" parameterType="string" resultType="java.util.HashMap">
+		select CHANN_TYPE,AREA_SER_ID from BASE_CHANN where CHANN_ID = #{CHANN_ID}
+	</select>
+	<select id="getShipPointInfo" parameterType="string" resultType="java.util.HashMap">
+		select SHIP_POINT_NO,SHIP_POINT_ID,SHIP_POINT_NAME from BASE_CHANN where CHANN_ID = #{CHANN_ID}
+	</select>
+	<select id="getLargessDect" parameterType="map" resultType="string">
+		select NVL(DECT_RATE,0)DECT_RATE  from BASE_CHANN_DSCT where CHANN_ID = #{CHANN_ID} and DECT_TYPE = #{DECT_TYPE}
+	</select>
+	<select id="getWareaInfo" parameterType="string" resultType="java.util.HashMap">
+		select b.AREA_ID_P WAREA_ID, b.AREA_NO_P WAREA_NO, b.AREA_NAME_P WAREA_NAME
+		  from BASE_CHANN a
+		  left join BASE_AREA b
+		    on a.AREA_ID = b.AREA_ID
+		 where a.CHANN_ID = #{CHANN_ID}
+	</select>
+	
+	<!-- 查询订货订单号是否重复了 -->
+	<select id="judgeGoodNo" parameterType="string" resultType="int">
+	  select count(1) from DRP_GOODS_ORDER t where t.GOODS_ORDER_NO = #{GOODS_ORDER_NO}
+	</select>
+	<select id="checkAdvcReturn" parameterType="map" resultType="int">
+		select count(1) from DRP_SHOP_CART a where a.SHOP_CART_ID in (${SHOP_CART_IDS}) and a.DEL_FLAG = #{DEL_FLAG}
+	</select>
+	
+	<select id="getLedgerGroup"  parameterType="string" resultType="java.util.HashMap">
+		select LEDGER_ID,LEDGER_NAME from DRP_SHOP_CART where SHOP_CART_ID in (${ids})
+		group by LEDGER_ID,LEDGER_NAME
+	</select>
+	
+	<insert id="insertOrderDtl" parameterType="map">
+		insert into DRP_GOODS_ORDER_DTL(
+			GOODS_ORDER_DTL_ID,
+			GOODS_ORDER_ID,
+			PRD_ID,
+			PRD_NO,
+			PRD_NAME,
+			PRD_SPEC,
+			PRD_COLOR,
+			BRAND,
+			STD_UNIT,
+			PRICE,
+			DECT_RATE,
+			DECT_PRICE,
+			ORDER_NUM,
+			ORDER_AMOUNT,
+			REMARK,
+			DEL_FLAG,
+			FROM_BILL_DTL_ID,
+			HOLE_SPEC,
+			PRD_TOWARD,
+			PRD_QUALITY,
+			PRD_GLASS,
+			PRD_OTHER,
+			PRD_SERIES,
+			PRD_SIZE
+		)
+		select 
+			sys_guid(),
+			#{GOODS_ORDER_ID,jdbcType=VARCHAR},
+			a.PRD_ID,
+			a.PRD_NO,
+			a.PRD_NAME,
+			a.PRD_SPEC,
+			a.PRD_COLOR,
+			a.BRAND,
+			a.STD_UNIT,
+			a.PRICE,
+			a.DECT_RATE,
+			a.DECT_PRICE,
+			a.ORDER_NUM,
+			a.ORDER_AMOUNT,
+			a.REMARK,
+			#{DEL_FLAG,jdbcType=VARCHAR},
+			#{SHOP_CART_ID,jdbcType=VARCHAR},
+			a.HOLE_SPEC,
+			a.PRD_TOWARD,
+			a.PRD_QUALITY,
+			a.PRD_GLASS,
+			a.PRD_OTHER,
+			a.PRD_SERIES,
+			a.PRD_SIZE
+		from DRP_SHOP_CART a where SHOP_CART_ID in (${ids}) and a.LEDGER_ID=#{LEDGER_ID}
+		 
+	</insert>
+	
+</mapper>
+

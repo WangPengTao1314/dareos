@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.centit.base.monthstatement.mapper.MonthStatementMapper">
+	<resultMap type="com.centit.base.monthstatement.model.MonthAcctModel" id="model">
+		<result property="monthAcctId" column="MONTH_ACCT_ID" />
+		<result property="year" column="YEAR" />
+		<result property="month" column="MONTH" />
+		<result property="begDate" column="BEG_DATE" />
+		<result property="endDate" column="END_DATE" />
+		<result property="isMonthAcct" column="IS_MONTH_ACCT" />
+	</resultMap>
+	
+	<sql id="core">
+		select 
+			u.MONTH_ACCT_ID,
+			u.YEAR,
+			u.MONTH,
+			to_char(u.BEG_DATE,'yyyy-mm-dd') BEG_DATE,
+			to_char(u.END_DATE,'yyyy-mm-dd') END_DATE,
+			u.IS_MONTH_ACCT
+		from BASE_MONTH_ACCT u 
+		where 1=1
+	</sql>
+	<sql id="queryDynSql">
+		<if test="monthAcctId !=null and monthAcctId !='' "> and u.MONTH_ACCT_ID=#{monthAcctId}</if>
+		<if test="year !=null and year !='' "> and u.YEAR=#{year}</if>
+	</sql>
+	
+	<select id="pageQuery" parameterType="map" resultMap="model">
+		<include refid="core" />
+		<include refid="queryDynSql" />
+		order by u.MONTH
+	</select>
+	
+	<select id="getStatementInfo" parameterType="string" resultType="java.util.HashMap">
+		select 
+			MONTH_ACCT_ID,
+			IS_MONTH_ACCT,
+			to_char(BEG_DATE,'yyyy-mm-dd') BEG_DATE,
+			to_char(END_DATE,'yyyy-mm-dd') END_DATE
+		from BASE_MONTH_ACCT where year=#{year} and month=#{month} for update
+	</select>
+	
+	<insert id="insertStatement" parameterType="map">
+	<![CDATA[
+		INSERT INTO BASE_MONTH_ACCT_NOTE(
+				MONTH_ACCT_NOTE_ID,
+				YEAR,
+				MONTH,
+				BEG_DATE,
+				END_DATE,
+				UPDATOR,
+				UPD_NAME,
+				UPD_TIME,
+				LEDGER_ID,
+				LEDGER_NAME,
+				LEDGER_NAME_ABBR,
+				CHANN_ID,
+				CHANN_NO,
+				CHANN_NAME,
+				BEG_AMOUNT,
+				END_AMOUNT,
+				BEG_REBATE_AMOUNT,
+				END_REBATE_AMOUNT,
+				BEG_FREEZ_AMOUNT,
+				END_FREEZ_AMOUNT,
+				BEG_FREEZ_CREDIT,
+				END_FREEZ_CREDIT,
+				USE_AMOUNT,
+				FREEZ_AMOUNT,
+				FREEZ_CREDIT,
+				FREEZ_REBATE,
+				RECHARGE_AMOUNT,
+				RECHARGE_REBATE,
+				USE_REBATE
+				)
+				 select 
+				 sys_guid(),
+				 #{year},
+				 #{month},
+				 to_date(#{BEG_DATE},'yyyy-mm-dd'),
+				 to_date(#{END_DATE},'yyyy-mm-dd'),
+				 #{updator},
+				 #{updName},
+				 sysdate,
+				 b.LEDGER_ID,
+				 b.LEDGER_NAME,
+				 b.LEDGER_NAME_ABBR,
+				 a.CHANN_ID,
+				 a.CHANN_NO,
+				 a.CHANN_NAME,
+				 NVL(e.END_AMOUNT,0),
+				 NVL(d.AMOUNT_MONEY,0),
+				 NVL(e.END_REBATE_AMOUNT,0),
+				 NVL(d.AMOUNT_REBATE,0),
+				 NVL(e.END_FREEZ_AMOUNT,0),
+				 NVL(d.FREEZ_MONEY,0),
+				 NVL(e.END_FREEZ_CREDIT,0),
+				 NVL(d.FREEZ_CREDIT,0),
+				 NVL(c.USE_AMOUNT,0),
+				 NVL(c.FREEZ_AMOUNT,0),
+				 NVL(c.FREEZ_CREDIT,0),
+				 NVL(c.FREEZ_REBATE,0),
+				 NVL(c.RECHARGE_AMOUNT,0),
+				 NVL(c.RECHARGE_REBATE,0),
+				 NVL(c.USE_REBATE,0)
+				 from BASE_CHANN a
+				 left join BASE_CHANN_LEDGER_CHRG b on a.CHANN_ID=b.CHANN_ID
+				 left join (
+				      select 
+				           a1.CHANN_ID,
+				           a1.LEDGER_ID,
+				           sum(case when a1.BILL_TYPE='额度扣减' then NVL(a1.AMOUNT_TOTAL,0)+NVL(a1.OWE_CREDIT,0) else 0 end) USE_AMOUNT,
+				           sum(case when a1.BILL_TYPE='额度扣减' then NVL(a1.REBATE_TOTAL,0) else 0 end) USE_REBATE,
+				           sum(case when a1.BILL_TYPE in ('冻结','释放冻结') then nvl(a1.AMOUNT_TOTAL,0) * (case when a1.DIRECTION=1 then 1 else -1 end) else 0 end) FREEZ_AMOUNT,
+				           sum(case when a1.BILL_TYPE in ('冻结','释放冻结') then nvl(a1.AMUNT_CREDIT,0) * (case when a1.DIRECTION=1 then 1 else -1 end) else 0 end) FREEZ_CREDIT,
+				           sum(case when a1.BILL_TYPE in ('冻结','释放冻结') then nvl(a1.AMOUNT_REBATE,0) * (case when a1.DIRECTION=1 then 1 else -1 end) else 0 end) FREEZ_REBATE,
+				           sum(case when a1.BILL_TYPE = '充值' then nvl(a1.AMOUNT_TOTAL,0) else 0 end) RECHARGE_AMOUNT,
+				           sum(case when a1.BILL_TYPE = '返利' then nvl(a1.AMOUNT_REBATE,0) else 0 end) RECHARGE_REBATE
+				      from BASE_BOOKKEEPING a1 
+				      where to_char(a1.OPTION_TIME,'yyyy-mm-dd')>#{BEG_DATE} and to_char(a1.OPTION_TIME,'yyyy-mm-dd')<=#{END_DATE}
+				      group by a1.CHANN_ID,a1.LEDGER_ID
+				   ) c on b.CHANN_ID=c.CHANN_ID and b.LEDGER_ID = c.LEDGER_ID
+				   left join (
+				        select 
+				        a2.CHANN_ID,
+				        a2.LEDGER_ID,
+				        a2.AMOUNT_MONEY,
+				        a2.FREEZ_MONEY,
+				        a2.AMOUNT_REBATE,
+				        a2.FREEZ_REBATE,
+				        a2.AMUNT_CREDIT,
+				        a2.FREEZ_CREDIT,
+				        a2.OWE_CREDIT,
+				        ROW_NUMBER() over(partition by a2.CHANN_ID,a2.LEDGER_ID order by a2.INDEX_NO asc) FID 
+				       from BASE_BOOKKEEPING a2 
+				       where to_char(a2.OPTION_TIME,'yyyy-mm-dd')>#{BEG_DATE} and to_char(a2.OPTION_TIME,'yyyy-mm-dd')<=#{END_DATE}
+				       ) d on b.CHANN_ID=d.CHANN_ID and b.LEDGER_ID = d.LEDGER_ID and FID=1 
+				   left join BASE_MONTH_ACCT_NOTE e on b.CHANN_ID=e.CHANN_ID and b.LEDGER_ID = e.LEDGER_ID 
+				   and add_months(to_date(#{year} ||'-' || #{month},'yyyy-mm'),-1) =to_date(e.YEAR||'-'||e.MONTH,'yyyy-mm')
+				 where a.DEL_FLAG=#{delFlag} and a.STATE=#{state} and a.IS_BASE_FLAG=#{isBaseFlag} and a.CHAA_LVL=#{chaaLvl}
+				 and b.CHANN_ID is not null
+				]]>
+	</insert>
+	
+	<update id="updStatementFlag" parameterType="string">
+		update BASE_MONTH_ACCT  set IS_MONTH_ACCT=1 where MONTH_ACCT_ID=#{MONTH_ACCT_ID}
+	</update>
+	
+	<insert id="statement" parameterType="string">
+		<![CDATA[
+			insert into BASE_MONTH_ACCT(
+				MONTH_ACCT_ID,
+				YEAR,
+				MONTH,
+				BEG_DATE,
+				END_DATE,
+				IS_MONTH_ACCT
+			)
+			select 
+				sys_guid(),
+				to_char(add_months(to_date(#{date},'yyyy-mm-dd'),rownum),'yyyy'),
+				to_char(add_months(to_date(#{date},'yyyy-mm-dd'),rownum),'MM'),
+				add_months(to_date(#{date},'yyyy-mm-dd')+1,rownum-1),
+				add_months(to_date(#{date},'yyyy-mm-dd'),rownum),
+				'0'
+			from dual 
+			CONNECT BY ROWNUM <= 12
+		]]>
+	</insert>
+
+</mapper>
+

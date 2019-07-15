@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.centit.sys.mapper.SysLoginMapper">
+	
+	<resultMap id="XswModel" type="com.centit.sys.model.XswModel" />
+	
+	<insert id="insertLoginLog" parameterType="map">
+		insert into T_SYS_DLRZ(
+			DLRZID,
+			XTYHID,
+			DLSJ,
+			YHIP
+		)values(
+			#{DLRZID},
+			#{XTYHID},
+			#{DLSJ},
+			#{YHIP}
+		)
+	</insert>
+	
+	<select id="getIS_DRP_LEDGER" resultType="string" parameterType="string">
+		select IS_DRP_LEDGER from T_SYS_ZTXX where ZTXXID=#{ZTXXID}
+	</select>
+	
+	<select id="getBaseChann" resultType="java.util.HashMap">
+		select CHANN_ID,CHANN_NO,CHANN_NAME from BASE_CHANN where IS_BASE_FLAG=1
+	</select>
+	
+	<select id="getcurrChann" resultType="java.util.HashMap" parameterType="string">
+		select 
+			CHANN_ID,
+			CHANN_NO,
+			CHANN_NAME,
+			AREA_SER_ID,
+			AREA_SER_NO,
+			AREA_SER_NAME,
+			CHANN_TYPE,
+			CHANN_ID_P,
+			CHANN_NO_P,
+			CHANN_NAME_P
+		from BASE_CHANN where CHANN_ID=#{CHANN_ID}
+	</select>
+	
+	<select id="getCurrTrem" resultType="java.util.HashMap" parameterType="string">
+		select  TERM_ID,TERM_NO,TERM_NAME from BASE_TERMINAL where TERM_NO=#{DEPT_NO}
+	</select>
+	
+	<select id="getYHXXByYHM" resultType="java.util.HashMap" parameterType="string">
+		select 
+			YHKL,
+       		XTYHID,
+       		ZTXXID,
+       		IS_DRP_LEDGER,
+       		RYJB,
+       		PORTAL_URL,
+       		IS_FG_ALL_CHANN
+  		from V_XTYH_JGXX_BMXX_RYXX
+ 		where YHM = #{YHM}
+   		AND YHZT = '启用'
+	</select>
+	
+	<select id="getXTMKByXTYH" parameterType="string" resultType="string">
+		select XTMKID from T_SYS_YHQX where XTYHID=#{XTYHID}
+	</select>
+	
+	<select id="getXTMKByXTJS" parameterType="string" resultType="string">
+		select XTMKID from T_SYS_JSQX where  XTJSID in (${XTJSIDS})
+	</select>
+	
+	<select id="getXTMKByGZZXX"  parameterType="string" resultType="string">
+		select XTMKID from T_SYS_GZZQX where  GZZXXID in (${GZZXXIDS})
+	</select>
+	
+	<select id="getAllXTMK" resultType="string">
+		select XTMKID from T_SYS_XTMK
+	</select>
+	
+	<select id="selcomList"  resultType="java.util.HashMap" parameterType="map">
+		${SelSQL}
+	</select>
+	
+	<select id="getXSWModel" parameterType="string" resultMap="XswModel">
+		select NUMTYPE,NUMFORMATMC,DECIMALS,ROUNDTYPE 
+		from T_SYS_NUMFORMAT where DELFLAG=0 and STATE=#{STATE}
+	</select>
+	
+	<select id="getLedgerChrgByXtyhId" parameterType="string" resultType="string">
+		select 
+			LEDGER_ID
+		from BASE_XTYH_LEDGER_CHRG
+		where XTYHID =#{xtyhId}
+	</select>
+	
+	<select id="getLedgerChrgByJgxxid" parameterType="string" resultType="string">
+		select 
+			LEDGER_ID
+		from BASE_CHANN_LEDGER_CHRG
+		where CHANN_ID =#{jgxxid}
+	</select>
+</mapper>
+
+
+

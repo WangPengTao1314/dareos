@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.centit.base.channcapital.mapper.ChannCapitalMapper">
+	<resultMap id="model" type="com.centit.base.channbill.model.ChannLedgerChrgModel">
+			<result column="CHANN_LEDGER_CHRG_ID" property="channLedgerChrgId" />
+			<result column="CHANN_ID" property="channId" />
+			<result column="LEDGER_ID" property="ledgerId" />
+			<result column="LEDGER_NAME" property="ledgerName" />
+			<result column="AMOUNT_MONEY" property="amountMoney" />
+			<result column="FREEZ_MONEY" property="freezMoney" />
+			<result column="AMOUNT_REBATE" property="amountRebate" />
+			<result column="FREEZ_REBATE" property="freezRebate" />
+			<result column="AMUNT_CREDIT" property="amuntCredit" />
+			<result column="FREEZ_CREDIT" property="freezCredit" />
+			<result column="OWE_CREDIT" property="oweCredit" />
+			<result column="CREATOR" property="creator" />
+			<result column="CRE_NAME" property="creName" />
+			<result column="CRE_TIME" property="creTime" />
+			<result column="UPDATOR" property="updator" />
+			<result column="UPD_NAME" property="updName" />
+			<result column="UPD_TIME" property="updTime" />
+			<result column="DEL_FLAG" property="delFlag" />
+			<result column="LEDGER_NAME_ABBR" property="ledgerNameAbbr" />
+			<result column="CHANN_NAME" property="channName" />
+			<result property="availableAmount" column="AVAILABLE_AMOUNT" />
+			<result property="availableRebate" column="AVAILABLE_REBATE" />
+		</resultMap>
+		
+		<!-- 流水信息 -->
+	<resultMap type="com.centit.common.po.BookkeepingModel" id="BookkeepingModel">
+		<result property="bookkeepingId" column="BOOKKEEPING_ID" />
+		<result property="billId" column="BILL_ID" />
+		<result property="billNo" column="BILL_NO" />
+		<result property="billType" column="BILL_TYPE" />
+		<result property="bookkeepingType" column="BOOKKEEPING_TYPE" />
+		<result property="amountTotal" column="AMOUNT_TOTAL" />
+		<result property="rebateTotal" column="REBATE_TOTAL" />
+		<result property="creditTotal" column="CREDIT_TOTAL" />
+		<result property="optionTime" column="OPTION_TIME" />
+		<result property="optionPerson" column="OPTION_PERSON" />
+		<result property="ledgerId" column="LEDGER_ID" />
+		<result property="ledgerName" column="LEDGER_NAME" />
+		<result property="channId" column="CHANN_ID" />
+		<result property="channNo" column="CHANN_NO" />
+		<result property="channName" column="CHANN_NAME" />
+		<result property="direction" column="DIRECTION" />
+		<result property="amountMoney" column="AMOUNT_MONEY" />
+		<result property="freezMoney" column="FREEZ_MONEY" />
+		<result property="amountRebate" column="AMOUNT_REBATE" />
+		<result property="freezRebate" column="FREEZ_REBATE" />
+		<result property="amuntCredit" column="AMUNT_CREDIT" />
+		<result property="freezCredit" column="FREEZ_CREDIT" />
+		<result property="oweCredit" column="OWE_CREDIT" />
+	</resultMap>
+		
+		
+		<!-- 动态查询 and 列表排序 -->
+	<sql id="queryDynSql">
+		<if test="channLedgerChrgId != null  and channLedgerChrgId != '' ">
+			 and u.CHANN_LEDGER_CHRG_ID = #{channLedgerChrgId} 
+		</if>
+		<if test="channId != null  and channId != '' ">
+			 and u.CHANN_ID = #{channId} 
+		</if>
+		<if test="channName != null  and channName != '' ">
+			 and a.CHANN_NAME like '%'||#{channName}||'%' 
+		</if>
+		<if test="channIds != null  and channIds != '' ">
+			 and u.CHANN_ID in (${channIds})
+		</if>
+		<if test="ledgerId != null  and ledgerId != '' ">
+			 and u.LEDGER_ID = #{ledgerId} 
+		</if>
+		<if test="ledgerIds != null  and ledgerIds != '' ">
+			 and u.LEDGER_ID in (${ledgerIds})
+		</if>
+	</sql>
+	<sql id="orderSql">
+		<if test="orderField != null and orderField != ''">
+			order by  ${orderField}
+		</if>
+	</sql>
+
+	<sql id="coreSql">
+		  <![CDATA[ 
+		  select 
+			u.CHANN_LEDGER_CHRG_ID,
+			u.CHANN_ID,
+			u.LEDGER_ID,
+			u.LEDGER_NAME,
+			u.AMOUNT_MONEY,
+			u.FREEZ_MONEY,
+			to_char((NVL(u.AMOUNT_MONEY,0) - NVL(u.FREEZ_MONEY,0)+NVL(u.AMUNT_CREDIT,0)-NVL(u.FREEZ_CREDIT,0)-NVL(u.OWE_CREDIT,0)),'9999999990.99') AVAILABLE_AMOUNT,
+			to_char((NVL(u.AMOUNT_REBATE,0)-NVL(u.FREEZ_REBATE,0)),'9999999990.99') AVAILABLE_REBATE,
+			u.AMOUNT_REBATE,
+			u.FREEZ_REBATE,
+			u.AMUNT_CREDIT,
+			u.FREEZ_CREDIT,
+			u.OWE_CREDIT,
+			u.CREATOR,
+			u.CRE_NAME,
+			u.CRE_TIME,
+			u.UPDATOR,
+			u.UPD_NAME,
+			u.UPD_TIME,
+			u.DEL_FLAG,
+			u.LEDGER_NAME_ABBR,
+			a.CHANN_NAME
+		  from  BASE_CHANN_LEDGER_CHRG u 
+		  left join BASE_CHANN a on a.CHANN_ID = u.CHANN_ID
+		   ]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+		
+		<include refid="orderSql" />
+	</sql>
+	
+	<select id="pageFreezQuery" parameterType="map" resultMap="BookkeepingModel">
+	select 
+			u.BILL_ID,
+			u.BILL_NO,
+			u.AMOUNT_TOTAL,
+			u.REBATE_TOTAL,
+			u.CREDIT_TOTAL,
+			u.LEDGER_ID,
+			u.LEDGER_NAME,
+			u.CHANN_ID,
+			u.CHANN_NO,
+			u.CHANN_NAME,
+			u.BILL_TYPE,
+			u.OPTION_TIME
+	from (
+		select 
+			u.BILL_ID,
+			u.BILL_NO,
+			abs(sum(NVL(u.AMOUNT_TOTAL,0) * DIRECTION)) AMOUNT_TOTAL,
+			abs(sum(NVL(u.REBATE_TOTAL,0) * DIRECTION)) REBATE_TOTAL,
+			abs(sum(NVL(u.CREDIT_TOTAL,0) * DIRECTION)) CREDIT_TOTAL,
+			u.LEDGER_ID,
+			u.LEDGER_NAME,
+			u.CHANN_ID,
+			u.CHANN_NO,
+			u.CHANN_NAME,
+			u.BILL_TYPE,
+			to_char(max(u.OPTION_TIME),'yyyy-MM-DD HH24:MI:SS') OPTION_TIME
+		from (
+			select 
+				u.BILL_ID,
+				u.BILL_NO,
+				u.AMOUNT_TOTAL,
+				(case when u.BILL_TYPE =#{releaseType} then #{freezType} else u.BILL_TYPE end) BILL_TYPE,
+				u.REBATE_TOTAL,
+				u.CREDIT_TOTAL,
+				u.LEDGER_ID,
+				u.LEDGER_NAME,
+				u.CHANN_ID,
+				u.CHANN_NO,
+				u.CHANN_NAME,
+				(case when u.DIRECTION=0 then 1 else -1 end) DIRECTION,
+				u.OPTION_TIME
+			from BASE_BOOKKEEPING u 
+			where u.BILL_TYPE in (#{releaseType},#{freezType})
+		) u
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+		group by 
+		u.BILL_ID,
+			u.BILL_NO,
+			u.LEDGER_ID,
+			u.LEDGER_NAME,
+			u.CHANN_ID,
+			u.CHANN_NO,
+			u.CHANN_NAME,
+			u.BILL_TYPE
+			) u where u.AMOUNT_TOTAL >0 or u.REBATE_TOTAL>0 or u.CREDIT_TOTAL>0
+	<include refid="orderSql" />
+	</select>
+
+	<!-- 分页查询 -->
+	<select id="pageQuery" parameterType="map" resultMap="model">
+		<include refid="coreSql" />
+	</select>
+
+	<!-- 根据ID查找 -->
+	<select id="loadById" parameterType="map" resultMap="model">
+		<include refid="coreSql" />
+	</select>
+</mapper>
+

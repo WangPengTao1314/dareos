@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<!-- 
+ *@module 基础资料
+ *@func 维护编码规则
+ *@version 1.1
+ *@author 孙炜
+ *  -->
+<mapper namespace="com.centit.sys.mapper.BMGZMapper">
+
+	
+
+	<!-- 使用LLGL装载结果集 -->
+	<resultMap id="BmgzModel" type="com.centit.sys.model.BmgzModel">
+		<result column="BMGZID" property="BMGZID" />
+	</resultMap>
+
+	<!-- 动态查询 and 列表排序 -->
+	<sql id="queryDynSql">
+		<if test="BMBH !=null and BMBH !='' ">u.BMBH like '%'||#{BMBH}||'%'</if>
+		<if test="BMDX !=null and BMDX !='' ">and u.BMDX like '%'||#{BMDX}||'%'</if>
+		<if test="CREATER !=null and CREATER !='' ">and u.CREATER like '%'||#{CREATER}||'%'</if>
+		<if test="fromCRETIME !=null and fromCRETIME !='' ">
+		and u.CRETIME >= to_date(#{fromCRETIME}, 'yyyy-mm-dd hh24:mi:ss')
+		</if>
+		<if test="toCRETIME !=null and toCRETIME !='' ">
+		and u.CRETIME <![CDATA[ <= ]]> to_date(#{toCRETIME}, 'yyyy-mm-dd hh24:mi:ss')
+		</if>
+		<if test="STATE !=null and STATE !='' ">and u.STATE like '%'||#{STATE}||'%'</if>
+		<if test="GZMC !=null and GZMC !='' ">and u.GZMC like '%'||#{GZMC}||'%'</if>
+		<if test="UPDTIME !=null and UPDTIME !='' ">and u.UPDTIME like '%'||to_date(#{UPDTIME},'yyyy-MM-dd')||'%'</if>
+		<if test="REMARK !=null and REMARK !='' ">and u.REMARK like '%'||#{REMARK}||'%'</if>
+		<if test="ZCD !=null and ZCD !='' ">and u.ZCD like '%'||#{ZCD}||'%'</if>
+		<if test="DELFLAG !=null and DELFLAG !='' ">and u.DELFLAG = #{DELFLAG}</if>
+		<if test="QXJBCON !=null and QXJBCON !='' ">and ${QXJBCON}</if>
+	</sql>
+    <sql id="orderSql">
+    order by
+		<if test="orderField !=null and orderField !='' "> 
+		
+		${orderField},
+		</if>
+		u.BMBH DESC 
+
+	</sql>
+	<!-- 查询SQL -->
+	<sql id="coreSql">
+		<![CDATA[select u.BMGZID,u.BMBH,u.GZMC,u.CREATER,u.CRENAME,to_char(u.CRETIME,'yyyy-MM-dd')CRETIME,u.UPDATER,
+		        u.REMARK,u.DELFLAG,to_char(u.UPDTIME,'yyyy-MM-dd hh24:mi:ss')UPDTIME,u.STATE,u.ZCD,u.BMDX,u.SEQUENCEMC,u.CRETIME as CRETIME_1
+				from T_SYS_BMGZ u
+				]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+			<include refid="orderSql"/>
+		
+	</sql>
+	
+	<!-- 分页查询 -->
+	<select id="pageQuery" parameterType="map"
+		resultType="java.util.HashMap">
+		
+		<include refid="coreSql" />
+	
+	</select>
+
+	<!-- 分页计数 -->
+	<select id="pageCount" parameterType="map" resultType="int">
+		<![CDATA[SELECT count(BMGZID) cnt FROM T_SYS_BMGZ u ]]>
+		<where>
+			<include refid="queryDynSql"/>
+		</where>
+	</select>
+
+   <!-- 查询 -->
+	<select id="query" parameterType="map"
+		resultType="java.util.HashMap">
+		<include refid="coreSql" />
+	</select>
+	
+	<insert id="insert" parameterType="map">
+		<![CDATA[
+		 insert into T_SYS_BMGZ(BMGZID,BMBH,GZMC,CREATER,CRENAME,CRETIME,STATE,REMARK,DELFLAG,ZCD,BMDX,DS,SEQUENCEMC)
+		 values(#{BMGZID},#{BMBH},#{GZMC},#{CREATER},#{CRENAME},sysdate,#{STATE},#{REMARK},0,to_number(#{ZCD}),#{BMDX},to_number(#{DS}),#{SEQUENCEMC})
+		]]>
+	</insert>
+
+	<update id="updateById" parameterType="map">
+		<![CDATA[ update T_SYS_BMGZ ]]>
+		<!-- CHANAME, CHADES,CHADATE,CHASTU -->
+			<set>
+			<if test="UPDTIME !=null and UPDTIME !='' ">UPDTIME = sysdate ,</if>
+			<if test="BMBH !=null and BMBH !='' "><![CDATA[BMBH = #{BMBH}]]>,</if>
+			<if test="BMDX !=null and BMDX !='' "><![CDATA[BMDX = #{BMDX}]]>,</if>
+			<if test="GZMC !=null and GZMC !='' "><![CDATA[GZMC = #{GZMC}]]>,</if>
+			<if test="STATE !=null and STATE !='' "><![CDATA[STATE = #{STATE}]]>,</if>
+			<if test="UPDATER !=null and UPDATER !='' "><![CDATA[UPDATER = #{UPDATER}]]>,</if>
+			<if test="REMARK !=null and REMARK !='' "><![CDATA[REMARK = #{REMARK}]]>,</if>
+			<if test="DELFLAG !=null and DELFLAG !='' "> <![CDATA[DELFLAG = #{DELFLAG}]]>,</if>
+			<if test="ZCD !=null and ZCD !='' "><![CDATA[ZCD = #{ZCD}]]></if>
+		</set>
+		<![CDATA[ where BMGZID = #{BMGZID} ]]>
+	</update>
+		<!-- 删除菜单 -->
+	<delete id="delete" parameterType="String">
+		<!--  delete from T_SYS_BMGZ where BMGZID = #{BMGZID:VARCHAR}  -->
+		<![CDATA[ delete from  T_SYS_BMGZ where BMGZID = #{bmgzid,jdbcType=VARCHAR} and STATE!='启用' ]]>
+	</delete>
+	<delete id="deletemx" parameterType="String">
+	     delete from  T_SYS_BMGZMX where BMGZID = #{bmgzid,jdbcType=VARCHAR}
+	</delete>
+	<insert id="insertBMGZ" parameterType="map">
+	   insert into t_sys_datarecycle(DATARECYCLEID,DELETOR,DELTIME,BUSINESSTYPE,DF1,DF2,DF3,DF4,DF5,DF6,DF7,DF8,DF9,DF10,DF11,DF12,DF13,DF14,DF15)
+	    select #{DATARECYCLEID},#{DELETOR},sysdate,'编码规则信息维护',BMGZID,BMDX,GZMC,BMBH,SEQUENCEMC,DS,ZCD,CREATER,CRETIME,STATE,DELFLAG,UPDTIME,REMARK,UPDATER,CRENAME
+        from T_SYS_BMGZ  where  BMGZID = #{BMGZID,jdbcType=VARCHAR}
+	</insert>
+	<insert id="insertBMGZMX" parameterType="map">
+	   insert into t_sys_datarecycle(DATARECYCLEID,DELETOR,DELTIME,BUSINESSTYPE,DF1,DF2,DF3,DF4,DF5,DF6,DF7,DF8,DF9,DF10,DF11,DF12,DF13,DF14)
+	    select #{DATARECYCLEID}||rownum,#{DELETOR},sysdate,'编码规则信息维护',BMGZMXID,BMGZID,DLX,DCD,DT,NYS,BC,CSZ,DELFLAG,CREATER,CRETIME,UPDATER,UPDTIME,STATE
+        from T_SYS_BMGZMX  where  BMGZID = #{BMGZID,jdbcType=VARCHAR}
+	</insert>
+	<select id="loadById" parameterType="String" resultType="java.util.HashMap">
+		<![CDATA[  
+			select u.BMGZID,u.BMBH,u.GZMC,u.CREATER,u.CRENAME,to_char(u.CRETIME,'yyyy-MM-dd hh24:mi:ss')CRETIME,u.UPDATER,
+		        u.REMARK,u.DELFLAG,to_char(u.UPDTIME,'yyyy-MM-dd hh24:mi:ss')UPDTIME,u.STATE,u.ZCD,u.BMDX,u.SEQUENCEMC
+			from T_SYS_BMGZ u
+			WHERE U.BMGZID = #{BMGZID}
+			]]>
+	</select>
+	
+	<!-- 单位编号是否已经存在 -->
+	<select id="getCountByBH" parameterType="String" resultType="int">
+		SELECT count(BMBH) FROM T_SYS_BMGZ where BMBH=#{BMBH,jdbcType=VARCHAR} and DELFLAG = 0
+	</select>
+	<!-- 删除主表之前,首先检查子表是否有数据 -->
+	<select id="getCountFromChildTable" parameterType="String" resultType="int">
+		SELECT count(BMGZMXID) FROM T_SYS_BMGZMX where BMGZID=#{BMGZID,jdbcType=VARCHAR} and DELFLAG = 0
+	</select>
+	<!-- 取得seq -->
+	<select id="getSeq" resultType="java.util.HashMap">
+		select * from all_objects where owner='${SYSSCHEMA}' and object_type = 'SEQUENCE'
+	</select>
+	
+	<select id="getChildId" parameterType="String" resultType="java.util.HashMap">
+		SELECT u.BMGZMXID FROM T_SYS_BMGZMX u where BMGZID=#{BMGZID,jdbcType=VARCHAR} and DELFLAG = 0
+	</select>
+	<select id="getAll" resultType="com.centit.sys.model.BmgzModel">
+	    SELECT * FROM T_SYS_BMGZ
+	</select>
+	
+	<!-- 获得当天最大的编码编号 -->
+	<select id="getBMBH" resultType="String">
+	    <![CDATA[ select MAX(t.BMBH) from T_SYS_BMGZ t 
+	              where to_char(t.cretime, 'yyyy-mm-dd') = to_char(sysdate,'yyyy-mm-dd') 
+                  and length(t.BMBH)= 16 ]]>
+    </select>
+    
+    <!-- 查询当前最大单位的编码  (remapResults="true"  解决动态字段名情况下，由ibatis缓存select字段而引起的 缓存)-->
+    <select id="queryMaxBillNo" parameterType="map" resultType="java.util.HashMap"  >
+      select row_.*
+	    from ( 
+	      select ${cellname} from ${tablename}   where  substr(${cellname},#{index}, #{endIndex})=#{date}
+	  
+	    <if test="LEDGER_ID !=null and LEDGER_ID !='' ">
+	     and  LEDGER_ID=#{LEDGER_ID} 
+	    </if>
+	        order by ${cellname} desc) row_
+	    where rownum = 1
+     </select>
+     
+     
+
+</mapper>
+

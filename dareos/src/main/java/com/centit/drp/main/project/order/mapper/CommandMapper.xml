@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- 
+*@module 工程项目 
+*@func 项目指令 
+*@version 1.0 
+*@author 
+* -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper
+	namespace="com.centit.drp.main.project.order.mapper.CommandMapper">
+	<!-- 动态查询 and 列表分页 -->
+	<sql id="queryDynSql">
+		<![CDATA[  e.project_directive_id=b.from_bill_id  and b.del_flag=0 and e.del_flag=0 ]]> 
+		<if test="PROJECT_NO != '' and PROJECT_NO != null">
+			and e.project_no like '%'||#{PROJECT_NO}||'%'
+		</if>
+		<if test="PROJECT_NAME != '' and PROJECT_NAME != null">
+			and e.project_name like '%'||#{PROJECT_NAME}||'%'
+		</if>
+		<if test="DIRECTIVE_TYPE != '' and DIRECTIVE_TYPE != null">
+			and e.directive_type like '%'||#{DIRECTIVE_TYPE}||'%'
+		</if>
+		<if test="STATE != '' and STATE != null">
+			and e.state like '%'||#{STATE}||'%'
+		</if>
+		<if test="project_directive_id != '' and project_directive_id != null">
+			and b.from_bill_id =#{project_directive_id}
+		</if>
+		<if test="XTYHID != '' and XTYHID != null">
+			and e.creator=#{XTYHID}
+		</if>
+	</sql>
+	<!-- 查询SQL -->
+	<sql id="coreSql">
+		<![CDATA[ 
+			select 
+	           e.project_directive_id project_directive_id,
+                e.project_id project_id,
+                e.project_no project_no,
+                e.project_name project_name,
+                e.directive_type directive_type,
+                e.state state,
+                e.creator creator,
+                e.cre_name cre_name,
+                to_char(e.cre_time, 'yyyy-MM-dd') cre_time,
+                e.updator updator,
+                e.upd_name upd_name,
+                to_char(e.upd_time, 'yyyy-MM-dd') upd_time,
+                e.dept_id dept_id,
+                e.dept_name dept_name,
+                e.org_id org_id,
+                e.org_name org_name,
+                e.del_flag del_flag1,
+                b.att_id att_id,
+                b.att_path att_path,
+                b.from_bill_id from_bill_id,
+                b.creator creator2,
+                b.cre_name cre_name2,
+                to_char(b.cre_time , 'yyyy-MM-dd') cre_time2,
+                b.del_flag del_flag2,
+                (select u.XM from  t_Sys_Xtyh t,T_SYS_RYXX u where t.RYXXID =u.RYXXID and t.XTYHID=e.creator ) user_name    
+           from ERP_PROJECT_DIRECTIVE e, BASE_ATT b
+		]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+		<![CDATA[ order by e.cre_time desc ]]>
+	</sql>
+	<!-- 分页查询 -->
+	<select id="pageQuery" parameterType="map"
+		resultType="java.util.HashMap">
+		<include refid="coreSql" />
+	</select>
+	 
+	<!-- 
+		根据招投标id更新删除状态
+	 -->
+	<update id="updateByID" parameterType="map">
+		<![CDATA[ update   ERP_PROJECT_DIRECTIVE
+		set del_flag =1,
+		    updator  =#{updator},
+			upd_name =#{upd_name},
+			upd_time =sysdate
+		  where project_directive_id = #{project_directive_id}
+		  ]]>
+	</update>
+	
+	<!-- 
+		根据招投标id更新状态 
+    -->
+	<update id="updateStateByID" parameterType="map">
+		<![CDATA[ update   ERP_PROJECT_DIRECTIVE
+		set state =#{state},
+		    updator  =#{updator},
+			upd_name =#{upd_name},
+			upd_time =sysdate
+		  where project_directive_id = #{project_directive_id}
+		  ]]>
+	</update>
+	 
+
+</mapper>
+

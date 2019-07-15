@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.centit.sys.mapper.XTJSMapper">
+
+	<!-- 使用XTJS装载结果集 -->
+	<resultMap id="XTJSBean" type="com.centit.sys.model.XTJSBean">
+		<result column="XTJSID" property="XTJSID" />
+	</resultMap>
+
+	<!-- 动态查询 and 列表分页 -->
+	<sql id="queryDynSql">
+		<if test="JSBH !=null and JSBH !='' ">
+			u.JSBH = #{JSBH}
+		</if>
+		<if test="JSMC !=null and JSMC !='' ">
+			and u.JSMC like '%'||#{JSMC}||'%'
+		</if>
+		<if test="YHZT !=null and YHZT !='' ">
+			and u.state like '%'||#{YHZT}||'%'
+		</if>
+		<if test="DELFLAG !=null and DELFLAG !='' ">
+			and u.DELFLAG = ${DELFLAG}
+		</if>
+		<if test="YHBH !=null and YHBH !='' ">
+			and c.YHBH like '%'||#{YHBH}||'%'
+		</if>
+		<if test="YHM !=null and YHM !='' ">
+			and c.YHM like '%'||#{YHM}||'%'
+		</if>		
+		<if test="XM !=null and XM !='' ">
+			and c.XM like '%'||#{XM}||'%'
+		</if>
+	</sql>
+    <sql id="orderSql">
+		order by  
+		<if test="orderField !=null and orderField !='' ">
+		${orderField},
+		</if>
+		jsbh asc
+	</sql>
+	<!-- 查询SQL -->
+	<sql id="coreSql">
+		<![CDATA[  select  distinct u.* from T_SYS_XTJS u 
+					left join (select  a.XTJSID ,b.YHBH ,b.YHM,a.xtyhid,d.xm from  T_SYS_XTYHjs a
+					 left join T_SYS_XTYH b 
+					on a.xtyhid = b.xtyhid
+					and b.delflag=0
+					left join T_SYS_RYXX d on d.ryxxid=b.ryxxid and d.delflag=0
+					where a.delflag=0
+					order by a.xtyhid
+					 ) c
+					on u.xtjsid = c.xtjsid
+		]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+		<include refid="orderSql"/>
+		
+	</sql>
+	
+	<!-- 分页查询 -->
+	<select id="pageQuery" parameterType="map"
+		resultType="java.util.HashMap">
+		<include refid="coreSql" />
+	</select>
+
+
+   <!-- 查询 -->
+	<select id="query" parameterType="map"
+		resultType="java.util.HashMap">
+		<include refid="coreSql" />
+	</select>
+	
+	<insert id="insert" parameterType="map">
+		<![CDATA[
+		 insert into T_SYS_XTJS(XTJSID,JSBH,JSMC,JSSM,DELFLAG,STATE)
+		 values(#{XTJSID},#{JSBH},#{JSMC},#{JSSM},#{DELFLAG},#{STATE})
+		]]>
+	</insert>
+
+<select id="getXTJSBH" parameterType="String" resultType="String">
+		<![CDATA[ SELECT LPAD(ERP_JC_XTJSBH.NEXTVAL,'4','0') 
+					FROM dual]]>
+	</select>
+	<update id="updateById" parameterType="map">
+		<![CDATA[ update T_SYS_XTJS ]]>
+		<!-- CHANAME, CHADES,CHADATE,CHASTU     ,,,,,,,,,-->
+		<set>
+			<if test="JSBH !=null and JSBH !='' "><![CDATA[JSBH = #{JSBH}]]>,</if>
+			<if test="JSMC !=null and JSMC !='' "><![CDATA[JSMC = #{JSMC}]]>,</if>
+			<if test="JSSM !=null and JSSM !='' "><![CDATA[JSSM = #{JSSM}]]>,</if>
+		</set>
+		<![CDATA[ where XTJSID = #{XTJSID} ]]>
+	</update>
+		<!-- 删除菜单delete from T_SYS_XTJS where XTJSID = #xtjsID:VARCHAR#  -->
+	<delete id="delete" parameterType="String">
+		<![CDATA[ 
+		delete from T_SYS_XTJS where XTJSID = #{xtjsID:VARCHAR}
+		]]>
+	</delete>
+	<delete id="deleteJSMX" parameterType="String">
+	   delete from T_SYS_XTYHjs where XTJSID = #{xtjsID:VARCHAR}
+	</delete>
+	<insert id="insertJS" parameterType="map">
+	   insert into t_sys_datarecycle(DATARECYCLEID,DELETOR,DELTIME,BUSINESSTYPE,DF1,DF2,DF3,DF4,DF5,DF6,DF7,DF8)
+	    select #{DATARECYCLEID},#{DELETOR},sysdate,'角色信息维护',XTJSID,JSBH,JSMC,JSSM,SJJS,JGXXID,STATE,DELFLAG
+        from T_SYS_XTJS where XTJSID = #{xtjsID:VARCHAR}
+	</insert>
+	<insert id="insertJSMX" parameterType="map">
+	   insert into t_sys_datarecycle(DATARECYCLEID,DELETOR,DELTIME,BUSINESSTYPE,DF1,DF2,DF3,DF4,DF5)
+	    select #{DATARECYCLEID}||rownum,{DELETOR},sysdate,'角色用户信息维护', XTYHJSID,XTJSID,XTYHID,STATE,DELFLAG
+        from T_SYS_XTYHjs where XTJSID = #{xtjsID:VARCHAR}
+	</insert>
+	<select id="getmxts" parameterType="String" resultType="int">
+	     select count(*)
+         from T_SYS_XTYHjs where XTJSID = #{xtjsID:VARCHAR}
+	</select>
+	<select id="loadById" parameterType="map" resultType="java.util.HashMap">
+		<![CDATA[  select  u.* from T_SYS_XTJS u where u.XTJSID = #{XTJSID}]]>
+	</select>
+	
+	<select id="getBHList" parameterType="String" resultMap="XTJSBean">
+	    select jsbh from T_SYS_XTJS where delflag = 0
+	</select>
+	
+	<update id="updateJSStatus" parameterType="map">
+	    update T_SYS_XTJS
+	    set state=#{STATE}
+	    where xtjsid=#{xtjsid}
+	</update>
+</mapper>
+

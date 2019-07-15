@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.centit.base.syslog.mapper.SyslogMapper">
+<!-- 查询SQL -->
+	<sql id="coreSql">
+		<![CDATA[select  u.SYSLOG_ID,u.UC_NAME,u.ACT_NAME ,u.OPRATOR, u.ACT_TIME, u.STATE,
+		 u.REMARK,u.APPCODE,u.APPID,u.OPRCODE from T_SYS_SYSLOG u ]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+			<include refid="orderSql" />
+	</sql>
+	
+	   <!-- 动态查询 and 列表分页 -->
+	<sql id="queryDynSql">
+	    <if test="SYSLOG_ID !=null and SYSLOG_ID !='' "> and u.SYSLOG_ID = #{SYSLOG_ID}		</if>
+		<if test="UC_NAME !=null and UC_NAME !='' "> and u.UC_NAME LIKE '%'|| #{UC_NAME} ||'%'		</if>
+		<if test="ACT_NAME !=null and ACT_NAME !='' "> and u.ACT_NAME LIKE '%'|| #{ACT_NAME} ||'%'		</if>
+		<if test="OPRATOR !=null and OPRATOR !='' "> and u.OPRATOR = #{OPRATOR}		</if>
+		<if test="ACT_TIME_FROM !=null and ACT_TIME_FROM !='' "> and to_date(u.ACT_TIME,'yyyy-MM-DD HH24:MI:SS') &gt;=	to_date(#{ACT_TIME_FROM},'yyyy-MM-DD HH24:MI:SS')		</if>
+		<if test="ACT_TIME_TO !=null and ACT_TIME_TO !='' "> and to_date(u.ACT_TIME,'yyyy-MM-DD HH24:MI:SS') &lt;=	to_date(#{ACT_TIME_TO},'yyyy-MM-DD HH24:MI:SS')		</if>
+		<if test="STATE !=null and STATE !='' "> and u.STATE = #{STATE}	    </if>
+		<if test="APPCODE !=null and APPCODE !='' "> and u.APPCODE = #{APPCODE}	    </if>
+		<if test="APPID !=null and APPID !='' "> and u.APPID = #{APPID}	    </if>
+		<if test="OPRCODE !=null and OPRCODE !='' "> and u.OPRCODE = #{OPRCODE}	    </if>
+	</sql>
+	<sql id="orderSql">
+		order by 
+	   <if test="orderField !=null and orderField !='' "> ${orderField},		</if>
+			u.ACT_TIME　desc
+	</sql>
+	
+	<!-- 分页查询 -->
+	<select id="pageQuery" parameterType="map"
+		resultType="java.util.HashMap">
+		<include refid="coreSql" />
+	</select>
+	
+	<!-- 分页计数 -->
+	<select id="pageCount" parameterType="map" resultType="int">
+		<![CDATA[SELECT count(u.SYSLOG_ID) cnt FROM T_SYS_SYSLOG u]]>
+		 <where>
+			<include refid="queryDynSql" />
+		</where>
+	</select>
+	
+	<!-- 根据ID查找 -->
+	<select id="loadById" parameterType="map" resultType="java.util.HashMap">
+		<![CDATA[select  u.SYSLOG_ID,u.UC_NAME,u.ACT_NAME ,u.OPRATOR, u.ACT_TIME, u.STATE,
+		 u.REMARK,u.APPCODE,u.APPID,u.OPRCODE from T_SYS_SYSLOG u 
+				where
+					u.SYSLOG_ID = #{SYSLOG_ID}
+		]]>
+	</select>
+	
+	<insert id="insertDataRecycle" parameterType="map">
+		insert into t_sys_datarecycle(
+			DATARECYCLEID,
+			DELETOR,
+			DELTIME,
+			BUSINESSTYPE,
+			DF1,
+			DF2,
+			DF3,
+			DF4,
+			DF5,
+			DF6,
+			DF7,
+			DF8,
+			DF9,
+			DF10,
+			DF11,
+			DF12,
+			DF13,
+			DF14,
+			DF15,
+			DF16,
+			DF17,
+			DF18,
+			DF19,
+			DF20,
+			DF21,
+			DF22,
+			DF23,
+			DF24,
+			DF25,
+			DF26,
+			DF27,
+			DF28,
+			DF29,
+			DF30
+		)values(
+			#{DATARECYCLEID,jdbcType=VARCHAR},
+			#{DELETOR,jdbcType=VARCHAR},
+			sysdate,
+			#{BUSINESSTYPE,jdbcType=VARCHAR},
+			#{DF1,jdbcType=VARCHAR},
+			#{DF2,jdbcType=VARCHAR},
+			#{DF3,jdbcType=VARCHAR},
+			#{DF4,jdbcType=VARCHAR},
+			#{DF5,jdbcType=VARCHAR},
+			#{DF6,jdbcType=VARCHAR},
+			#{DF7,jdbcType=VARCHAR},
+			#{DF8,jdbcType=VARCHAR},
+			#{DF9,jdbcType=VARCHAR},
+			#{DF10,jdbcType=VARCHAR},
+			#{DF11,jdbcType=VARCHAR},
+			#{DF12,jdbcType=VARCHAR},
+			#{DF13,jdbcType=VARCHAR},
+			#{DF14,jdbcType=VARCHAR},
+			#{DF15,jdbcType=VARCHAR},
+			#{DF16,jdbcType=VARCHAR},
+			#{DF17,jdbcType=VARCHAR},
+			#{DF18,jdbcType=VARCHAR},
+			#{DF19,jdbcType=VARCHAR},
+			#{DF20,jdbcType=VARCHAR},
+			#{DF21,jdbcType=VARCHAR},
+			#{DF22,jdbcType=VARCHAR},
+			#{DF23,jdbcType=VARCHAR},
+			#{DF24,jdbcType=VARCHAR},
+			#{DF25,jdbcType=VARCHAR},
+			#{DF26,jdbcType=VARCHAR},
+			#{DF27,jdbcType=VARCHAR},
+			#{DF28,jdbcType=VARCHAR},
+			#{DF29,jdbcType=VARCHAR},
+			#{DF30,jdbcType=VARCHAR}
+		)
+	</insert>
+	<insert id="insertActLog" parameterType="map">
+		insert into T_SYS_SYSLOG(
+			SYSLOG_ID,
+			UC_NAME,
+			ACT_NAME,
+			OPRATOR,
+			ACT_TIME,
+			STATE,
+			REMARK,
+			APPCODE,
+			APPID,
+			OPRCODE,
+			KEY,
+			OPT_CONTENT,
+			CRE_TIME
+			) values(
+			#{SYSLOG_ID,jdbcType=VARCHAR},
+			#{UC_NAME,jdbcType=VARCHAR},
+			#{ACT_NAME,jdbcType=VARCHAR},
+			#{OPRATOR,jdbcType=VARCHAR},
+			to_char(sysdate,'yyyy-MM-DD HH24:MI:SS'),
+			#{STATE,jdbcType=VARCHAR},
+			#{REMARK,jdbcType=VARCHAR},
+			#{APPCODE,jdbcType=VARCHAR},
+			#{APPID,jdbcType=VARCHAR},
+			#{OPRCODE,jdbcType=VARCHAR},
+			#{KEY,jdbcType=VARCHAR},
+			#{OPT_CONTENT,jdbcType=CLOB},
+			sysdate
+			)
+	</insert>
+</mapper>
+

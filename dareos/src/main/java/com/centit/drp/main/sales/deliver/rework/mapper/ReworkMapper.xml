@@ -1,0 +1,585 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- 
+*@module 订单中心 
+*@func 返修单管理
+*@version 1.0
+*@author 
+* -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.centit.drp.main.sales.deliver.rework.mapper.ReworkMapper">
+	 
+	<!-- 动态查询 and 列表分页  -->
+	<sql id="queryDynSql">
+		<if test="SALE_ORDER_NO != '' and SALE_ORDER_NO != null">
+			and factory_no like '%'||#{SALE_ORDER_NO}||'%'
+		</if>
+		<if test="FROM_BILL_NO != '' and FROM_BILL_NO != null">
+			and from_bill_no like '%'||#{FROM_BILL_NO}||'%'
+		</if>
+		<if test="CHANN_NAME != '' and CHANN_NAME != null">
+			and chann_name like '%'||#{CHANN_NAME}||'%'
+		</if>
+		<if test="STATE != '' and STATE != null">
+			and state like '%'||#{STATE}||'%'
+		</if>
+		<if test="STATE2 != '' and STATE2 != null">
+			<![CDATA[ and state not in (#{STATE2}) ]]>  
+		</if>
+		<if test="STATES != '' and STATES != null">
+			<![CDATA[ and ${STATES} ]]>  
+		</if>
+		<if test="CRE_TIME1 != '' and CRE_TIME1 != null">
+			 and cre_time &gt;=to_date(#{CRE_TIME1},'yyyy-mm-dd')
+		</if>
+		<if test="CRE_TIME2 != '' and CRE_TIME2 != null">
+			and cre_time &lt;=to_date(#{CRE_TIME2},'yyyy-mm-dd')
+		</if>
+		<if test="PRE_RECV_DATE1 != '' and PRE_RECV_DATE1 != null">
+			and pre_recv_date &gt;=to_date(#{PRE_RECV_DATE1},'yyyy-mm-dd')
+		</if>
+		<if test="PRE_RECV_DATE2 != '' and PRE_RECV_DATE2 != null">
+			and pre_recv_date &lt;=to_date(#{PRE_RECV_DATE2},'yyyy-mm-dd')
+		</if>
+		<if test="BILL_TYPE != '' and BILL_TYPE != null">
+			and bill_type like '%'||#{BILL_TYPE}||'%'
+		</if>
+		<if test="XTYHID != '' and XTYHID != null">
+			and (creator=#{XTYHID} or updator=#{XTYHID})
+		</if>
+		<if test="QXJBCON !=null and QXJBCON !='' ">
+			and ${QXJBCON}
+		</if> 
+		 <![CDATA[ and del_flag = 0  ]]>  
+	</sql>
+	<sql id="orderSql">
+		order by 
+		<if test="orderField !=null and orderField !='' "> ${orderField} </if>
+	</sql>
+	<!-- 查询SQL -->
+	<sql id="coreSql">
+		<![CDATA[  select 
+				      	recv_addr_no,   
+				       person_con, 
+				       sale_order_id,  
+				       sale_order_no,  
+				       bill_type,
+				       order_chann_id, 
+				       order_chann_no,  
+				       order_chann_name, 
+				       order_date, 
+				       chann_id, 
+				       chann_no, 
+				       chann_name,  
+				       print_name, 
+				       transport, 
+				       transport_settle, 
+				       factory_no,  
+				       proess_type, 
+				       sale_id, 
+				       sale_name, 
+				       saledept_name,  
+				       saledept_id, 
+				       to_char(pre_recv_date,'yyyy-MM-dd') pre_recv_date, 
+				       cust_name, 
+				       is_use_rebate  , 
+				       recv_chann_id,
+				       recv_chann_no, 
+				       recv_chann_name,  
+				       recv_addr, 
+				       tel,  
+				       state,  
+				       remark,  
+				       remark2,  
+				       ledger_name, 
+				       ledger_id,  
+				       dept_name,
+				       dept_id,  
+				       org_id, 
+				       org_name,  
+				       area_id,  
+				       area_no,  
+				       area_name,  
+				       base_add_flag, 
+				        to_char(order_delivery_date,'yyyy-MM-dd') order_delivery_date,  
+				       cust_tel, 
+				       cust_addr,  
+				       total_amount,
+  					   total_rebate,
+  					   to_char(cre_time,'yyyy-MM-dd') cre_time,
+  					   to_char(cre_time,'yyyy-MM-dd hh:mi:ss') cre_time2,  
+				       del_flag,
+				       from_bill_no,
+				       from_bill_id,
+				       creator,
+				       cre_name user_name   
+		from ERP_SALE_ORDER ]]>
+		  <where>
+			<include refid="queryDynSql" />
+		</where>
+		<include refid="orderSql" />  
+		<!-- <![CDATA[ order by cre_time asc,upd_time asc ]]> -->
+	</sql>
+	<!--
+		返修单查询
+	 -->
+	<select id="pageQuery" parameterType="map"
+		resultType="java.util.HashMap">
+		<include refid="coreSql" />
+	</select>
+	
+	<!--查询销售订单 -->
+	<select id="counts" parameterType="map"
+		resultType="int">
+		 <![CDATA[ 
+		 	select  count(*) from  ERP_SALE_ORDER where  BILL_TYPE='返修订单' and state not in ('审核通过')
+		 ]]>
+	</select>
+	
+	<!-- 
+		 主表单挑记录查询 
+	-->
+	<select id="toQuery" parameterType="map"
+		resultType="java.util.HashMap">
+		 <![CDATA[ select 
+				       recv_addr_no,   
+				       person_con, 
+				       sale_order_id,  
+				       sale_order_no,  
+				       bill_type,
+				       order_chann_id, 
+				       order_chann_no,  
+				       order_chann_name, 
+				       to_char(order_date,'yyyy-MM-dd') order_date,  
+				       chann_id, 
+				       chann_no, 
+				       chann_name,  
+				       print_name, 
+				       transport, 
+				       transport_settle, 
+				       factory_no,  
+				       proess_type, 
+				       sale_id, 
+				       sale_name, 
+				       saledept_name,  
+				       saledept_id, 
+				       to_char(pre_recv_date,'yyyy-MM-dd') pre_recv_date, 
+				       cust_name, 
+				       is_use_rebate  , 
+				       recv_chann_id,
+				       recv_chann_no, 
+				       recv_chann_name,  
+				       recv_addr, 
+				       tel,  
+				       state,  
+				       remark,  
+				       remark2,  
+				       ledger_name, 
+				       ledger_id,  
+				       dept_name,
+				       dept_id,  
+				       org_id, 
+				       org_name,  
+				       area_id,  
+				       area_no,  
+				       area_name,  
+				       base_add_flag, 
+				        to_char(order_delivery_date,'yyyy-MM-dd') order_delivery_date,  
+				       cust_tel, 
+				       cust_addr,  
+				       total_amount,
+  					   total_rebate, 
+				       from_bill_no, from_bill_id,
+				       problem_feedback_no,problem_feedback_id  
+		 from ERP_SALE_ORDER 
+				where  del_flag=0   and sale_order_id=#{SALE_ORDER_ID}
+		]]>
+	</select>
+	<!--  
+		选择销售订单回调SQL
+	-->
+	<select id="toQueryBack" parameterType="map"
+		resultType="java.util.HashMap">
+		 <![CDATA[ select 
+				       e.recv_addr_no recv_addr_no,   
+				       e.person_con person_con, 
+				       e.sale_order_id sale_order_ids,  
+				       e.sale_order_no sale_order_no,  
+				       e.bill_type bill_type,
+				       e.order_chann_id order_chann_id, 
+				       e.order_chann_no order_chann_no,  
+				       e.order_chann_name order_chann_name, 
+				       to_char(e.order_date,'yyyy-MM-dd') order_date,  
+				       e.chann_id chann_id, 
+				       e.chann_no chann_no, 
+				       e.chann_name chann_name,  
+				       e.print_name print_name, 
+				       e.transport transport, 
+				       e.transport_settle transport_settle, 
+				       e.factory_no factory_nos,
+				       e.factory_no factory_no,  
+				       e.proess_type proess_type, 
+				       e.sale_id sale_id, 
+				       e.sale_name sale_name, 
+				       e.saledept_name saledept_name,  
+				       e.saledept_id saledept_id, 
+				       to_char(e.pre_recv_date,'yyyy-MM-dd') pre_recv_date, 
+				       e.cust_name cust_name, 
+				       e.is_use_rebate   is_use_rebate, 
+				       e.recv_chann_id recv_chann_id,
+				       e.recv_chann_no recv_chann_no, 
+				       e.recv_chann_name recv_chann_name,  
+				       e.recv_addr recv_addr, 
+				       e.tel tel,  
+				       e.state state,  
+				       e.remark remark,  
+				       e.remark2 remark2,  
+				       e.ledger_name ledger_name, 
+				       e.ledger_id ledger_id,  
+				       e.dept_name dept_name,
+				       e.dept_id dept_id,  
+				       e.org_id org_id, 
+				       e.org_name org_name,  
+				       e.area_id area_id,  
+				       e.area_no area_no,  
+				       e.area_name area_name,  
+				       e.base_add_flag base_add_flag, 
+				        to_char(e.order_delivery_date,'yyyy-MM-dd') order_delivery_date,  
+				       e.cust_tel cust_tel, 
+				       e.cust_addr cust_addr,  
+				       e.total_amount total_amount,
+  					   e.total_rebate total_rebate, 
+				       e.from_bill_no  from_bill_no, 
+				       e.from_bill_id  from_bill_ids,
+				       e.problem_feedback_no  problem_feedback_no,
+				       e.problem_feedback_id   problem_feedback_id
+		 from ERP_SALE_ORDER e
+				where  e.del_flag=0   and e.sale_order_id=#{SALE_ORDER_IDS}
+		]]>
+	</select>
+	<!--  
+		子表数据查询
+	-->
+	<select id="toQuerySun" parameterType="map"
+		resultType="java.util.HashMap">
+		 <![CDATA[ select 
+		 			   *
+		      from ERP_SALE_ORDER_DTL 
+				where  del_flag=0   and sale_order_id=#{SALE_ORDER_ID}
+		]]>
+	</select>
+	<!--
+	   回调SQL
+	  -->
+	<select id="toQuerySunBack" parameterType="map"
+		resultType="java.util.HashMap">
+		 <![CDATA[ select 
+		 			   e.sale_order_dtl_id  sale_order_dtl_ids,
+				       e.sale_order_id  sale_order_id,
+				       e.group_no  group_no,
+				       e.prd_id prd_id,
+				       e.prd_no prd_no,
+				       e.prd_name prd_name,
+				       e.hole_spec hole_spec,
+				       e.prd_spec prd_spec,
+				       e.prd_toward prd_toward,
+				       e.prd_quality prd_quality,
+				       e.prd_color prd_color,
+				       e.prd_glass prd_glass,
+				       e.prd_other prd_other,
+				       e.prd_series prd_series,
+				       e.brand brand,
+				       e.std_unit std_unit,
+				       e.is_no_stand_flag is_no_stand_flag,
+				       e.price price,
+				       e.dect_rate dect_rate,
+				       e.dect_price dect_price,
+				       e.rebate_price rebate_price,
+				       e.rebate_amount rebate_amount,
+				       e.order_num order_num,
+				       e.order_amount order_amount,
+				       to_char(e.advc_send_date, 'yyyy-MM-dd') advc_send_date,
+				       e.remark remark,
+				       e.del_flag del_flag,
+				       e.from_bill_dtl_id from_bill_dtl_ids,
+				       e.sended_num sended_num,
+				       e.row_no row_no
+		      from ERP_SALE_ORDER_DTL e
+				where  e.del_flag=0   and e.sale_order_id=#{SALE_ORDER_IDS}
+		]]>
+	</select>
+	<!-- 
+		新增返修订单
+    -->
+	<insert id="insert" parameterType="com.centit.drp.main.sales.deliver.order.model.OrderModel">
+		<![CDATA[insert into ERP_SALE_ORDER
+				  (sale_order_id, 
+				   sale_order_no, 
+				   bill_type,
+				   from_bill_id, 
+				   from_bill_no,
+				   order_chann_id, 
+				   order_chann_no, 
+				   order_chann_name, 
+				   order_date, 
+				   chann_name,
+				   chann_id,
+   				   chann_no,
+				   print_name, 
+				   transport,
+				   transport_settle, 
+				   sale_id,
+				   sale_name,
+				   saledept_name, 
+				   saledept_id,
+				   recv_chann_id,
+				   recv_chann_no, 
+				   recv_chann_name,
+				   person_con,
+				   recv_addr,
+				   tel, 
+				   remark,
+				   order_delivery_date,
+				   cust_name,
+				   cust_tel,
+				   cust_addr,
+				   problem_feedback_id,
+				   problem_feedback_no,
+				   ledger_id,
+				   ledger_name,
+				   state,
+				   factory_no,
+				   creator, 
+   				   cre_name,
+   				   dept_name, 
+   				   dept_id,  
+   				   cre_time,
+   				   del_flag,
+   				   pre_recv_date 
+				   )
+				    values
+				   (#{sale_order_id,jdbcType=VARCHAR}, 
+				   #{sale_order_no,jdbcType=VARCHAR}, 
+				   #{bill_type,jdbcType=VARCHAR},
+				   #{from_bill_id,jdbcType=VARCHAR},
+				   trim(#{from_bill_no,jdbcType=VARCHAR}), 
+				   #{order_chann_id,jdbcType=VARCHAR}, 
+				   #{order_chann_no,jdbcType=VARCHAR}, 
+				   #{order_chann_name,jdbcType=VARCHAR}, 
+				   sysdate, 
+				   #{chann_name,jdbcType=VARCHAR},
+				   #{chann_id,jdbcType=VARCHAR},
+   				   #{chann_no,jdbcType=VARCHAR},
+				   #{print_name,jdbcType=VARCHAR}, 
+				   #{transport,jdbcType=VARCHAR},
+				   #{transport_settle,jdbcType=VARCHAR}, 
+				   #{sale_id,jdbcType=VARCHAR},
+				   #{sale_name,jdbcType=VARCHAR},
+				   #{saledept_name,jdbcType=VARCHAR}, 
+				   #{saledept_id,jdbcType=VARCHAR},
+				   #{recv_chann_id,jdbcType=VARCHAR},
+				   #{recv_chann_no,jdbcType=VARCHAR}, 
+				   #{recv_chann_name,jdbcType=VARCHAR},
+				   #{person_con,jdbcType=VARCHAR},
+				   #{recv_addr,jdbcType=VARCHAR},
+				   #{tel,jdbcType=VARCHAR}, 
+				   #{remark,jdbcType=VARCHAR},
+				   sysdate+40,
+				   #{cust_name,jdbcType=VARCHAR},
+				   #{cust_tel,jdbcType=VARCHAR},
+				   #{cust_addr,jdbcType=VARCHAR},
+				   #{problem_feedback_id,jdbcType=VARCHAR},
+				   #{problem_feedback_no,jdbcType=VARCHAR},
+				   #{ledger_id,jdbcType=VARCHAR},
+				   #{ledger_name,jdbcType=VARCHAR},
+				   #{state,jdbcType=VARCHAR},
+				   trim(#{factory_no,jdbcType=VARCHAR}),
+				   #{creator,jdbcType=VARCHAR}, 
+   				   #{cre_name,jdbcType=VARCHAR},
+   				   #{dept_name,jdbcType=VARCHAR}, 
+   				   #{dept_id,jdbcType=VARCHAR},   
+   				  	sysdate,
+   				   0,
+   				   #{pre_recv_date,jdbcType=VARCHAR}) ]]>
+	</insert>
+	<update id="modify" parameterType="com.centit.drp.main.sales.deliver.order.model.OrderModel">
+		<![CDATA[ UPDATE ERP_SALE_ORDER ]]> 
+		<set>
+		   <if test="bill_type !=null  and bill_type != '' ">bill_type=#{bill_type},</if>
+		   <if test="state !=null  and state != '' ">state=#{state},  </if>
+		   <if test="remark2 !=null  and remark2 != '' ">remark2=#{remark2},  </if>
+		   <if test="total_amount !=null  and total_amount != '' ">total_amount=#{total_amount},</if> 
+		   <if test="total_rebate !=null  and total_rebate != '' ">total_rebate=#{total_rebate},</if> 
+		   <![CDATA[upd_time = sysdate,]]>
+		    <if test="updator !=null  and updator != '' ">updator = #{updator},</if>
+		    <if test="upd_name !=null  and upd_name != '' ">upd_name = #{upd_name},</if>
+			<if test="sale_order_no  !=null  and sale_order_no != '' ">sale_order_no=#{sale_order_no}, </if>
+			<if test="from_bill_id !=null  and from_bill_id != '' ">from_bill_id=#{from_bill_id}, </if>
+			<if test="from_bill_no !=null  and from_bill_no  != '' ">from_bill_no=#{from_bill_no},</if>
+			<if test="order_chann_id  !=null  and order_chann_id != '' ">order_chann_id=#{order_chann_id}, </if>
+			<if test="order_chann_no  !=null  and order_chann_no != '' ">order_chann_no=#{order_chann_no}, </if>
+			<if test="order_chann_name !=null  and order_chann_name != '' ">order_chann_name=#{order_chann_name}, </if>
+			<if test="order_date !=null   ">order_date=#{order_date,jdbcType=VARCHAR}, </if>
+			<if test="chann_name !=null  and chann_name != '' ">chann_name=#{chann_name},</if>
+			<if test="chann_id !=null  and chann_id != '' ">chann_id=#{chann_id},</if>
+   			<if test="chann_no  !=null  and chann_no != '' ">chann_no=#{chann_no},</if>
+			<if test="print_name  !=null  and print_name != '' ">print_name=#{print_name}, </if>
+			<if test="transport  !=null  and transport  != '' ">transport=#{transport},</if>
+			<if test="transport_settle  !=null  and  transport_settle != '' ">transport_settle=#{transport_settle}, </if>
+			<if test="sale_id !=null  and sale_id != '' ">sale_id=#{sale_id},</if>
+			<if test="sale_name  !=null  and sale_name  != '' ">sale_name=#{sale_name},</if>
+			<if test="saledept_name  !=null  and  saledept_name != '' ">saledept_name=#{saledept_name}, </if>
+			<if test="saledept_id !=null  and saledept_id != '' ">saledept_id=#{saledept_id},</if>
+			<if test="recv_chann_id !=null  and recv_chann_id != '' ">recv_chann_id=#{recv_chann_id},</if>
+			<if test="recv_chann_no !=null  and recv_chann_no  != '' ">recv_chann_no=#{recv_chann_no}, </if>
+			<if test="recv_chann_name !=null  and recv_chann_name != '' ">recv_chann_name=#{recv_chann_name},</if>
+			<if test="person_con !=null  and  person_con != '' ">person_con=#{person_con},</if>
+			<if test="recv_addr !=null  and  recv_addr != '' ">recv_addr=#{recv_addr},</if>
+			<if test="tel !=null  and  tel != '' ">tel=#{tel}, </if>
+			<if test="remark !=null  and remark != '' ">remark=#{remark},</if>
+			<if test="order_delivery_date !=null  ">order_delivery_date=#{order_delivery_date,jdbcType=VARCHAR},</if>
+			<if test="cust_name !=null  and cust_name != '' ">cust_name=#{cust_name},</if>
+			<if test="cust_tel  !=null  and  cust_tel != '' ">cust_tel=#{cust_tel},</if>
+			<if test="cust_addr !=null  and cust_addr != '' ">cust_addr=#{cust_addr},</if>
+			<if test="problem_feedback_no !=null  and  problem_feedback_no != '' ">problem_feedback_no=trim(#{problem_feedback_no}),</if>
+			<if test="ledger_id !=null  and ledger_id != '' ">ledger_id=#{ledger_id},</if>
+			<if test="ledger_name !=null  and ledger_name != '' ">ledger_name=#{ledger_name},</if>
+			<if test="factory_no !=null  and factory_no != '' ">factory_no=#{factory_no},</if>
+   			<if test="pre_recv_date !=null  ">pre_recv_date=#{pre_recv_date,jdbcType=VARCHAR},</if>
+       </set>      
+	   <![CDATA[where sale_order_id = #{sale_order_id}]]>
+	</update>
+	<!--
+		编辑子表
+	-->
+	<insert id="insertSun" parameterType="com.centit.drp.main.sales.deliver.order.model.SendDtlModel">
+		<![CDATA[insert into ERP_SALE_ORDER_DTL(
+			sale_order_dtl_id,
+			sale_order_id,
+			group_no,
+			prd_id,
+			prd_no,
+			prd_name,
+			hole_spec,
+			prd_spec,
+			prd_toward,
+			prd_quality,
+			prd_color,
+			prd_glass,
+			prd_other,
+			prd_series,
+			brand,
+			std_unit,
+			price,
+			dect_rate,
+			dect_price,
+			rebate_price,
+			rebate_amount,
+			order_num,
+			order_amount,
+			advc_send_date,
+			remark,
+			from_bill_dtl_id,
+			sended_num,
+			row_no,
+			prd_size,
+			projected_area,
+			expand_area,
+			prd_place,
+			is_no_rebate_flag,
+			is_no_lock_flag,
+			figure_no,
+			del_flag
+		  )values(
+			 #{sale_order_dtl_id,jdbcType=VARCHAR},
+			 #{sale_order_id,jdbcType=VARCHAR},
+			 #{group_no,jdbcType=VARCHAR},
+			 #{prd_id,jdbcType=VARCHAR},
+			 #{prd_no,jdbcType=VARCHAR},
+			 #{prd_name,jdbcType=VARCHAR},
+			 #{hole_spec,jdbcType=VARCHAR},
+			 #{prd_spec,jdbcType=VARCHAR},
+			 #{prd_toward,jdbcType=VARCHAR},
+			 #{prd_quality,jdbcType=VARCHAR},
+			 #{prd_color,jdbcType=VARCHAR},
+			 #{prd_glass,jdbcType=VARCHAR},
+			 #{prd_other,jdbcType=VARCHAR},
+			 #{prd_series,jdbcType=VARCHAR},
+			 #{brand,jdbcType=VARCHAR},
+			 #{std_unit,jdbcType=VARCHAR},
+			 #{price,jdbcType=VARCHAR},
+			 #{dect_rate,jdbcType=VARCHAR},
+			 #{dect_price,jdbcType=VARCHAR},
+			 #{rebate_price,jdbcType=VARCHAR},
+			 #{rebate_amount,jdbcType=VARCHAR},
+			 #{order_num,jdbcType=VARCHAR},
+			 #{order_amount,jdbcType=VARCHAR},
+			 #{advc_send_date,jdbcType=VARCHAR},
+			 #{remark,jdbcType=VARCHAR},
+			 #{from_bill_dtl_id,jdbcType=VARCHAR},
+			 #{sended_num,jdbcType=VARCHAR},
+			 #{row_no,jdbcType=VARCHAR},
+			 #{prd_size,jdbcType=VARCHAR},
+			 #{projected_area,jdbcType=VARCHAR},
+			 #{expand_area,jdbcType=VARCHAR},
+			 #{prd_place,jdbcType=VARCHAR},
+			 #{is_no_rebate_flag,jdbcType=VARCHAR},
+			 #{is_no_lock_flag,jdbcType=VARCHAR},
+			 #{figure_no,jdbcType=VARCHAR},
+			  0)
+			 ]]>
+	</insert>
+	<update id="modifySun" parameterType="com.centit.drp.main.sales.deliver.order.model.SendDtlModel">
+		<![CDATA[ UPDATE ERP_SALE_ORDER_DTL ]]> 
+		<set>
+             <if test="sale_order_id !=null  and  sale_order_id !='' ">sale_order_id=#{sale_order_id},</if> 
+             <if test="group_no !=null  and  group_no !='' ">group_no=#{group_no},</if> 
+             <if test="prd_id !=null  and  prd_id !='' ">prd_id=#{prd_id},</if> 
+             <if test="prd_no !=null  and  prd_no !='' ">prd_no=#{prd_no},</if> 
+             <if test="prd_name !=null  and  prd_name !='' ">prd_name=#{prd_name},</if> 
+             <if test="hole_spec !=null  and  hole_spec !='' ">hole_spec=#{hole_spec},</if> 
+             <if test="prd_spec !=null  and  prd_spec !='' ">prd_spec=#{prd_spec},</if> 
+             <if test="prd_toward !=null  and  prd_toward !='' ">prd_toward=#{prd_toward},</if>
+             <if test="prd_quality !=null  and  prd_quality !='' ">prd_quality=#{prd_quality},</if> 
+             <if test="prd_color !=null  and  prd_color !='' ">prd_color=#{prd_color},</if> 
+             <if test="prd_glass !=null  and  prd_glass !='' ">prd_glass=#{prd_glass},</if> 
+             <if test="prd_other !=null  and  prd_other !='' ">prd_other=#{prd_other},</if>
+             <if test="prd_series !=null  and  prd_series !='' ">prd_series=#{prd_series},</if> 
+             <if test="brand !=null  and  brand !='' ">brand=#{brand},</if> 
+             <if test="prd_place !=null  and  prd_place !='' ">prd_place=#{prd_place},</if> 
+             <if test="std_unit !=null  and  std_unit !='' ">std_unit=#{std_unit},</if> 
+             <if test="price !=null  and  price !='' ">price=#{price},</if>    
+             <if test="order_num !=null  and  order_num !='' ">order_num=#{order_num},</if> 
+             <if test="order_amount !=null  and  order_amount !='' ">order_amount=#{order_amount},</if> 
+             <if test="remark !=null  and  remark !='' ">remark=#{remark},</if> 
+             <if test="from_bill_dtl_id !=null  and  from_bill_dtl_id !='' ">from_bill_dtl_id=#{from_bill_dtl_id},</if> 
+       </set>      
+	   <![CDATA[where sale_order_dtl_id = #{sale_order_dtl_id}]]>
+	</update>
+	
+	<!-- 更改发货指令单据状态 -->
+	<update id="updateByID" parameterType="map">
+		<![CDATA[ update   ERP_SALE_ORDER
+		set del_flag=#{del_flag},
+		    updator =#{updator},
+			upd_name =#{upd_name},
+			upd_time =sysdate
+		 where sale_order_id = #{SALE_ORDER_ID} ]]>
+	</update>
+	<!-- 
+		清除子表
+	 -->
+	 <update id="updateSunByID" parameterType="map">
+		<![CDATA[ update   ERP_SALE_ORDER_DTL
+					set del_flag=#{del_flag}
+				 where ${SQL} ]]>
+	</update>
+	<!--  校验返修单号-->
+	<select id="checkFactoryNO" parameterType="string"
+		resultType="int">
+		 <![CDATA[ select  count(*) from ERP_SALE_ORDER  where  del_flag=0   and 
+		  ${FACTORY_NO} ]]>
+	</select>
+	
+
+</mapper>
+

@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.centit.common.mapper.FlowMapper">
+	<resultMap id="FlowModel" type="com.centit.common.po.FlowModel">
+		<result property="flowId" column="FLOW_ID" />
+		<result property="flowNo" column="FLOW_NO" />
+		<result property="stateVal" column="STATE_VAL" />
+		<result property="tableName" column="TABLE_NAME" />
+		<result property="stateFieldName" column="STATE_FIELD_NAME" />
+		<result property="indexNo" column="INDEX_NO" />
+		<result property="actionDescribe" column="ACTION_DESCRIBE" />
+		<result property="primaryFieldName" column="PRIMARY_FIELD_NAME" />
+		<result property="flowServiceFieldName" column="FLOW_SERVICE_FIELD_NAME" />
+		<result property="flagFieldName" column="FLAG_FIELD_NAME" />
+		
+	</resultMap>
+	
+	<resultMap id="FlowTrackModel" type="com.centit.common.po.FlowTrackModel">
+		<result property="flowTrackId" column="FLOW_TRACK_ID" />
+		<result property="flowNo" column="FLOW_NO" />
+		<result property="flowServiceId" column="FLOW_SERVICE_ID" />
+		<result property="billNo" column="BILL_NO" />
+		<result property="action" column="ACTION" />
+		<result property="actorId" column="ACTOR_ID" />
+		<result property="actorName" column="ACTOR_NAME" />
+		<result property="actorTime" column="ACTOR_TIME" />
+		<result property="actorRemarks" column="ACTOR_REMARKS" />
+		<result property="nextFlowId" column="NEXT_FLOW_ID" />
+		<result property="indexNo" column="INDEX_NO" />
+	</resultMap>
+
+	<select id="getFlowByNo" parameterType="string" resultMap="FlowModel">
+		select 
+			a.FLOW_ID,
+			a.FLOW_NO,
+			a.STATE_VAL,
+			a.TABLE_NAME,
+			a.STATE_FIELD_NAME,
+			a.INDEX_NO,
+			a.ACTION_DESCRIBE,
+			a.PRIMARY_FIELD_NAME,
+			a.FLOW_SERVICE_FIELD_NAME,
+			a.FLAG_FIELD_NAME
+		from T_SYS_FLOW a
+		 where a.FLOW_NO =#{flowNo}
+		 order by INDEX_NO
+	</select>
+	
+	<insert id="insertFlowTrack" parameterType="com.centit.common.po.FlowTrackModel">
+		insert into T_SYS_FLOW_TRACK(
+			FLOW_TRACK_ID,
+			FLOW_NO,
+			FLOW_SERVICE_ID,
+			BILL_NO,
+			ACTION,
+			ACTOR_ID,
+			ACTOR_NAME,
+			ACTOR_TIME,
+			ACTOR_REMARKS,
+			NEXT_FLOW_ID,
+			INDEX_NO
+		)values(
+			#{flowTrackId,jdbcType=VARCHAR},
+			#{flowNo,jdbcType=VARCHAR},
+			#{flowServiceId,jdbcType=VARCHAR},
+			#{billNo,jdbcType=VARCHAR},
+			#{action,jdbcType=VARCHAR},
+			#{actorId,jdbcType=VARCHAR},
+			#{actorName,jdbcType=VARCHAR},
+			systimestamp,
+			#{actorRemarks,jdbcType=VARCHAR},
+			#{nextFlowId,jdbcType=VARCHAR},
+			#{indexNo,jdbcType=VARCHAR}
+		)
+	</insert>
+	
+	<select id="getFlowTrackById" parameterType="string" resultMap="FlowTrackModel">
+		select 
+			a.FLOW_TRACK_ID,
+			a.FLOW_NO,
+			a.FLOW_SERVICE_ID,
+			a.BILL_NO,
+			a.ACTION,
+			a.ACTOR_ID,
+			a.ACTOR_NAME,
+			to_char(a.ACTOR_TIME,'yyyy-MM-DD HH24:MI:SS') ACTOR_TIME,
+			a.ACTOR_REMARKS,
+			a.NEXT_FLOW_ID,
+			a.INDEX_NO
+		from T_SYS_FLOW_TRACK a 
+		where a.FLOW_SERVICE_ID = #{flowServiceId}
+		order by a.ACTOR_TIME desc
+	</select>
+	
+	
+	<select id="getFlowTrackByIdOrder" parameterType="string" resultMap="FlowTrackModel">
+		select 
+			a.FLOW_TRACK_ID,
+			a.FLOW_NO,
+			a.FLOW_SERVICE_ID,
+			a.BILL_NO,
+			a.ACTION,
+			a.ACTOR_ID,
+			a.ACTOR_NAME,
+			to_char(a.ACTOR_TIME,'yyyy-MM-DD HH24:MI:SS') ACTOR_TIME,
+			a.ACTOR_REMARKS,
+			a.NEXT_FLOW_ID,
+			a.INDEX_NO
+		from T_SYS_FLOW_TRACK a 
+		where a.FLOW_SERVICE_ID = #{flowServiceId}
+		order by a.ACTOR_TIME desc,BILL_NO
+	</select>
+
+	
+</mapper>
+
+
+

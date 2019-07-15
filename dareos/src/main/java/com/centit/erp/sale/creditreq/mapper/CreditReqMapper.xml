@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.centit.erp.sale.creditreq.mapper.CreditReqMapper">
+	<resultMap id="model" type="com.centit.erp.sale.creditreq.model.CreditReqModel">
+		<result property="creditReqId" column="CREDIT_REQ_ID" jdbcType="VARCHAR" />
+		<result property="creditReqNo" column="CREDIT_REQ_NO" jdbcType="VARCHAR" />
+		<result property="channId" column="CHANN_ID" jdbcType="VARCHAR" />
+		<result property="channNo" column="CHANN_NO" jdbcType="VARCHAR" />
+		<result property="channName" column="CHANN_NAME" jdbcType="VARCHAR" />
+		<result property="creditTotal" column="CREDIT_TOTAL" jdbcType="VARCHAR" />
+		<result property="ledgerId" column="LEDGER_ID" jdbcType="VARCHAR" />
+		<result property="ledgerName" column="LEDGER_NAME" jdbcType="VARCHAR" />
+		<result property="state" column="STATE" jdbcType="VARCHAR" />
+		<result property="remark" column="REMARK" jdbcType="VARCHAR" />
+		<result property="creator" column="CREATOR" jdbcType="VARCHAR" />
+		<result property="creName" column="CRE_NAME" jdbcType="VARCHAR" />
+		<result property="creTime" column="CRE_TIME" jdbcType="VARCHAR" />
+		<result property="updator" column="UPDATOR" jdbcType="VARCHAR" />
+		<result property="updName" column="UPD_NAME" jdbcType="VARCHAR" />
+		<result property="updTime" column="UPD_TIME" jdbcType="VARCHAR" />
+		<result property="auditId" column="AUDIT_ID" jdbcType="VARCHAR" />
+		<result property="auditName" column="AUDIT_NAME" jdbcType="VARCHAR" />
+		<result property="auditTime" column="AUDIT_TIME" jdbcType="VARCHAR" />
+		<result property="deptId" column="DEPT_ID" jdbcType="VARCHAR" />
+		<result property="deptName" column="DEPT_NAME" jdbcType="VARCHAR" />
+		<result property="orgId" column="ORG_ID" jdbcType="VARCHAR" />
+		<result property="orgName" column="ORG_NAME" jdbcType="VARCHAR" />
+		<result property="delFlag" column="DEL_FLAG" jdbcType="VARCHAR" />
+		<result property="effectiveDate" column="EFFECTIVE_DATE" jdbcType="VARCHAR" />
+		<result property="expirationDate" column="EXPIRATION_DATE" jdbcType="VARCHAR" />
+		<result property="auditOpinion" column="AUDIT_OPINION" jdbcType="VARCHAR" />
+		<result property="attPath" column="ATT_PATH" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<!-- 动态查询 and 列表排序 -->
+	<sql id="queryDynSql">
+		<if test="creditReqId != null  and creditReqId != '' ">
+			 and u.CREDIT_REQ_ID = #{creditReqId} 
+		</if>
+		<if test="creditReqNo != null  and creditReqNo != '' ">
+			 and u.CREDIT_REQ_NO like '%' || #{creditReqNo} || '%' 
+		</if>
+		<if test="channName != null  and channName != '' ">
+			 and u.CHANN_NAME like '%' || #{channName} || '%' 
+		</if>
+		<if test="ledgerId != null  and ledgerId != '' ">
+			 and u.LEDGER_ID = #{ledgerId}  
+		</if>
+		<if test="auditName != null  and auditName != '' ">
+			 and u.AUDIT_NAME like '%' || #{auditName} || '%' 
+		</if>
+		<if test="creTime1 != null  and creTime1 != '' ">
+			 <![CDATA[ and to_char(u.CRE_TIME,'yyyy-MM-DD HH24:MI:SS') >= #{creTime1} ]]> 
+		</if>
+		<if test="creTime2 != null  and creTime2 != '' ">
+			 <![CDATA[ and to_char(u.CRE_TIME,'yyyy-MM-DD HH24:MI:SS') <= #{creTime2} ]]> 
+		</if>
+		<if test="delFlag != null  and delFlag != '' ">
+			 and u.DEL_FLAG = #{delFlag}
+		</if>
+		<if test="effectiveDate1 != null  and effectiveDate1 != '' ">
+			 <![CDATA[ and to_char(u.EFFECTIVE_DATE,'yyyy-MM-DD') >= #{effectiveDate1} ]]> 
+		</if>
+		<if test="effectiveDate2 != null  and effectiveDate2 != '' ">
+			 <![CDATA[ and to_char(u.EFFECTIVE_DATE,'yyyy-MM-DD') <= #{effectiveDate2} ]]> 
+		</if>
+		<if test="expirationDate1 != null  and expirationDate1 != '' ">
+			 <![CDATA[ and to_char(u.EXPIRATION_DATE,'yyyy-MM-DD') >= #{expirationDate1} ]]> 
+		</if>
+		<if test="expirationDate2 != null  and expirationDate2 != '' ">
+			 <![CDATA[ and to_char(u.EXPIRATION_DATE,'yyyy-MM-DD') <= #{expirationDate2} ]]> 
+		</if>
+		<if test="queryMenuState != null  and queryMenuState != '' ">
+			 and ${queryMenuState}
+		</if>
+		<if test="queryState != null  and queryState != '' ">
+			  and u.STATE in (${queryState})
+		</if>
+		<if test="STATE2 != null  and STATE2 != '' ">
+			 and u.STATE not in (#{STATE2})  
+		</if>
+		<if test="state != null  and state != '' ">
+			 and u.STATE =#{state}
+		</if>
+		<if test="chrgSql !=null and chrgSql!=''">
+			and ${chrgSql}
+		</if>
+	</sql>
+	<sql id="orderSql">
+		<if test="orderField != null and orderField != ''">
+			order by  ${orderField}
+		</if>
+	</sql>
+
+	<sql id="coreSql">
+		  <![CDATA[ 
+		  select 
+			u.CREDIT_REQ_ID,
+			u.CREDIT_REQ_NO,
+			u.CHANN_ID,
+			u.CHANN_NO,
+			u.CHANN_NAME,
+			u.CREDIT_TOTAL,
+			u.LEDGER_ID,
+			u.LEDGER_NAME,
+			u.STATE,
+			u.REMARK,
+			u.CREATOR,
+			u.CRE_NAME,
+			to_char(u.CRE_TIME, 'yyyy-MM-DD HH24:MI:SS') CRE_TIME,
+			u.UPDATOR,
+			u.UPD_NAME,
+			to_char(u.UPD_TIME, 'yyyy-MM-DD HH24:MI:SS') UPD_TIME,
+			u.AUDIT_ID,
+			u.AUDIT_NAME,
+			to_char(u.AUDIT_TIME, 'yyyy-MM-DD HH24:MI:SS') AUDIT_TIME,
+			u.DEPT_ID,
+			u.DEPT_NAME,
+			u.ORG_ID,
+			u.ORG_NAME,
+			u.DEL_FLAG,
+			to_char(u.EFFECTIVE_DATE, 'yyyy-MM-DD') EFFECTIVE_DATE,
+			to_char(u.EXPIRATION_DATE, 'yyyy-MM-DD') EXPIRATION_DATE,
+			u.AUDIT_OPINION
+		  from  ERP_CREDIT_REQ u 
+		   ]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+		
+		<include refid="orderSql" />
+	</sql>
+
+	<!-- 分页查询 -->
+	<select id="pageQuery" parameterType="map" resultMap="model">
+		<include refid="coreSql" />
+	</select>
+
+	<!-- 根据ID查找 -->
+	<select id="loadById" parameterType="map" resultMap="model">
+		<include refid="coreSql" />
+	</select>
+
+	<!-- 新增 -->
+	<insert id="insert" parameterType="com.centit.erp.sale.creditreq.model.CreditReqModel">
+		<![CDATA[
+		 	insert into  ERP_CREDIT_REQ( 
+					CREDIT_REQ_ID,
+					CREDIT_REQ_NO,
+					CHANN_ID,
+					CHANN_NO,
+					CHANN_NAME,
+					CREDIT_TOTAL,
+					LEDGER_ID,
+					LEDGER_NAME,
+					STATE,
+					REMARK,
+					CREATOR,
+					CRE_NAME,
+					CRE_TIME,
+					DEPT_ID,
+					DEPT_NAME,
+					ORG_ID,
+					ORG_NAME,
+					DEL_FLAG,
+					EFFECTIVE_DATE,
+					EXPIRATION_DATE
+			)values(
+					#{creditReqId,jdbcType=VARCHAR},
+					#{creditReqNo,jdbcType=VARCHAR},
+					#{channId,jdbcType=VARCHAR},
+					#{channNo,jdbcType=VARCHAR},
+					#{channName,jdbcType=VARCHAR},
+					#{creditTotal,jdbcType=VARCHAR},
+					#{ledgerId,jdbcType=VARCHAR},
+					#{ledgerName,jdbcType=VARCHAR},
+					#{state,jdbcType=VARCHAR},
+					#{remark,jdbcType=VARCHAR},
+					#{creator,jdbcType=VARCHAR},
+					#{creName,jdbcType=VARCHAR},
+					sysdate,
+					#{deptId,jdbcType=VARCHAR},
+					#{deptName,jdbcType=VARCHAR},
+					#{orgId,jdbcType=VARCHAR},
+					#{orgName,jdbcType=VARCHAR},
+					#{delFlag,jdbcType=VARCHAR},
+					to_date(#{effectiveDate,jdbcType=VARCHAR},'yyyy-mm-dd'),
+					to_date(#{expirationDate,jdbcType=VARCHAR},'yyyy-mm-dd')
+			)
+		]]>
+	</insert>
+
+	<!-- 根据ID修改 -->
+	<update id="updateById" parameterType="com.centit.erp.sale.creditreq.model.CreditReqModel">
+		<![CDATA[ update ERP_CREDIT_REQ ]]>
+		<set>
+				<if test=" channId !=null">
+					CHANN_ID = #{channId,jdbcType=VARCHAR},
+				</if>
+				<if test=" channNo !=null">
+					CHANN_NO = #{channNo,jdbcType=VARCHAR},
+				</if>
+				<if test=" channName !=null">
+					CHANN_NAME = #{channName,jdbcType=VARCHAR},
+				</if>
+				<if test=" creditTotal !=null">
+					CREDIT_TOTAL = #{creditTotal,jdbcType=VARCHAR},
+				</if>
+				<if test=" ledgerId !=null">
+					LEDGER_ID = #{ledgerId,jdbcType=VARCHAR},
+				</if>
+				<if test=" ledgerName !=null">
+					LEDGER_NAME = #{ledgerName,jdbcType=VARCHAR},
+				</if>
+				<if test=" state !=null">
+					STATE = #{state,jdbcType=VARCHAR},
+				</if>
+				<if test=" remark !=null">
+					REMARK = #{remark,jdbcType=VARCHAR},
+				</if>
+				<if test=" updator !=null">
+					UPDATOR = #{updator,jdbcType=VARCHAR},
+				</if>
+				<if test=" updName !=null">
+					UPD_NAME = #{updName,jdbcType=VARCHAR},
+				</if>
+				<if test=" auditId !=null">
+					AUDIT_ID = #{auditId,jdbcType=VARCHAR},
+				</if>
+				<if test=" auditName !=null">
+					AUDIT_NAME = #{auditName,jdbcType=VARCHAR},
+				</if>
+				<if test=" auditTime !=null">
+					AUDIT_TIME =sysdate,
+				</if>
+				<if test=" delFlag !=null">
+					DEL_FLAG = #{delFlag,jdbcType=VARCHAR},
+				</if>
+				<if test=" effectiveDate !=null">
+					EFFECTIVE_DATE = to_date(#{effectiveDate,jdbcType=VARCHAR},'yyyy-mm-dd'),
+				</if>
+				<if test=" expirationDate !=null">
+					EXPIRATION_DATE = to_date(#{expirationDate,jdbcType=VARCHAR},'yyyy-mm-dd'),
+				</if>
+				<if test=" auditOpinion !=null">
+					AUDIT_OPINION = #{auditOpinion,jdbcType=VARCHAR},
+				</if>
+				<if test=" updTime !=null">
+					UPD_TIME = sysdate,
+				</if>
+		</set>
+		<![CDATA[ where CREDIT_REQ_ID = #{creditReqId,jdbcType=VARCHAR} ]]>
+	</update>
+
+	<!-- 删除 -->
+	<delete id="delete" parameterType="com.centit.erp.sale.creditreq.model.CreditReqModel">
+		<![CDATA[ 
+		 update ERP_CREDIT_REQ 
+		   set 
+		   UPDATOR = #{updator,jdbcType=VARCHAR},
+		   UPD_NAME = #{updName,jdbcType=VARCHAR},
+		   UPD_TIME = sysdate,
+		   DEL_FLAG = #{delFlag,jdbcType=VARCHAR}
+	      where CREDIT_REQ_ID = #{creditReqId}
+	     ]]>
+	</delete>
+
+</mapper>
+

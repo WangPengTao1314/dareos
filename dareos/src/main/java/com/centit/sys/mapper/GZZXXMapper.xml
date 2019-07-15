@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.centit.sys.mapper.GZZXXMapper">
+	<!-- 
+		*@module 系统管理
+		*@func 工作组信息维护
+		*@version 1.1
+		*@author 吴亚林
+		*  -->
+	
+
+	<!-- 使用XTJS装载结果集 -->
+	<resultMap id="GZZXXBean" type="com.centit.sys.model.GZZXXBean">
+		<result column="GZZXXID" property="GZZXXID" />
+	</resultMap>
+
+	<!-- 动态查询 and 列表分页 -->
+	<sql id="queryDynSql">
+		<if test="GZZBH !=null and GZZBH !='' ">
+			u.GZZBH like '%'||#{GZZBH}||'%'
+		</if>
+		<if test="GZZMC !=null and GZZMC !='' ">
+			and u.GZZMC like '%'||#{GZZMC}||'%'
+		</if>
+		<if test="DELFLAG !=null and DELFLAG !='' ">
+			and u.DELFLAG = #{DELFLAG}
+		</if>
+		<if test="GZZZT !=null and GZZZT !='' ">
+			and u.GZZZT = #{GZZZT}
+		</if>
+		<if test="YHBH !=null and YHBH !='' ">
+			and c.YHBH like '%${YHBH}%'
+		</if>
+		<if test="YHM !=null and YHM !='' ">
+			and c.YHM like '%${YHM}%'
+		</if>	
+	</sql>
+	<sql id="orderSql">
+	order by
+		<if test="orderField !=null and orderField !='' ">
+		
+			${orderField},
+		</if>
+		GZZBH
+	</sql>
+	<!-- 查询SQL -->
+	<sql id="coreSql">
+		<![CDATA[  select  distinct u.* from T_SYS_GZZXX u 
+		          left join (select  a.Gzzxxid ,b.YHBH ,b.YHM from T_SYS_GZZCY a
+		           left join T_SYS_XTYH b 
+		          on a.xtyhid = b.xtyhid
+		          and b.delflag=0
+		          where a.delflag=0
+		          order by a.xtyhid
+		           ) c
+		          on u.Gzzxxid = c.Gzzxxid ]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+			<include refid="orderSql" />
+	</sql>
+
+	<!-- 分页查询 -->
+	<select id="pageQuery" parameterType="map"
+		resultType="java.util.HashMap">
+		
+		<include refid="coreSql" />
+		
+	</select>
+
+	<!-- 分页计数 -->
+	<select id="pageCount" parameterType="map" resultType="int">
+		<![CDATA[select  count(distinct u.Gzzxxid) cnt from T_SYS_GZZXX u 
+		          left join (select  a.Gzzxxid ,b.YHBH ,b.YHM from T_SYS_GZZCY a
+		           left join T_SYS_XTYH b 
+		          on a.xtyhid = b.xtyhid
+		          and b.delflag=0
+		          where a.delflag=0
+		          order by a.xtyhid
+		           ) c
+		          on u.Gzzxxid = c.Gzzxxid ]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+	</select>
+
+	<!-- 查询 -->
+	<select id="query" parameterType="map"
+		resultType="java.util.HashMap">
+		<include refid="coreSql" />
+	</select>
+	
+	<select id="getXXID" resultType="String">
+	    select LPAD(ERP_JC_GZZBH.NEXTVAL,'4','0') from dual
+	</select>
+
+	<!-- 新增    LPAD(ERP_JC_GZZBH.NEXTVAL,'3','0')-->
+	<insert id="insert" parameterType="map">
+		<![CDATA[
+		 insert into T_SYS_GZZXX(GZZXXID,GZZBH,GZZMC,GZZSM,GZZZT,DELFLAG)
+		 values(#{GZZXXID},#{GZZXXID},#{GZZMC},#{GZZSM},#{GZZZT},0)
+		]]>
+	</insert>
+
+	<!-- 修改 -->
+	<update id="updateById" parameterType="map">
+		<![CDATA[ update T_SYS_GZZXX ]]>
+		<set>
+			<if test="GZZBH !=null and GZZBH !='' "><![CDATA[GZZBH = #{GZZBH}]]>,</if>
+			<if test="GZZMC !=null and GZZMC !='' "><![CDATA[GZZMC = #{GZZMC}]]>,</if>
+			<if test="GZZSM !=null and GZZSM !='' "><![CDATA[GZZSM = #{GZZSM}]]>,</if>
+			<if test="GZZZT !=null and GZZZT !='' "><![CDATA[GZZZT = #{GZZZT}]]>,</if>
+		</set>
+		<![CDATA[ where GZZXXID = #{GZZXXID} ]]>
+	</update>
+
+	<!-- 删除 -->
+	<delete id="delete" parameterType="String">
+		<![CDATA[ delete from T_SYS_GZZXX  where GZZXXID = #{GZZXXID} ]]>
+	</delete>
+    <delete id="deletemx" parameterType="String">
+       delete from T_SYS_GZZCY  where GZZXXID = #{GZZXXID}
+    </delete>
+    <insert id="insertGZZ" parameterType="map">
+       insert into t_sys_datarecycle(DATARECYCLEID,DELETOR,DELTIME,BUSINESSTYPE,DF1,DF2,DF3,DF4,DF5,DF6)
+	    select #{DATARECYCLEID},#{DELETOR},sysdate,'工作组信息维护',GZZXXID,GZZBH,GZZMC,GZZSM,GZZZT,DELFLAG
+        from T_SYS_GZZXX  where GZZXXID = #{GZZXXID}
+    </insert>
+    
+    <insert id="insertGZZMX" parameterType="map">
+       insert into t_sys_datarecycle(DATARECYCLEID,DELETOR,DELTIME,BUSINESSTYPE,DF1,DF2,DF3,DF4,DF5,DF6,DF7,DF8)
+	    select #{DATARECYCLEID},#{DELETOR},sysdate,'工作组成员信息维护',GZZCYID,GZZXXID,XTYHID,DELFLAG,JGXXID,JGMC,BMXXID,BMMC
+        from T_SYS_GZZCY  where GZZXXID = #{GZZXXID}
+    </insert>
+    
+	<!-- 根据ID查询工作组信息 -->
+	<select id="loadById" parameterType="map"
+		resultType="java.util.HashMap">
+		<![CDATA[  select  u.* from T_SYS_GZZXX u where u.GZZXXID = #{GZZXXID}]]>
+	</select>
+
+	<!-- 判断工作组编号是否已经存在 -->
+	<select id="getExits" parameterType="String" resultType="int">
+		<![CDATA[SELECT COUNT(GZZBH) FROM T_SYS_GZZXX WHERE GZZBH = #{GZZBH} and delflag=0]]>
+	</select>
+</mapper>
+

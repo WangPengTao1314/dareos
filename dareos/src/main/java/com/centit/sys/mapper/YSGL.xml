@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<sqlMap namespace="Ysgl">
+	<!-- 
+	*@module 系统管理
+	*@func 样式管理
+	*@version 1.1
+	*@author wu_yalin
+	*  -->
+	
+
+	<!-- 使用ClwzcbtzdModel装载结果集 -->
+	<resultMap id="YsglModel" type="com.hoperun.sys.model.YsglModel">
+		<result column="SYSCSSID" property="SYSCSSID" />
+	</resultMap>
+	
+	<!-- 动态查询 and 列表分页 -->
+     <sql id="queryDynSql">
+        <if test="SYSCSSID !=null and SYSCSSID !='' ">
+            u.SYSCSSID like '%$SYSCSSID$%'
+        </if>
+        <if test="CSSMC !=null and CSSMC !='' ">
+           and u.CSSMC=#{CSSMC}
+        </if>
+        <if test="CSSKEY !=null and CSSKEY !='' ">
+            and u.CSSKEY=#{CSSKEY}
+        </if>
+        <if test="CSSPATH !=null and CSSPATH !='' ">
+            and u.CSSPATH like '%$CSSPATH$%'
+        </if>
+        <if test="MRBJ !=null and MRBJ !='' ">
+            and u.MRBJ like '%$MRBJ$%'
+        </if>
+     </sql>
+	
+	<sql id="coreSql">
+		<![CDATA[ select u.* from T_SYS_SYSCSS u ]]>
+			<where>
+				<include refid="queryDynSql" />
+			</where>
+	</sql>
+	
+	<!-- 查询 -->
+	<select id="query" parameterType="map"
+		resultType="YsglModel">
+		<include refid="coreSql" />
+	</select>
+	
+	<!-- 查询是否有存在的记录 -->
+	<select id="queryOne" parameterType="String"
+		resultType="int">
+		<![CDATA[
+			select count(*) from T_SYS_XTYHCSS where XTYHID = #{XTYHID}
+		]]>
+	</select>
+	
+	<!-- 查询csskey -->
+	<select id="loadString" parameterType="String"
+		resultType="String">
+		<![CDATA[
+			select b.csskey from T_SYS_XTYHCSS a left join T_SYS_SYSCSS b on a.syscssid = b.syscssid where XTYHID = #{XTYHID}
+		]]>
+	</select>
+	
+	<!-- 新增 -->
+	<insert id="insert" parameterType="map">
+		<![CDATA[
+		insert into T_SYS_XTYHCSS (xtyhcssid,xtyhid,syscssid) values(#{XTYHCSSID},#{XTYHID},#{SYSCSSID})
+		]]>
+	</insert>
+	
+	
+	<!-- 修改 -->
+	<update id="updateById" parameterType="map">
+		<![CDATA[ update T_SYS_XTYHCSS set SYSCSSID = #S{YSCSSID} where XTYHID=#{XTYHID}]]>
+		
+	</update>
+</sqlMap>
+

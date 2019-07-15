@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.centit.base.channamount.mapper.ChannAmountMapper">
+	
+	<resultMap type="com.centit.base.channamount.model.MonthAcctNoteModel" id="model">
+		<result property="monthAcctNoteId" column="MONTH_ACCT_NOTE_ID" />
+		<result property="year" column="YEAR" />
+		<result property="month" column="MONTH" />
+		<result property="begDate" column="BEG_DATE" />
+		<result property="endDate" column="END_DATE" />
+		<result property="updator" column="UPDATOR" />
+		<result property="updName" column="UPD_NAME" />
+		<result property="updTime" column="UPD_TIME" />
+		<result property="ledgerId" column="LEDGER_ID" />
+		<result property="ledgerName" column="LEDGER_NAME" />
+		<result property="ledgerNameAbbr" column="LEDGER_NAME_ABBR" />
+		<result property="channId" column="CHANN_ID" />
+		<result property="channNo" column="CHANN_NO" />
+		<result property="channName" column="CHANN_NAME" />
+		<result property="begAmount" column="BEG_AMOUNT" />
+		<result property="endAmount" column="END_AMOUNT" />
+		<result property="begRebateAmount" column="BEG_REBATE_AMOUNT" />
+		<result property="endRebateAmount" column="END_REBATE_AMOUNT" />
+		<result property="begFreezAmount" column="BEG_FREEZ_AMOUNT" />
+		<result property="endFreezAmount" column="END_FREEZ_AMOUNT" />
+		<result property="begFreezCredit" column="BEG_FREEZ_CREDIT" />
+		<result property="endFreezCredit" column="END_FREEZ_CREDIT" />
+		<result property="useAmount" column="USE_AMOUNT" />
+		<result property="freezAmount" column="FREEZ_AMOUNT" />
+		<result property="freezCredit" column="FREEZ_CREDIT" />
+		<result property="freezRebate" column="FREEZ_REBATE" />
+		<result property="rechargeAmount" column="RECHARGE_AMOUNT" />
+		<result property="rechargeRebate" column="RECHARGE_REBATE" />
+		<result property="useRebate" column="USE_REBATE" />
+		
+	</resultMap>
+	
+	
+<!-- 动态查询 and 列表排序 -->
+	<sql id="queryDynSql">
+		<if test="monthAcctNoteId != null  and monthAcctNoteId != '' ">
+			 and u.MONTH_ACCT_NOTE_ID = #{monthAcctNoteId} 
+		</if>
+		<if test="channId != null  and channId != '' ">
+			 and u.CHANN_ID = #{channId} 
+		</if>
+		<if test="channIds != null  and channIds != '' ">
+			 and u.CHANN_ID in (${channIds})
+		</if>
+		<if test="ledgerId != null  and ledgerId != '' ">
+			 and u.LEDGER_ID = #{ledgerId} 
+		</if>
+		<if test="ledgerIds != null  and ledgerIds != '' ">
+			 and u.LEDGER_ID in (${ledgerIds})
+		</if>
+		<if test="year != null  and year != '' ">
+			 and u.YEAR = #{year} 
+		</if>
+		<if test="month != null  and month != '' ">
+			 and u.MONTH = #{month} 
+		</if>
+	</sql>
+	<sql id="orderSql">
+		<if test="orderField != null and orderField != ''">
+			order by  ${orderField}
+		</if>
+	</sql>
+
+	<sql id="coreSql">
+		  <![CDATA[ 
+		  select 
+			u.MONTH_ACCT_NOTE_ID,
+			u.YEAR,
+			u.MONTH,
+			to_char(u.BEG_DATE,'yyyy-MM-DD') BEG_DATE,
+			to_char(u.END_DATE,'yyyy-MM-DD') END_DATE,
+			u.UPDATOR,
+			u.UPD_NAME,
+			to_char(u.UPD_TIME,'yyyy-MM-DD HH24:MI:SS') UPD_TIME,
+			u.LEDGER_ID,
+			u.LEDGER_NAME,
+			u.LEDGER_NAME_ABBR,
+			u.CHANN_ID,
+			u.CHANN_NO,
+			u.CHANN_NAME,
+			u.BEG_AMOUNT,
+			u.END_AMOUNT,
+			u.BEG_REBATE_AMOUNT,
+			u.END_REBATE_AMOUNT,
+			u.BEG_FREEZ_AMOUNT,
+			u.END_FREEZ_AMOUNT,
+			u.BEG_FREEZ_CREDIT,
+			u.END_FREEZ_CREDIT,
+			u.USE_AMOUNT,
+			u.FREEZ_AMOUNT,
+			u.FREEZ_CREDIT,
+			u.FREEZ_REBATE,
+			u.RECHARGE_AMOUNT,
+			u.RECHARGE_REBATE,
+			u.USE_REBATE
+		  from  BASE_MONTH_ACCT_NOTE u 
+		   ]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+		
+		<include refid="orderSql" />
+	</sql>
+
+	<!-- 分页查询 -->
+	<select id="pageQuery" parameterType="map" resultMap="model">
+		<include refid="coreSql" />
+	</select>
+
+	<!-- 根据ID查找 -->
+	<select id="loadById" parameterType="map" resultMap="model">
+		<include refid="coreSql" />
+	</select>
+</mapper>
+

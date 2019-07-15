@@ -1,0 +1,1017 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<!-- @author zzb @function 标准订单 @version 2013-10-12 13:52:19 -->
+<mapper namespace="com.centit.erp.sale.saleorder.mapper.SaleorderMapper">
+
+	<resultMap id="SaleorderModel" type="com.centit.erp.sale.saleorder.model.SaleorderModel" />
+	<resultMap id="SaleorderModelChld" type="com.centit.erp.sale.saleorder.model.SaleorderModelChld" />
+
+	<!--主表动态查询 and 列表分页 -->
+	<sql id="queryDynSql">
+		<!-- 渠道分管 -->
+		<if test="FACTORY_NO !=null and FACTORY_NO !='' "> and u.FACTORY_NO like '%'||#{FACTORY_NO}||'%' </if>
+		<if test="PROESS_TYPE !=null and PROESS_TYPE !='' "> and u.PROESS_TYPE = #{PROESS_TYPE} </if>
+		<if test="URGENCY_TYPE !=null and URGENCY_TYPE !='' "> and u.URGENCY_TYPE = #{URGENCY_TYPE} </if>
+		<if test="SALE_ORDER_NO !=null and SALE_ORDER_NO !='' "> and u.SALE_ORDER_NO like '%'||#{SALE_ORDER_NO}||'%' </if>
+		<if test="ORDER_CHANN_NAME !=null and ORDER_CHANN_NAME !='' "> and d.ORDER_CHANN_NAME like '%'||#{ORDER_CHANN_NAME}||'%' </if>
+		<if test="CUST_NAME !=null and CUST_NAME !='' "> and u.CUST_NAME like '%'||#{CUST_NAME}||'%' </if>
+		<if test="CUST_ADDR !=null and CUST_ADDR !='' "> and u.CUST_ADDR like '%'||#{CUST_ADDR}||'%' </if>
+		<if test="STATE !=null and STATE !='' "> and u.STATE = #{STATE} </if>
+		<if test="NOTSTATE !=null and NOTSTATE !='' "> and <![CDATA[ u.STATE != #{NOTSTATE} ]]> </if>
+		<if test="STATE2 !=null and STATE2 !='' "> and u.STATE not in (#{STATE2})  </if>
+		<if test="STATES !=null and STATES !='' "> <![CDATA[ and u.STATE IN (${STATES}) ]]> </if>
+		<if test="NOTSTATES!=null and NOTSTATES !='' "> and <![CDATA[ u.STATE NOT IN (${NOTSTATES}) ]]> </if>
+		<if test="DEL_FLAG !=null and DEL_FLAG !='' "> and u.DEL_FLAG = #{DEL_FLAG} </if>
+		<if test="CHANN_ID !=null and CHANN_ID !='' "> <![CDATA[ and u.CHANN_ID = #{CHANN_ID} ]]> </if>
+		<if test="CHANN_NO !=null and CHANN_NO !='' "> and u.CHANN_NO like '%'||#{CHANN_NO}||'%' </if>
+		<if test="CHANN_NAME !=null and CHANN_NAME !='' "> and u.CHANN_NAME like '%'||#{CHANN_NAME}||'%' </if>
+		<if test="ORDER_DATE_BEGIN !=null and ORDER_DATE_BEGIN !='' ">
+			<![CDATA[ and to_char(u.ORDER_DATE,'yyyy-MM-dd') >= #{ORDER_DATE_BEGIN} ]]>
+		</if>
+		<if test="ORDER_DATE_END !=null and ORDER_DATE_END !='' ">
+			<![CDATA[ and to_char(u.ORDER_DATE,'yyyy-MM-dd') <= #{ORDER_DATE_END} ]]>
+		</if>
+		<if test="ORDER_DELIVERY_DATE_BEGIN !=null and ORDER_DELIVERY_DATE_BEGIN !='' ">
+			<![CDATA[ and to_char(u.ORDER_DELIVERY_DATE,'yyyy-MM-dd') >= #{ORDER_DELIVERY_DATE_BEGIN} ]]>
+		</if>
+		<if test="ORDER_DELIVERY_DATE_END !=null and ORDER_DELIVERY_DATE_END !='' ">
+			<![CDATA[ and to_char(u.ORDER_DELIVERY_DATE,'yyyy-MM-dd') <= #{ORDER_DELIVERY_DATE_END} ]]>
+		</if>
+		<if test="GOODS_ORDER_NO!=null and GOODS_ORDER_NO !='' ">
+			and  upper(u.FROM_BILL_NO) like upper('%'||#{GOODS_ORDER_NO}||'%')
+		</if>
+		<if test="BILL_TYPE!=null and BILL_TYPE !='' ">
+			and u.BILL_TYPE = #{BILL_TYPE}
+		</if>
+		<if test="NOT_BILL_TYPE!=null and NOT_BILL_TYPE !='' ">
+			and u.BILL_TYPE != #{NOT_BILL_TYPE}
+		</if>
+		<if test="billTypeQuery!=null and billTypeQuery !='' ">
+			${billTypeQuery}
+		</if>
+		<if test="LEDGER_IDS !=null and LEDGER_IDS !='' "> and u.LEDGER_ID IN (${LEDGER_IDS}) </if>
+		<if test="CHANN_IDS !=null and CHANN_IDS !='' "> and u.CHANN_ID IN (${CHANN_IDS}) </if>
+		<if test="DESIGNER !=null and DESIGNER !='' ">
+			and exists (select 1 from ERP_SALE_DESIGNER esd where esd.designer=#{DESIGNER} and esd.sale_order_id=u.sale_order_id )
+		</if>
+		<if test="NOT_SALE_ORDER_ID !=null and NOT_SALE_ORDER_ID !='' "> and u.SALE_ORDER_ID != #{NOT_SALE_ORDER_ID} </if>
+	
+		<if test="QXJBCON !=null and QXJBCON !='' ">
+			and ${QXJBCON}
+		</if>
+	</sql>
+	<sql id="orderSql">
+		order by 
+		<if test="orderField !=null and orderField !='' "> ${orderField} </if>
+	</sql>
+	<!-- 主表查询SQL -->
+	<sql id="coreSql">
+		<![CDATA[ 
+		select u.SALE_ORDER_ID
+			,u.SALE_ORDER_NO
+			,u.BILL_TYPE
+			,u.FROM_BILL_ID
+			,u.FROM_BILL_NO
+			,u.BILL_TYPE2
+			,u.ORDER_CHANN_ID
+			,u.ORDER_CHANN_NO
+			,u.ORDER_CHANN_NAME
+			,u.ORDER_DATE
+			,u.CHANN_ID
+			,u.CHANN_NO
+			,u.CHANN_NAME
+			,u.PRINT_NAME
+			,u.TRANSPORT
+			,u.TRANSPORT_SETTLE
+			,u.FACTORY_NO
+			,u.PROESS_TYPE
+			,u.URGENCY_TYPE
+			,u.SALE_ID
+			,u.SALE_NAME
+			,u.SALEDEPT_NAME
+			,u.SALEDEPT_ID
+			,u.PRE_RECV_DATE
+			,u.CUST_NAME
+			,u.IS_USE_REBATE
+			,u.RECV_CHANN_ID
+			,u.RECV_CHANN_NO
+			,u.RECV_CHANN_NAME
+			,u.PERSON_CON
+			,u.RECV_ADDR
+			,u.RECV_ADDR_NO
+			,u.TEL
+			,u.STATE
+			,u.REMARK
+			,u.REMARK2
+			,u.CREATOR
+			,u.CRE_NAME
+			,u.CRE_TIME
+			,u.UPDATOR
+			,u.UPD_NAME
+			,u.UPD_TIME
+			,u.LEDGER_NAME
+			,u.LEDGER_ID
+			,u.DEL_FLAG
+			,u.AUDIT_TIME
+			,u.AUDIT_NAME
+			,u.AUDIT_ID
+			,u.DEPT_NAME
+			,u.DEPT_ID
+			,u.ORG_ID
+			,u.ORG_NAME
+			,u.AREA_ID
+			,u.AREA_NO
+			,u.AREA_NAME
+			,u.BASE_ADD_FLAG
+			,u.ORDER_DELIVERY_DATE
+			,u.CUST_TEL
+			,u.CUST_ADDR
+			,u.ORDER_TRACE_ID
+			,u.RETURN_SHOW_FLAG
+			,u.PROBLEM_FEEDBACK_ID
+			,u.PROBLEM_FEEDBACK_NO
+			,u.CHANGE_FLAG
+			,a.STATE APPLYSTATE
+			,u.TOTAL_AMOUNT
+			,u.TOTAL_REBATE
+			,u.NC_ID
+			,u.PROJECT_ID
+			,u.PROJECT_NO
+			,u.PROJECT_NAME
+			,de.DESIGNER
+			,de.DESIGNER_NAME
+			,de.FINISH_FLAG
+		from ERP_SALE_ORDER u 
+		left join ERP_CHANGE_APPLY a on a.SALE_ORDER_ID = u.SALE_ORDER_ID and a.DEL_FLAG = '0' and a.state in('草稿','提交')
+		left join DRP_GOODS_ORDER d 
+		  on u.FROM_BILL_ID = d.GOODS_ORDER_ID and d.DEL_FLAG = '0'
+		left join (select t.*,row_number() over(partition by t.sale_order_id order by ASSIGN_TIME desc) rn from ERP_SALE_DESIGNER t) de
+		  on u.SALE_ORDER_ID = de.SALE_ORDER_ID and rn = 1
+		 ]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+		<include refid="orderSql" />
+	</sql>
+	<!-- 主表分页查询 -->
+	<select id="pageQuery" parameterType="map" resultType="java.util.HashMap">
+		<include refid="coreSql" />
+	</select>
+	<!-- 分页计数 -->
+	<select id="pageCount" parameterType="map" resultType="int">
+      <![CDATA[
+      select count(0) from ERP_SALE_ORDER u 
+      ]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+	</select>
+	<!-- 主表查询 -->
+	<select id="query" parameterType="map" resultType="java.util.HashMap">
+		<include refid="coreSql" />
+	</select>
+	<insert id="insert" parameterType="map">
+		insert into ERP_SALE_ORDER (
+		SALE_ORDER_ID,
+		SALE_ORDER_NO,
+		BILL_TYPE,
+		FROM_BILL_ID,
+		FROM_BILL_NO,
+		BILL_TYPE2,
+		ORDER_CHANN_ID,
+		ORDER_CHANN_NO,
+		ORDER_CHANN_NAME,
+		ORDER_DATE,
+		CHANN_ID,
+		CHANN_NO,
+		CHANN_NAME,
+		PRINT_NAME,
+		TRANSPORT,
+		TRANSPORT_SETTLE,
+		FACTORY_NO,
+		PROESS_TYPE,
+		URGENCY_TYPE,
+		SALE_ID,
+		SALE_NAME,
+		SALEDEPT_NAME,
+		SALEDEPT_ID,
+		PRE_RECV_DATE,
+		CUST_NAME,
+		IS_USE_REBATE,
+		RECV_CHANN_ID,
+		RECV_CHANN_NO,
+		RECV_CHANN_NAME,
+		PERSON_CON,
+		RECV_ADDR,
+		RECV_ADDR_NO,
+		TEL,
+		STATE,
+		REMARK,
+		REMARK2,
+		CREATOR,
+		CRE_NAME,
+		CRE_TIME,
+		UPDATOR,
+		UPD_NAME,
+		UPD_TIME,
+		LEDGER_NAME,
+		LEDGER_ID,
+		DEL_FLAG,
+		DEPT_NAME,
+		DEPT_ID,
+		ORG_ID,
+		ORG_NAME,
+		AREA_ID,
+		AREA_NO,
+		AREA_NAME,
+		BASE_ADD_FLAG,
+		ORDER_DELIVERY_DATE,
+		CUST_TEL,
+		CUST_ADDR,
+		TOTAL_AMOUNT,
+		TOTAL_REBATE,
+		PROJECT_ID,
+		PROJECT_NO,
+		PROJECT_NAME,
+		ORDER_TRACE_ID
+		)values(
+		#{SALE_ORDER_ID},
+		#{SALE_ORDER_NO},
+		#{BILL_TYPE},
+		#{FROM_BILL_ID},
+		#{FROM_BILL_NO},
+		#{BILL_TYPE2},
+		#{ORDER_CHANN_ID},
+		#{ORDER_CHANN_NO},
+		#{ORDER_CHANN_NAME},
+		sysdate,
+		#{CHANN_ID},
+		#{CHANN_NO},
+		#{CHANN_NAME},
+		#{PRINT_NAME},
+		#{TRANSPORT},
+		#{TRANSPORT_SETTLE},
+		#{FACTORY_NO},
+		#{PROESS_TYPE},
+		#{URGENCY_TYPE},
+		#{SALE_ID},
+		#{SALE_NAME},
+		#{SALEDEPT_NAME},
+		#{SALEDEPT_ID},
+		to_date(#{PRE_RECV_DATE},'yyyy-MM-dd hh24:mi:ss'),
+		#{CUST_NAME},
+		#{IS_USE_REBATE},
+		#{RECV_CHANN_ID},
+		#{RECV_CHANN_NO},
+		#{RECV_CHANN_NAME},
+		#{PERSON_CON},
+		#{RECV_ADDR},
+		#{RECV_ADDR_NO},
+		#{TEL},
+		#{STATE},
+		#{REMARK},
+		#{REMARK2},
+		#{CREATOR},
+		#{CRE_NAME},
+		systimestamp,
+		#{CREATOR},
+		#{CRE_NAME},
+		systimestamp,
+		#{LEDGER_NAME},
+		#{LEDGER_ID},
+		#{DEL_FLAG},
+		#{DEPT_NAME},
+		#{DEPT_ID},
+		#{ORG_ID},
+		#{ORG_NAME},
+		#{AREA_ID},
+		#{AREA_NO},
+		#{AREA_NAME},
+		#{BASE_ADD_FLAG},
+		to_date(#{ORDER_DELIVERY_DATE},'yyyy-MM-dd hh24:mi:ss'),
+		#{CUST_TEL},
+		#{CUST_ADDR},
+		#{TOTAL_AMOUNT},
+		#{TOTAL_REBATE},
+		#{PROJECT_ID,jdbcType=VARCHAR},
+		#{PROJECT_NO,jdbcType=VARCHAR},
+		#{PROJECT_NAME,jdbcType=VARCHAR},
+		#{ORDER_TRACE_ID}
+		)
+	</insert>
+
+	<!-- 查询订单下正常的明细单据 -->
+	<select id="queryChildForInt" parameterType="map" resultType="int">
+	<![CDATA[ 
+	  select count(1) from  ERP_SALE_ORDER_DTL d where d.SALE_ORDER_ID=#{SALE_ORDER_ID} 
+	  and d.DEL_FLAG=#{DEL_FLAG}
+	]]>
+	</select>
+
+	<update id="updateById" parameterType="map">
+		<![CDATA[ update ERP_SALE_ORDER ]]>
+		<set>
+			<if test="BILL_TYPE !=null and BILL_TYPE !='' "><![CDATA[BILL_TYPE = #{BILL_TYPE} ]]>,</if>
+			<if test="FROM_BILL_ID !=null and FROM_BILL_ID !='' "><![CDATA[FROM_BILL_ID = #{FROM_BILL_ID} ]]>,</if>
+			<if test="FROM_BILL_NO !=null and FROM_BILL_NO !='' "><![CDATA[FROM_BILL_NO = #{FROM_BILL_NO} ]]>,</if>
+			<if test="BILL_TYPE2 !=null and BILL_TYPE2 !='' "><![CDATA[BILL_TYPE2 = #{BILL_TYPE2} ]]>,</if>
+			<if test="ORDER_CHANN_ID !=null and ORDER_CHANN_ID !='' "><![CDATA[ORDER_CHANN_ID = #{ORDER_CHANN_ID} ]]>,</if>
+			<if test="ORDER_CHANN_NO !=null and ORDER_CHANN_NO !='' "><![CDATA[ORDER_CHANN_NO = #{ORDER_CHANN_NO} ]]>,</if>
+			<if test="ORDER_CHANN_NAME !=null and ORDER_CHANN_NAME !='' "><![CDATA[ORDER_CHANN_NAME = #{ORDER_CHANN_NAME} ]]>,</if>
+			<if test="ORDER_DATE !=null and ORDER_DATE !='' "><![CDATA[ORDER_DATE = sysdate ]]>,</if>
+			<if test="CHANN_ID !=null and CHANN_ID !='' "><![CDATA[CHANN_ID = #{CHANN_ID} ]]>,</if>
+			<if test="CHANN_NO !=null and CHANN_NO !='' "><![CDATA[CHANN_NO = #{CHANN_NO} ]]>,</if>
+			<if test="CHANN_NAME !=null and CHANN_NAME !='' "><![CDATA[CHANN_NAME = #{CHANN_NAME} ]]>,</if>
+			<if test="PRINT_NAME !=null and PRINT_NAME !='' "><![CDATA[PRINT_NAME = #{PRINT_NAME} ]]>,</if>
+			<if test="TRANSPORT !=null and TRANSPORT !='' "><![CDATA[TRANSPORT = #{TRANSPORT} ]]>,</if>
+			<if test="TRANSPORT_SETTLE !=null and TRANSPORT_SETTLE !='' "><![CDATA[TRANSPORT_SETTLE = #{TRANSPORT_SETTLE} ]]>,</if>
+			<if test="FACTORY_NO !=null and FACTORY_NO !='' "><![CDATA[FACTORY_NO = #{FACTORY_NO} ]]>,</if>
+			<if test="PROESS_TYPE !=null and PROESS_TYPE !='' "><![CDATA[PROESS_TYPE = #{PROESS_TYPE} ]]>,</if>
+			<if test="URGENCY_TYPE !=null and URGENCY_TYPE !='' "><![CDATA[URGENCY_TYPE = #{URGENCY_TYPE} ]]>,</if>
+			<if test="SALE_ID !=null and SALE_ID !='' "><![CDATA[SALE_ID = #{SALE_ID} ]]>,</if>
+			<if test="SALE_NAME !=null and SALE_NAME !='' "><![CDATA[SALE_NAME = #{SALE_NAME} ]]>,</if>
+			<if test="SALEDEPT_NAME !=null and SALEDEPT_NAME !='' "><![CDATA[SALEDEPT_NAME = #{SALEDEPT_NAME} ]]>,</if>
+			<if test="SALEDEPT_ID !=null and SALEDEPT_ID !='' "><![CDATA[SALEDEPT_ID = #{SALEDEPT_ID} ]]>,</if>
+			<if test="PRE_RECV_DATE !=null"><![CDATA[PRE_RECV_DATE = to_date(#{PRE_RECV_DATE},'yyyy-MM-dd hh24:mi:ss')]]>,</if>
+			<if test="CUST_NAME !=null and CUST_NAME !='' "><![CDATA[CUST_NAME = #{CUST_NAME} ]]>,</if>
+			<if test="IS_USE_REBATE !=null and IS_USE_REBATE !='' "><![CDATA[IS_USE_REBATE = #{IS_USE_REBATE} ]]>,</if>
+			<if test="RECV_CHANN_ID !=null and RECV_CHANN_ID !='' "><![CDATA[RECV_CHANN_ID = #{RECV_CHANN_ID} ]]>,</if>
+			<if test="RECV_CHANN_NO !=null and RECV_CHANN_NO !='' "><![CDATA[RECV_CHANN_NO = #{RECV_CHANN_NO} ]]>,</if>
+			<if test="RECV_CHANN_NAME !=null and RECV_CHANN_NAME !='' "><![CDATA[RECV_CHANN_NAME = #{RECV_CHANN_NAME} ]]>,</if>
+			<if test="PERSON_CON !=null and PERSON_CON !='' "><![CDATA[PERSON_CON = #{PERSON_CON} ]]>,</if>
+			<if test="RECV_ADDR !=null and RECV_ADDR !='' "><![CDATA[RECV_ADDR = #{RECV_ADDR} ]]>,</if>
+			<if test="RECV_ADDR_NO !=null and RECV_ADDR_NO !='' "><![CDATA[RECV_ADDR_NO = #{RECV_ADDR_NO} ]]>,</if>
+			<if test="TEL !=null and TEL !='' "><![CDATA[TEL = #{TEL} ]]>,</if>
+			<if test="STATE !=null"><![CDATA[STATE = #{STATE} ]]>,</if>
+			<if test="REMARK !=null"><![CDATA[REMARK = #{REMARK} ]]>,</if>
+			<if test="REMARK2 !=null"><![CDATA[REMARK2 = #{REMARK2} ]]>,</if>
+			<if test="UPDATOR !=null"><![CDATA[UPDATOR = #{UPDATOR} ]]>,</if>
+			<if test="UPD_NAME !=null"><![CDATA[UPD_NAME = #{UPD_NAME} ]]>,</if>
+			<if test="UPD_TIME !=null"><![CDATA[UPD_TIME = systimestamp ]]>,</if>
+			<if test="LEDGER_NAME !=null"><![CDATA[LEDGER_NAME = #{LEDGER_NAME} ]]>,</if>
+			<if test="LEDGER_ID !=null"><![CDATA[LEDGER_ID = #{LEDGER_ID} ]]>,</if>
+			<if test="DEL_FLAG !=null"><![CDATA[DEL_FLAG = #{DEL_FLAG} ]]>,</if>
+			<if test="AUDIT_TIME !=null and AUDIT_TIME !='' "><![CDATA[AUDIT_TIME = systimestamp ]]>,</if>
+			<if test="AUDIT_NAME !=null and AUDIT_NAME !='' "><![CDATA[AUDIT_NAME = #{AUDIT_NAME} ]]>,</if>
+			<if test="AUDIT_ID !=null and AUDIT_ID !='' "><![CDATA[AUDIT_ID = #{AUDIT_ID} ]]>,</if>
+			<if test="AREA_NAME !=null and AREA_NAME !='' "><![CDATA[AREA_NAME = #{AREA_NAME} ]]>,</if>
+			<if test="AREA_ID !=null and AREA_ID !='' "><![CDATA[AREA_ID = #{AREA_ID} ]]>,</if>
+			<if test="AREA_NO !=null and AREA_NO !='' "><![CDATA[AREA_NO = #{AREA_NO} ]]>,</if>
+			<if test="ORDER_DELIVERY_DATE !=null"><![CDATA[ORDER_DELIVERY_DATE = to_date(#{ORDER_DELIVERY_DATE},'yyyy-MM-dd hh24:mi:ss')]]>,</if>
+			<if test="CUST_TEL !=null and CUST_TEL !='' "><![CDATA[CUST_TEL = #{CUST_TEL} ]]>,</if>
+			<if test="CUST_ADDR !=null and CUST_ADDR !='' "><![CDATA[CUST_ADDR = #{CUST_ADDR} ]]>,</if>
+			<if test="TOTAL_AMOUNT !=null"><![CDATA[TOTAL_AMOUNT = #{TOTAL_AMOUNT} ]]>,</if>
+			<if test="TOTAL_REBATE !=null"><![CDATA[TOTAL_REBATE = #{TOTAL_REBATE} ]]>,</if>
+			<if test="ORDER_TRACE_ID !=null"><![CDATA[ORDER_TRACE_ID = #{ORDER_TRACE_ID} ]]>,</if>
+			<!-- 变更标记 -->
+			<if test="CHANGE_FLAG !=null"><![CDATA[CHANGE_FLAG = #{CHANGE_FLAG,jdbcType=VARCHAR} ]]>,</if>
+			<!-- 推送NC系统返回单据ID -->
+			<if test="NC_ID !=null"><![CDATA[NC_ID = #{NC_ID,jdbcType=VARCHAR} ]]>,</if>
+			<if test="PROJECT_ID !=null"><![CDATA[PROJECT_ID = #{PROJECT_ID,jdbcType=VARCHAR} ]]>,</if>
+			<if test="PROJECT_NO !=null"><![CDATA[PROJECT_NO = #{PROJECT_NO,jdbcType=VARCHAR} ]]>,</if>
+			<if test="PROJECT_NAME !=null"><![CDATA[PROJECT_NAME = #{PROJECT_NAME,jdbcType=VARCHAR} ]]>,</if>
+		</set>
+		<![CDATA[ where SALE_ORDER_ID = #{SALE_ORDER_ID}]]>
+	</update>
+	<!-- 逻辑删除 只是更新状态 -->
+	<delete id="delete" parameterType="map">
+	<![CDATA[ update ERP_SALE_ORDER 
+	               set DEL_FLAG = #{DEL_FLAG}
+                      ,UPD_NAME=#{UPD_NAME}
+                      ,UPDATOR=#{UPDATOR}
+                      ,UPD_TIME=systimestamp
+ 	  where 
+	     SALE_ORDER_ID = #{SALE_ORDER_ID,jdbcType=VARCHAR} 
+    ]]>
+	</delete>
+	<select id="loadById" parameterType="map" resultType="java.util.HashMap">
+		<![CDATA[ 
+		  select 
+			u.SALE_ORDER_ID,
+			u.SALE_ORDER_NO,
+			u.BILL_TYPE,
+			u.FROM_BILL_ID,
+			u.FROM_BILL_NO,
+			u.BILL_TYPE2,
+			u.ORDER_CHANN_ID,
+			u.ORDER_CHANN_NO,
+			u.ORDER_CHANN_NAME,
+			to_char(u.ORDER_DATE,'yyyy-MM-DD') ORDER_DATE,
+			u.CHANN_ID,
+			u.CHANN_NO,
+			u.CHANN_NAME,
+			u.PRINT_NAME,
+			u.TRANSPORT,
+			u.TRANSPORT_SETTLE,
+			u.FACTORY_NO,
+			u.PROESS_TYPE,
+			u.URGENCY_TYPE,
+			u.SALE_ID,
+			u.SALE_NAME,
+			u.SALEDEPT_NAME,
+			u.SALEDEPT_ID,
+			to_char(u.PRE_RECV_DATE,'yyyy-MM-DD') PRE_RECV_DATE,
+			u.CUST_NAME,
+			u.IS_USE_REBATE,
+			u.RECV_CHANN_ID,
+			u.RECV_CHANN_NO,
+			u.RECV_CHANN_NAME,
+			u.PERSON_CON,
+			u.RECV_ADDR,
+			u.RECV_ADDR_NO,
+			u.TEL,
+			u.STATE,
+			u.REMARK,
+			u.REMARK2,
+			u.CREATOR,
+			u.CRE_NAME,
+			to_char(u.CRE_TIME,'yyyy-MM-DD HH24:MI:SS') CRE_TIME,
+			u.UPDATOR,
+			u.UPD_NAME,
+			to_char(u.UPD_TIME,'yyyy-MM-DD HH24:MI:SS') UPD_TIME,
+			u.LEDGER_ID,
+			u.LEDGER_NAME LEDGER_NAME_old,
+			(select ZTJC from t_sys_ztxx t where t.delflag = '0' and t.ztxxid=u.LEDGER_ID)LEDGER_NAME,
+			u.DEL_FLAG,
+			to_char(u.AUDIT_TIME,'yyyy-MM-DD HH24:MI:SS') AUDIT_TIME,
+			u.AUDIT_NAME,
+			u.AUDIT_ID,
+			u.DEPT_ID,
+			u.DEPT_NAME,
+			u.ORG_ID,
+			u.ORG_NAME,
+			u.AREA_ID,
+			u.AREA_NO,
+			u.AREA_NAME,
+			u.BASE_ADD_FLAG,
+			to_char(u.ORDER_DELIVERY_DATE,'yyyy-MM-DD') ORDER_DELIVERY_DATE,
+			u.CUST_TEL,
+			u.CUST_ADDR,
+			u.TOTAL_AMOUNT,
+			u.TOTAL_REBATE,
+			(select sum(b.PRICE*b.ORDER_NUM) from ERP_SALE_ORDER_DTL b  where b.DEL_FLAG=0 and b.SALE_ORDER_ID = u.SALE_ORDER_ID) AMOUNT,
+			(select sum(b.ORDER_NUM) from ERP_SALE_ORDER_DTL b  where b.DEL_FLAG=0 and b.SALE_ORDER_ID = u.SALE_ORDER_ID) SUM,
+			u.NC_ID,
+			u.PROJECT_ID,
+			u.PROJECT_NO,
+			u.PROJECT_NAME,
+			u.ORDER_TRACE_ID,
+			u.RETURN_SHOW_FLAG
+			,u.CHANGE_FLAG
+			,a.CHANGE_APPLY_ID
+			,a.CHANGE_APPLY_NO
+			,a.CHAN_REMARK
+			,a.ORDER_REMARK
+			,a.STATE APPLYSTATE
+			, de.DESIGNER_ID
+			, de.DESIGNER
+			, de.DESIGNER_NAME
+		  from
+			ERP_SALE_ORDER u 
+		  left join ERP_CHANGE_APPLY a on a.SALE_ORDER_ID = u.SALE_ORDER_ID and a.DEL_FLAG = '0' and a.state in('草稿','提交')
+		  left join (select t.*,row_number() over(partition by t.sale_order_id order by ASSIGN_TIME desc) rn from ERP_SALE_DESIGNER t) de
+		    on u.SALE_ORDER_ID = de.SALE_ORDER_ID and rn = 1
+		  where 
+			u.SALE_ORDER_ID = #{SALE_ORDER_ID}
+		]]>
+	</select>
+	<!-- 明细操作开始 -->
+	<!--明细查询条件定义 -->
+	<sql id="queryDynSqlChld">
+		<if test="DEL_FLAG !=null and DEL_FLAG !='' "> and u.DEL_FLAG=#{DEL_FLAG} </if>
+	</sql>
+	<!-- 查询SQL -->
+	<sql id="orderSqlChld">
+		order by 
+		<if test="orderField !=null and orderField !='' "> ${orderField}</if>
+	</sql>
+	<sql id="coreSqlChld">
+	<![CDATA[ 
+	  select 
+		u.SALE_ORDER_DTL_ID,
+		u.SALE_ORDER_ID,
+		u.GROUP_NO,
+		u.PRD_ID,
+		u.PRD_NO,
+		u.PRD_NAME,
+		u.HOLE_SPEC,
+		u.PRD_SPEC,
+		u.PRD_TOWARD,
+		u.PRD_QUALITY,
+		u.PRD_COLOR,
+		u.PRD_GLASS,
+		u.PRD_OTHER,
+		u.PRD_SERIES,
+		u.BRAND,
+		u.STD_UNIT,
+		u.PRICE,
+		u.DECT_RATE,
+		u.DECT_PRICE,
+		u.REBATE_PRICE,
+		u.REBATE_AMOUNT,
+		u.ORDER_NUM,
+		u.ORDER_AMOUNT,
+		to_char(u.ADVC_SEND_DATE,'yyyy-MM-DD') ADVC_SEND_DATE,
+		u.REMARK,
+		u.DEL_FLAG,
+		u.FROM_BILL_DTL_ID,
+		u.SENDED_NUM,
+		u.ROW_NO,
+		u.PRD_SIZE,
+		u.PROJECTED_AREA,
+		u.EXPAND_AREA,
+		u.PRD_PLACE,
+		t.sjxmc PRD_PLACE_TEXT,
+		u.IS_NO_REBATE_FLAG,
+		case when u.IS_NO_REBATE_FLAG =1 then '是' else '否' end IS_NO_REBATE_FLAG_TEXT,
+		u.IS_NO_LOCK_FLAG,
+		case when u.IS_NO_LOCK_FLAG =1 then '是' else '否' end IS_NO_LOCK_FLAG_TEXT,
+		u.FIGURE_NO
+	  from ERP_SALE_ORDER_DTL u 
+	  left join t_sys_sjzdmx t on t.SJXZ = u.PRD_PLACE and t.sjzdid='PRO_PLACE'
+	]]>
+	</sql>
+	<!-- 根据主表ID查询明细 -->
+	<select id="queryChldByFkId" parameterType="map" resultType="java.util.HashMap">
+		<include refid="coreSqlChld" />
+		<where>
+			u.SALE_ORDER_ID=#{SALE_ORDER_ID} 
+		</where>
+		<include refid="queryDynSqlChld" />
+		order by u.GROUP_NO asc, u.ROW_NO ASC
+	</select>
+	<!--根据明细表IDS查询明细 -->
+	<select id="loadChldByIds" parameterType="map" resultType="java.util.HashMap">
+		<include refid="coreSqlChld" />
+		<where>
+			u.SALE_ORDER_DTL_ID in (${SALE_ORDER_DTL_IDS})
+		</where>
+		<include refid="queryDynSqlChld" />
+		order by u.GROUP_NO asc, u.ROW_NO ASC
+	</select>
+	
+	<select id="queryDtlByid" parameterType="String" resultType="java.util.HashMap">
+		select u.ROW_NO from ERP_SALE_ORDER_DTL u where u.SALE_ORDER_DTL_ID = #{id}
+	</select>
+	
+	<!--明细表插入 -->
+	<insert id="insertChld" parameterType="java.util.List">
+		<foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+		<![CDATA[
+		  insert into ERP_SALE_ORDER_DTL(
+			SALE_ORDER_DTL_ID,
+			SALE_ORDER_ID,
+			GROUP_NO,
+			PRD_ID,
+			PRD_NO,
+			PRD_NAME,
+			HOLE_SPEC,
+			PRD_SPEC,
+			PRD_TOWARD,
+			PRD_QUALITY,
+			PRD_COLOR,
+			PRD_GLASS,
+			PRD_OTHER,
+			PRD_SERIES,
+			BRAND,
+			STD_UNIT,
+			PRICE,
+			DECT_RATE,
+			DECT_PRICE,
+			REBATE_PRICE,
+			REBATE_AMOUNT,
+			ORDER_NUM,
+			ORDER_AMOUNT,
+			ADVC_SEND_DATE,
+			REMARK,
+			DEL_FLAG,
+			FROM_BILL_DTL_ID,
+			SENDED_NUM,
+			ROW_NO,
+			PRD_SIZE,
+			PROJECTED_AREA,
+			EXPAND_AREA,
+			PRD_PLACE
+			, IS_NO_REBATE_FLAG
+			, IS_NO_LOCK_FLAG
+			, FIGURE_NO
+		  )values(
+			 #{item.SALE_ORDER_DTL_ID},
+			 #{item.SALE_ORDER_ID},
+			 #{item.GROUP_NO},
+			 #{item.PRD_ID},
+			 #{item.PRD_NO},
+			 #{item.PRD_NAME},
+			 #{item.HOLE_SPEC},
+			 #{item.PRD_SPEC},
+			 #{item.PRD_TOWARD},
+			 #{item.PRD_QUALITY},
+			 #{item.PRD_COLOR},
+			 #{item.PRD_GLASS},
+			 #{item.PRD_OTHER},
+			 #{item.PRD_SERIES},
+			 #{item.BRAND},
+			 #{item.STD_UNIT},
+			 #{item.PRICE},
+			 #{item.DECT_RATE},
+			 #{item.DECT_PRICE},
+			 #{item.REBATE_PRICE},
+			 #{item.REBATE_AMOUNT},
+			 #{item.ORDER_NUM},
+			 #{item.ORDER_AMOUNT},
+			 #{item.ADVC_SEND_DATE},
+			 #{item.REMARK},
+			 #{item.DEL_FLAG},
+			 #{item.FROM_BILL_DTL_ID},
+			 #{item.SENDED_NUM},
+			 #{item.ROW_NO},
+			 #{item.PRD_SIZE},
+			 #{item.PROJECTED_AREA,jdbcType=VARCHAR},
+			 #{item.EXPAND_AREA,jdbcType=VARCHAR},
+			 #{item.PRD_PLACE,jdbcType=VARCHAR}
+			, #{item.IS_NO_REBATE_FLAG,jdbcType=VARCHAR}
+			, #{item.IS_NO_LOCK_FLAG,jdbcType=VARCHAR}
+			, #{item.FIGURE_NO,jdbcType=VARCHAR}
+			
+			)
+			;
+		]]>
+		</foreach>
+	</insert>
+
+	<!-- -->
+	<update id="updateFBChldByIds" parameterType="map">
+	<![CDATA[ update ERP_SALE_ORDER_DTL set ]]>
+		<if test="SPCL_TECH_FLAG !=null"><![CDATA[SPCL_TECH_FLAG = #{SPCL_TECH_FLAG} ]]>,</if>
+		<if test="SALE_ORDER_ID !=null"><![CDATA[SALE_ORDER_ID = #{SALE_ORDER_ID} ]]>,</if>
+	<![CDATA[ where SALE_ORDER_DTL_ID in (${SALE_ORDER_DTL_IDS})]]>
+	</update>
+
+
+	<!-- 恢复预定 -->
+	<insert id="insertChldBycancelOrder" parameterType="map">
+  <![CDATA[
+	  insert into ERP_SALE_ORDER_DTL(
+		 SALE_ORDER_DTL_ID,
+		 SALE_ORDER_ID,
+		 PRD_ID,
+		 PRD_NO,
+		 PRD_NAME,
+		 PRD_SPEC,
+		 PRD_COLOR,
+		 BRAND,
+		 STD_UNIT,
+		 IS_BACKUP_FLAG,
+		 SPCL_TECH_FLAG,
+		 PRICE,
+		 DECT_RATE,
+		 DECT_PRICE,
+		 ORDER_NUM,
+		 ORDER_AMOUNT,
+		 REMARK,
+         DEL_FLAG,
+         CANCEL_FLAG
+	   )select 
+	     #{SALE_ORDER_DTL_ID},
+		 #{SALE_ORDER_ID},
+		 PRD_ID,
+		 PRD_NO,
+		 PRD_NAME,
+		 PRD_SPEC,
+		 PRD_COLOR,
+		 BRAND,
+		 STD_UNIT,
+		 IS_BACKUP_FLAG,
+		 SPCL_TECH_FLAG,
+		 PRICE,
+		 DECT_RATE,
+		 DECT_PRICE,
+		 ORDER_NUM,
+		 ORDER_AMOUNT,
+		 REMARK,
+         DEL_FLAG,
+         #{CANCEL_FLAG} 
+         from ERP_SALE_ORDER_DTL
+         where SALE_ORDER_DTL_ID=#{SALE_ORDER_DTL_ID_OLD}
+   ]]>
+	</insert>
+
+
+	<!--明细表更新 -->
+	<update id="updateChldByIds" parameterType="map">
+	<![CDATA[ update ERP_SALE_ORDER_DTL set ]]>
+		<if test="CREDIT_FREEZE_PRICE !=null"><![CDATA[CREDIT_FREEZE_PRICE = #{CREDIT_FREEZE_PRICE} ]]>,</if>
+	<![CDATA[ where SALE_ORDER_DTL_ID in (${SALE_ORDER_DTL_IDS})]]>
+	</update>
+	
+	<!--明细表更新 -->
+	<update id="updateChldById" parameterType="java.util.List">
+		<foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+			<![CDATA[ update ERP_SALE_ORDER_DTL ]]>
+			<set>
+				<if test="item.GROUP_NO !=null"><![CDATA[GROUP_NO = #{item.GROUP_NO} ]]>,</if>
+				<if test="item.PRD_ID !=null"><![CDATA[PRD_ID = #{item.PRD_ID} ]]>,</if>
+				<if test="item.PRD_NO !=null"><![CDATA[PRD_NO = #{item.PRD_NO} ]]>,</if>
+				<if test="item.PRD_NAME !=null"><![CDATA[PRD_NAME = #{item.PRD_NAME} ]]>,</if>
+				<if test="item.HOLE_SPEC !=null"><![CDATA[HOLE_SPEC = #{item.HOLE_SPEC} ]]>,</if>
+				<if test="item.PRD_SPEC !=null"><![CDATA[PRD_SPEC = #{item.PRD_SPEC} ]]>,</if>
+				<if test="item.PRD_TOWARD !=null"><![CDATA[PRD_TOWARD = #{item.PRD_TOWARD} ]]>,</if>
+				<if test="item.PRD_QUALITY !=null"><![CDATA[PRD_QUALITY = #{item.PRD_QUALITY} ]]>,</if>
+				<if test="item.PRD_COLOR !=null"><![CDATA[PRD_COLOR = #{item.PRD_COLOR} ]]>,</if>
+				<if test="item.PRD_GLASS !=null"><![CDATA[PRD_GLASS = #{item.PRD_GLASS} ]]>,</if>
+				<if test="item.PRD_OTHER !=null"><![CDATA[PRD_OTHER = #{item.PRD_OTHER} ]]>,</if>
+				<if test="item.PRD_SERIES !=null"><![CDATA[PRD_SERIES = #{item.PRD_SERIES} ]]>,</if>
+				<if test="item.BRAND !=null"><![CDATA[BRAND = #{item.BRAND} ]]>,</if>
+				<if test="item.STD_UNIT !=null"><![CDATA[STD_UNIT = #{item.STD_UNIT} ]]>,</if>
+				<if test="item.IS_NO_STAND_FLAG !=null"><![CDATA[IS_NO_STAND_FLAG = #{item.IS_NO_STAND_FLAG} ]]>,</if>
+				<if test="item.PRICE !=null"><![CDATA[PRICE = #{item.PRICE} ]]>,</if>
+				<if test="item.DECT_RATE !=null"><![CDATA[DECT_RATE = #{item.DECT_RATE} ]]>,</if>
+				<if test="item.DECT_PRICE !=null"><![CDATA[DECT_PRICE = #{item.DECT_PRICE} ]]>,</if>
+				<if test="item.REBATE_PRICE !=null"><![CDATA[REBATE_PRICE = #{item.REBATE_PRICE} ]]>,</if>
+				<if test="item.REBATE_AMOUNT !=null"><![CDATA[REBATE_AMOUNT = #{item.REBATE_AMOUNT} ]]>,</if>
+				<if test="item.ORDER_NUM !=null"><![CDATA[ORDER_NUM = #{item.ORDER_NUM} ]]>,</if>
+				<if test="item.ORDER_AMOUNT !=null"><![CDATA[ORDER_AMOUNT = #{item.ORDER_AMOUNT} ]]>,</if>
+				<if test="item.ADVC_SEND_DATE !=null"><![CDATA[ADVC_SEND_DATE = #{item.ADVC_SEND_DATE} ]]>,</if>
+				<if test="item.REMARK !=null"><![CDATA[REMARK = #{item.REMARK} ]]>,</if>
+				<if test="item.DEL_FLAG !=null"><![CDATA[DEL_FLAG = #{item.DEL_FLAG} ]]>,</if>
+				<if test="item.FROM_BILL_DTL_ID !=null"><![CDATA[FROM_BILL_DTL_ID = #{item.FROM_BILL_DTL_ID} ]]>,</if>
+				<if test="item.SENDED_NUM !=null"><![CDATA[SENDED_NUM = #{item.SENDED_NUM} ]]>,</if>
+				<if test="item.ROW_NO !=null"><![CDATA[ROW_NO = #{item.ROW_NO} ]]>,</if>
+				<if test="item.PRD_SIZE !=null "><![CDATA[PRD_SIZE = #{item.PRD_SIZE}]]>,</if>
+				<if test="item.PROJECTED_AREA !=null "  ><![CDATA[PROJECTED_AREA = #{item.PROJECTED_AREA}]]>,</if>
+				<if test="item.EXPAND_AREA !=null "  ><![CDATA[EXPAND_AREA = #{item.EXPAND_AREA}]]>,</if>
+				<if test="item.PRD_PLACE !=null "  ><![CDATA[PRD_PLACE = #{item.PRD_PLACE}]]>,</if>
+				<if test="item.IS_NO_REBATE_FLAG !=null "  ><![CDATA[IS_NO_REBATE_FLAG = #{item.IS_NO_REBATE_FLAG}]]>,</if>
+				<if test="item.IS_NO_LOCK_FLAG !=null "  ><![CDATA[IS_NO_LOCK_FLAG = #{item.IS_NO_LOCK_FLAG}]]>,</if>
+				<if test="item.FIGURE_NO !=null "  ><![CDATA[FIGURE_NO = #{item.FIGURE_NO}]]>,</if>
+			</set>
+			<![CDATA[ where SALE_ORDER_DTL_ID = #{item.SALE_ORDER_DTL_ID} ;]]>
+		</foreach>
+	</update>
+
+	<!--取消预订明细表更新 订货订单明细 -->
+	<update id="updateGoodsOrderChldById" parameterType="map">
+	<![CDATA[update DRP_GOODS_ORDER_DTL 
+	               set ORDER_NUM = #{ORDER_NUM},
+	               ORDER_AMOUNT =  #{ORDER_AMOUNT},
+	               REBATE_AMOUNT = #{REBATE_AMOUNT},
+	               OLD_ORDER_NUM = #{OLD_ORDER_NUM}
+ 	  where 
+	      GOODS_ORDER_DTL_ID = #{GOODS_ORDER_DTL_ID}
+    ]]>
+	</update>
+
+
+	<!--根据明细IDs删除明细 -->
+	<delete id="deleteChldByIds" parameterType="map">
+	<![CDATA[ update ERP_SALE_ORDER_DTL 
+	               set DEL_FLAG = #{DEL_FLAG}	 
+ 	  where 
+	      SALE_ORDER_DTL_ID in (${SALE_ORDER_DTL_IDS})
+    ]]>
+	</delete>
+	<!--根据主键ID删除明细 -->
+	<delete id="delChldByFkId" parameterType="map">
+	<![CDATA[ update ERP_SALE_ORDER_DTL 
+	               set DEL_FLAG = #{DEL_FLAG}	 
+ 	  where 
+	      SALE_ORDER_ID = #{SALE_ORDER_ID,jdbcType=VARCHAR}
+    ]]>
+	</delete>
+
+
+
+	<!-- 查询权限的人员 标准非标订单处理的权限 -->
+	<!-- and (a.XTMKID='BS0010801' or a.XTMKID='BS0010701') -->
+	<select id="queryReceiver" parameterType="map" resultType="java.util.HashMap">
+	<![CDATA[  select c.XTYHID, c.ZTXXID,c.YHM
+               from T_SYS_JSQX a, T_SYS_XTYHJS b, T_SYS_XTYH c
+               where a.XTJSID = b.XTJSID
+               and b.XTYHID = c.XTYHID
+              
+               and c.YHZT = '启用' 
+               and c.delflag =0 
+               and c.ZTXXID is not null
+        ]]>
+		<if test="CREATOR !=null and CREATOR !='' "> and c.XTYHID = #{CREATOR} </if>
+      <![CDATA[ 
+          group by c.XTYHID, c.ZTXXID,c.YHM 
+       ]]>
+
+	</select>
+
+
+	<update id="updateGoodsOrderDtl_SaleId" parameterType="map">
+	<![CDATA[update DRP_GOODS_ORDER_DTL d
+	               set d.SALE_ORDER_ID = #{SALE_ORDER_ID}
+ 	  where 
+	      d.SALE_ORDER_ID = #{SALE_ORDER_ID_OLD}
+	      and  d.PRD_ID in(select c.PRD_ID from ERP_SALE_ORDER_DTL c 
+                             where c.SALE_ORDER_DTL_ID in (${SALE_ORDER_DTL_IDS}) group by c.PRD_ID)
+    ]]>
+	</update>
+	<select id="getDECT_RATE" parameterType="map" resultType="string">
+		select DECT_RATE from BASE_CHANN_DSCT where CHANN_ID=#{CHANN_ID} and
+		DECT_TYPE=#{DECT_TYPE}
+	</select>
+	<select id="loadAreaInfo" parameterType="String" resultType="java.util.HashMap">
+		select AREA_ID,AREA_NO,AREA_NAME from BASE_CHANN where
+		CHANN_ID=#{CHANN_ID}
+	</select>
+	<delete id="delChld" parameterType="String">
+	<![CDATA[
+		update DRP_SALE_ORDER_DTL set DEL_FLAG=1 where SALE_ORDER_ID=#{SALE_ORDER_ID}
+	]]>
+	</delete>
+	<select id="qrySaleOrderExp" parameterType="map" resultType="java.util.HashMap">
+      <![CDATA[ 
+	 select 
+   u.SALE_ORDER_NO,u.BILL_TYPE,u.ORDER_CHANN_NO,u.ORDER_CHANN_NAME,decode(u.IS_USE_REBATE,1,'是','否')IS_USE_REBATE,u.RECV_CHANN_NO,u.RECV_CHANN_NAME,
+u.PERSON_CON,u.TEL,u.SHIP_POINT_NAME,u.RECV_ADDR_NO,d.PRD_NO,d.PRD_NAME,d.PRD_SPEC,d.BRAND,d.STD_UNIT,decode(d.IS_BACKUP_FLAG,1,'是','否')IS_BACKUP_FLAG,
+decode(d.IS_NO_STAND_FLAG,1,'是','否')IS_NO_STAND_FLAG,e.SPCL_DTL_REMARK SPCL_SPEC_REMARK,decode(d.IS_FREE_FLAG,1,'是','否')IS_FREE_FLAG,d.PRICE,d.DECT_RATE,
+d.DECT_PRICE,d.ORDER_NUM,d.ORDER_AMOUNT,d.VOLUME,d.REMARK REMARKDTL,b.AREA_NAME,u.CRE_NAME,u.LEDGER_NAME,u.RECV_ADDR,b.AREA_MANAGE_NAME,b.AREA_MANAGE_TEL,u.REMARK,
+b.AREA_SER_NO,u.STATE,b.AREA_SER_NAME
+   from
+       ERP_SALE_ORDER u,ERP_SALE_ORDER_DTL d left join DRP_SPCL_TECH e on d.SPCL_TECH_ID=e.SPCL_TECH_ID
+       
+       ,BASE_CHANN b 
+  where u.SALE_ORDER_ID=d.SALE_ORDER_ID
+  and  u.ORDER_CHANN_ID=b.CHANN_ID
+      ]]>
+		<include refid="queryDynSql" />
+	<![CDATA[  
+	   order by u.SALE_ORDER_NO asc ,d.PRD_NO asc
+      ]]>
+	</select>
+
+	<!-- 查询最大行号 -->
+	<select id="queryMaxRowNo" parameterType="map" resultType="int">
+		select nvl(max(d.ROW_NO),0) ROW_NO from ERP_SALE_ORDER_DTL d where
+		d.SALE_ORDER_ID=#{SALE_ORDER_ID}
+	</select>
+	<!-- 查询渠道战区信用 -->
+	<select id="queryChannWarId" parameterType="map" resultType="java.util.HashMap">
+	<![CDATA[ 
+	  select AREA_ID_P, AREA_NO_P, AREA_NAME_P
+  		from BASE_AREA a
+ 	  where a.AREA_ID = #{AREA_ID}
+	]]>
+	</select>
+	
+	<!-- 查询分派设计师记录 -->
+	<select id="loadAssignById" parameterType="map" resultType="java.util.HashMap">
+	<![CDATA[ 
+		select 
+			DESIGNER_ID
+			,SALE_ORDER_ID
+			,SALE_ORDER_NO
+			,DESIGNER
+			,DESIGNER_NAME
+			,ASSIGN_TIME
+			,ASSIGNER
+			,FINISH_FLAG
+			,REMARK
+		from ERP_SALE_DESIGNER u
+	 ]]>
+	<where>
+		<if test="DESIGNER_ID !=null and DESIGNER_ID !='' ">
+			<![CDATA[ and u.DESIGNER_ID = #{DESIGNER_ID} ]]>
+		</if>
+		<if test="SALE_ORDER_ID !=null and SALE_ORDER_ID !='' ">
+			<![CDATA[ and u.SALE_ORDER_ID = #{SALE_ORDER_ID} ]]>
+		</if>
+	</where>
+	</select>
+
+	<!-- 查询设计师分派总数情况 -->
+	<select id="assignQueryTotal" parameterType="map" resultType="java.util.HashMap">
+	<![CDATA[ 
+		select t.xtyhid, t.rybh,t.xm 
+		       , count(d.sale_order_id) total,nvl(sum(d.finish_flag),0) total_fin
+		       , count(d.sale_order_id) - nvl(sum(d.finish_flag),0) total_unfin 
+		from V_XTYH_XTYHJS_XTJS_JGXX t 
+		left join erp_sale_designer d on d.DESIGNER=t.xtyhid 
+		where t.XTJSID=#{DESIGNER_XTJSID} and t.ledger_id=#{LEDGER_ID}
+		group by t.xtyhid, t.rybh,t.xm 
+		order by t.xtyhid
+	 ]]>
+	</select>
+
+	<!-- 查询设计师分派最近三天情况 -->
+	<select id="assignQuery" parameterType="map" resultType="java.util.HashMap">
+	<![CDATA[ 
+		select u.xtyhid,u.xm,u.assign_time
+		       , count(u.sale_order_id) cnt_ttl, nvl(sum(u.finish_flag),0) cnt_fin
+		       , count(u.sale_order_id) - nvl(sum(u.finish_flag),0) cnt_unfin
+		from (
+			select t.xtyhid, t.rybh,t.xm
+			       , to_char(d.assign_time, 'yyyy-MM-dd')assign_time,d.sale_order_id,d.finish_flag,d.finish_time
+			from V_XTYH_XTYHJS_XTJS_JGXX t 
+			left join erp_sale_designer d on d.DESIGNER=t.ryxxid and trunc(d.assign_time) >= trunc(sysdate)-3
+			where t.XTJSID=#{DESIGNER_XTJSID} and t.ledger_id=#{LEDGER_ID}
+		) u 
+		group by u.xtyhid,u.xm,u.assign_time
+	 ]]>
+	</select>
+	
+	<insert id="insertDesigner" parameterType="map">
+		insert into ERP_SALE_DESIGNER (
+			DESIGNER_ID
+			,SALE_ORDER_ID
+			,SALE_ORDER_NO
+			,DESIGNER
+			,DESIGNER_NAME
+			,ASSIGN_TIME
+			,ASSIGNER
+			,FINISH_FLAG
+			,REMARK
+		)values(
+			#{DESIGNER_ID,jdbcType=VARCHAR},
+			#{SALE_ORDER_ID,jdbcType=VARCHAR},
+			#{SALE_ORDER_NO,jdbcType=VARCHAR},
+			#{DESIGNER,jdbcType=VARCHAR},
+			#{DESIGNER_NAME,jdbcType=VARCHAR},
+			systimestamp,
+			#{ASSIGNER,jdbcType=VARCHAR},
+			#{FINISH_FLAG,jdbcType=VARCHAR},
+			#{REMARK,jdbcType=VARCHAR}
+		)
+	</insert>
+	
+	<update id="updateDesignerById" parameterType="map">
+		<![CDATA[ update ERP_SALE_DESIGNER ]]>
+		<set>
+			<if test="DESIGNER !=null"><![CDATA[DESIGNER = #{DESIGNER,jdbcType=VARCHAR} ]]>,</if>
+			<if test="DESIGNER_NAME !=null"><![CDATA[DESIGNER_NAME = #{DESIGNER_NAME,jdbcType=VARCHAR} ]]>,</if>
+			<if test="FINISH_FLAG !=null"><![CDATA[FINISH_FLAG = #{FINISH_FLAG,jdbcType=VARCHAR} ]]>,</if>
+			<if test="FINISH_TIME !=null"><![CDATA[FINISH_TIME = systimestamp ]]>,</if>
+		</set>
+		<![CDATA[ where DESIGNER_ID = #{DESIGNER_ID}]]>
+	</update>
+	
+	<update id="deleteDesignerById" parameterType="map">
+		<![CDATA[ delete from ERP_SALE_DESIGNER where DESIGNER_ID = #{DESIGNER_ID}]]>
+	</update>
+	
+	<!-- 获取一个订单下订货和已发货数量差异值 -->
+	<select id="getSaleOrderSendDif" parameterType="map" resultType="String">
+	  SELECT
+			SUM(NVL(SENDED_NUM, 0)) - SUM(NVL(ORDER_NUM, 0)) AS DIF
+	   FROM
+			ERP_SALE_ORDER_DTL
+	   WHERE
+			SALE_ORDER_ID = #{SALE_ORDER_ID}	  
+	</select>
+	
+	<select id="toSendFindSale" parameterType="string" resultType="java.util.HashMap">	
+		select 
+		 			a.SALE_ORDER_DTL_ID,
+		 			a.GROUP_NO,
+		 			a.PRD_ID,
+		 			a.PRD_NO,
+		 			a.PRD_NAME,
+		 			a.HOLE_SPEC,
+		 			a.PRD_SPEC,
+		 			a.PRD_QUALITY,
+		 			a.PRD_COLOR,
+		 			a.PRD_TOWARD,
+		 			a.PRD_GLASS,
+		 			a.PRD_OTHER,
+		 			a.PRD_SERIES,
+		 			a.PROJECTED_AREA,
+		 			a.EXPAND_AREA,
+		 			a.ORDER_NUM,
+		 			a.SENDED_NUM,
+		 			(NVL(a.ORDER_NUM, 0)-NVL(b.SEND_NUM, 0)) WAITNUM,
+		 			(NVL(a.ORDER_NUM, 0)-NVL(b.SEND_NUM, 0)) SEND_NUM,
+		 			a.STD_UNIT,
+		 			a.PRICE,
+		 			a.DECT_RATE,
+		 			a.DECT_PRICE,
+		 			a.REMARK,
+		 			a.REBATE_PRICE,
+		 			a.REBATE_AMOUNT,
+		 			a.ORDER_AMOUNT SEND_AMOUNT,
+		 			a.PRD_SIZE,
+		 			a.PRD_PLACE,
+		 			a.IS_NO_REBATE_FLAG,
+		 			NVL(a.IS_NO_LOCK_FLAG,0) IS_NO_LOCK_FLAG,
+		 			(case when NVL(a.IS_NO_LOCK_FLAG,0) =0 then '否' else '是' end) IS_NO_LOCK_FLAG_TEXT,
+		 			a.FIGURE_NO,
+		 			a.ROW_NO,
+		 			c.sjxmc  PRD_PLACE_TEXT,
+		 			a.PRD_PLACE
+ 				 from ERP_SALE_ORDER_DTL a
+ 				 left join (
+ 				 	select 
+ 				 		sum(NVL(b.SEND_NUM, 0)) SEND_NUM, 
+ 				 		SALE_ORDER_DTL_ID
+              		 from ERP_SEND_ORDER_DTL b
+              		where b.DEL_FLAG = '0'
+             		 group by b.SALE_ORDER_DTL_ID
+             		 ) b on a.SALE_ORDER_DTL_ID = b.SALE_ORDER_DTL_ID
+             	left join t_sys_sjzdmx c on a.PRD_PLACE = c.sjxz and  c.sjzdid='PRO_PLACE'
+ 				where abs(NVL(a.ORDER_NUM, 0)) > abs(NVL(b.SEND_NUM, 0))
+   				and a.DEL_FLAG = '0' and  SALE_ORDER_ID=#{SALE_ORDER_ID} 
+	</select>
+</mapper>

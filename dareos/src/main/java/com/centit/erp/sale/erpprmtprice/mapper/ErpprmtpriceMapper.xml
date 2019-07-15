@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.centit.erp.sale.erpprmtprice.mapper.ErpprmtpriceMapper">
+<!-- 动态查询 and 列表排序 -->
+	<sql id="queryDynSql"> 
+	    <if test="seachFlag !=null and seachFlag !='' "> and ${seachFlag}</if>
+		<if test="priceFlag !=null and priceFlag !='' "> and ${priceFlag}</if>
+		<if test="QXJBCON !=null and QXJBCON !='' "> and ${QXJBCON}	   </if>
+		<if test="PRMT_PLAN_NO !=null and PRMT_PLAN_NO !='' "> and PRMT_PLAN_NO =#{PRMT_PLAN_NO}</if>
+		<if test="STATE !=null and STATE !='' "> and STATE =#{STATE}</if>
+		<if test="PRMT_PLAN_NAME !=null and PRMT_PLAN_NAME !='' "> and PRMT_PLAN_NAME=#{PRMT_PLAN_NAME}</if>
+		<if test="PAR_PRD_NAME !=null and PAR_PRD_NAME !='' "> and PRD_ID in (select PRD_ID from BASE_PRODUCT where
+			DEL_FLAG=0 ${PAR_PRD_NAME})</if>
+		<if test="PRD_GROUP_NAME !=null and PRD_GROUP_NAME !='' "> and PRD_ID in ( select b.PRD_ID from BASE_PRD_GROUP a left
+			join BASE_PRD_GROUP_DTL b on a.PRD_GROUP_ID=b.PRD_GROUP_ID and
+			b.DEL_FLAG=0 where a.DEL_FLAG=0 and a.STATE='启用' ${PRD_GROUP_NAME})
+		</if>
+		<if test="PRD_NO !=null and PRD_NO !='' "> ${PRD_NO}</if>
+		<if test="PRD_NAME !=null and PRD_NAME !='' "> ${PRD_NAME}</if>
+	  </sql>
+	   <sql id="prdQueryDynSql"> 
+	   <if test="COMM_FLAG !=null and COMM_FLAG !='' "> and COMM_FLAG=#{COMM_FLAG}</if>
+		<if test="seachFlag !=null and seachFlag !='' "> and ${seachFlag}</if>
+		<if test="prdFlag !=null and prdFlag !='' "> and ${prdFlag}</if>
+		<if test="PRD_GROUP_NAME !=null and PRD_GROUP_NAME !='' "> and PRD_ID in ( select b.PRD_ID from BASE_PRD_GROUP a left
+			join BASE_PRD_GROUP_DTL b on a.PRD_GROUP_ID=b.PRD_GROUP_ID and
+			b.DEL_FLAG=0 where a.DEL_FLAG=0 and a.STATE='启用' ${PRD_GROUP_NAME})
+		</if>
+		<if test="PAR_PRD_NAME !=null and PAR_PRD_NAME !='' "> ${PAR_PRD_NAME}</if>
+		<if test="PRD_NO !=null and PRD_NO !='' "> ${PRD_NO}</if>
+		<if test="PRD_NAME !=null and PRD_NAME !='' "> ${PRD_NAME}</if>
+	</sql>
+    <sql id="orderSql">
+    	order by 
+		<if test="orderField !=null and orderField !='' ">    ${orderField},</if>PRD_NO
+	</sql>
+	<!-- 查询SQL -->
+	<sql id="coreSql">
+		<![CDATA[
+			select a.PRD_ID,
+			       a.PRD_NO,
+			       a.PRD_NAME,
+			       a.PRD_SPEC,
+			       a.BRAND,
+			       a.PRD_COLOR,
+			       a.PRVD_PRICE,
+			       '' EFFCT_DATE_BEG,
+			       '' EFFCT_DATE_END,
+			       100 DECT_RATE,
+			       a.PRVD_PRICE PRMT_PRVD_PRICE,
+			       '' PRMT_PRICE_ID,
+			       '' PRMT_PLAN_NO,
+			       '' PRMT_PLAN_NAME,
+			       a.COMM_FLAG,
+			       '' STATE,
+			       0 IS_USE_REBATE
+			  from BASE_PRODUCT a
+			  where PRD_ID not in (select PRD_ID from ERP_PRMT_PRICE where DEL_FLAG = 0
+				]]>
+			<include refid="queryDynSql" />
+		<![CDATA[
+			) and IS_NO_STAND_FLAG=0 and FINAL_NODE_FLAG=1
+		]]>
+			<include refid="prdQueryDynSql" />
+		<![CDATA[
+			union 
+				select PRD_ID,
+			       PRD_NO,
+			       PRD_NAME,
+			       PRD_SPEC,
+			       BRAND,
+			       PRD_COLOR,
+			       PRVD_PRICE,
+			       to_char(EFFCT_DATE_BEG,'yyyy-mm-dd')EFFCT_DATE_BEG,
+			       to_char(EFFCT_DATE_END,'yyyy-mm-dd')EFFCT_DATE_END,
+			       DECT_RATE,
+			       PRMT_PRVD_PRICE,
+			       PRMT_PRICE_ID,
+			       PRMT_PLAN_NO,
+			       PRMT_PLAN_NAME,
+			       1,
+			       STATE,
+			       IS_USE_REBATE
+			  from ERP_PRMT_PRICE 
+			  where DEL_FLAG=0
+		]]>
+			<include refid="queryDynSql" />
+			<include refid="orderSql"/>
+	</sql>
+	
+	<!-- 分页查询 -->
+	<select id="pageQuery" parameterType="map"
+		resultType="java.util.HashMap">
+		<include refid="coreSql" />
+	</select>
+
+	<!-- 分页计数 -->
+	<select id="pageCount" parameterType="map" resultType="int">
+		<![CDATA[
+		select count(PRD_ID) cnt from(
+			select a.PRD_ID,
+			       a.PRD_NO,
+			       a.PRD_NAME,
+			       a.PRD_SPEC,
+			       a.BRAND,
+			       a.PRD_COLOR,
+			       a.PRVD_PRICE,
+			       '' EFFCT_DATE_BEG,
+			       '' EFFCT_DATE_END,
+			       0 PRMT_PRVD_PRICE,
+			       '' PRMT_PRICE_ID,
+			       '' PRMT_PLAN_NO,
+			       '' PRMT_PLAN_NAME,
+			       a.COMM_FLAG,
+			       ''STATE
+			  from BASE_PRODUCT a
+			  where prd_id not in (select PRD_ID from ERP_PRMT_PRICE where DEL_FLAG = 0
+				]]>
+			<include refid="queryDynSql" />
+		<![CDATA[
+			) and IS_NO_STAND_FLAG=0 and FINAL_NODE_FLAG=1
+		]]>
+			<include refid="prdQueryDynSql" />
+		<![CDATA[
+			union 
+				select PRD_ID,
+			       PRD_NO,
+			       PRD_NAME,
+			       PRD_SPEC,
+			       BRAND,
+			       PRD_COLOR,
+			       PRVD_PRICE,
+			       to_char(EFFCT_DATE_BEG,'yyyy-mm-dd')EFFCT_DATE_BEG,
+			       to_char(EFFCT_DATE_END,'yyyy-mm-dd')EFFCT_DATE_END,
+			       PRMT_PRVD_PRICE,
+			       PRMT_PRICE_ID,
+			       PRMT_PLAN_NO,
+			       PRMT_PLAN_NAME,
+			       1,
+			       STATE
+			  from ERP_PRMT_PRICE where DEL_FLAG=0
+		]]>
+			<include refid="queryDynSql" />
+		<![CDATA[
+			)
+		]]>
+	</select>
+
+   <!-- 查询 -->
+	<select id="query" parameterType="map"
+		resultType="java.util.HashMap">
+		<include refid="coreSql" />
+	</select>
+	<insert id="insert" parameterType="map">
+		<foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+			insert into ERP_PRMT_PRICE(
+		        PRMT_PRICE_ID,
+		        PRMT_PLAN_ID,
+		        PRMT_PLAN_NO,
+		        PRMT_PLAN_NAME,
+		        PRMT_TYPE,
+		        EFFCT_DATE_BEG,
+		        EFFCT_DATE_END,
+		        PRD_ID,
+		        PRD_NO,
+		        PRD_NAME,
+		        PRD_SPEC,
+		        PRD_COLOR,
+		        BRAND,
+		        PRVD_PRICE,
+		        PRMT_PRVD_PRICE,
+		        STATE,
+		        REMARK,
+		        CREATOR,
+		        CRE_NAME,
+		        CRE_TIME,
+		        DEPT_ID,
+		        DEPT_NAME,
+		        ORG_ID,
+		        ORG_NAME,
+		        LEDGER_ID,
+		        LEDGER_NAME,
+		        DEL_FLAG,
+		        DECT_RATE,
+		        IS_USE_REBATE
+		)
+		select 
+		        #{item.PRMT_PRICE_ID,jdbcType=VARCHAR},
+		        b.PRMT_PLAN_ID,
+		        b.PRMT_PLAN_NO,
+		        b.PRMT_PLAN_NAME,
+		        b.PRMT_TYPE,
+		        b.EFFCT_DATE_BEG,
+		        b.EFFCT_DATE_END,
+		        a.PRD_ID,
+		        a.PRD_NO,
+		        a.PRD_NAME,
+		        a.PRD_SPEC,
+		        a.PRD_COLOR,
+		        a.BRAND,
+		        a.PRVD_PRICE,
+		        #{item.PRMT_PRVD_PRICE,jdbcType=VARCHAR},
+		        #{item.STATE,jdbcType=VARCHAR},
+		        #{item.REMARK,jdbcType=VARCHAR},
+		        #{item.CREATOR,jdbcType=VARCHAR},
+		        #{item.CRE_NAME,jdbcType=VARCHAR},
+		        sysdate,
+		        #{item.DEPT_ID,jdbcType=VARCHAR},
+		        #{item.DEPT_NAME,jdbcType=VARCHAR},
+		        #{item.ORG_ID,jdbcType=VARCHAR},
+		        #{item.ORG_NAME,jdbcType=VARCHAR},
+		        #{item.LEDGER_ID,jdbcType=VARCHAR},
+		        #{item.LEDGER_NAME,jdbcType=VARCHAR},
+		        #{item.DEL_FLAG,jdbcType=VARCHAR},
+		        #{item.DECT_RATE,jdbcType=VARCHAR},
+		        #{item.IS_USE_REBATE,jdbcType=VARCHAR}
+		  from BASE_PRODUCT a,ERP_PRMT_PLAN b
+		  where b.PRMT_PLAN_ID=#{item.PRMT_PLAN_ID}  and a.prd_id=#{item.PRD_ID};
+		 </foreach>
+	</insert>
+	<update id="update" parameterType="map">
+		<foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+			update ERP_PRMT_PRICE
+			   set PRMT_PRVD_PRICE = #{item.PRMT_PRVD_PRICE} , UPDATOR = #{item.UPDATOR},
+			 UPD_NAME = #{item.UPD_NAME}, UPD_TIME = sysdate,DECT_RATE=#{item.DECT_RATE},IS_USE_REBATE=#{item.IS_USE_REBATE}
+			 where PRMT_PRICE_ID = #{item.PRMT_PRICE_ID};
+		 </foreach>
+	</update>
+	<update id="updateState" parameterType="map">
+		<![CDATA[
+			update ERP_PRMT_PRICE set 
+				UPDATOR = #{UPDATOR},
+		 		UPD_NAME = #{UPD_NAME}, 
+		 		UPD_TIME = sysdate,
+		 		STATE=#{STATE}
+		 	where PRMT_PRICE_ID in (${PRMT_PRICE_IDS})
+		]]>
+	</update>
+</mapper>
+
+
+

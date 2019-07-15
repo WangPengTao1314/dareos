@@ -1,0 +1,400 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.centit.sys.mapper.BMXXMapper">
+	
+	<resultMap id="BMXXModel" type="com.centit.sys.model.BMXXModel" />
+
+	<!-- 动态查询 and 列表分页 -->
+	<sql id="queryDynSql">
+		<if test="BMXXID !=null and BMXXID !='' "> 
+			and (u.BMXXID = #{BMXXID} OR u.SJBM = #{BMXXID} or u.jgxxid= #{BMXXID})		
+		</if>
+		<if test="BMBH !=null and BMBH !='' "> and u.BMBH like '%'||#{BMBH}||'%'		</if>
+		<if test="BMMCQuery !=null and BMMCQuery !='' "> and u.BMMC like '%'||#{BMMCQuery}||'%'		</if>
+		<if test="BMJC !=null and BMJC !='' "> and u.BMJC like '%'||#{BMJC}||'%'		</if>
+		<if test="BMZT !=null and BMZT !='' "> and u.BMZT = #{BMZT}		</if>
+		<if test="SJBMMCQuery !=null and SJBMMCQuery !='' "> and u.SJBM in (select BMXXID from T_SYS_BMXX where 1=1
+			${SJBMMCQuery})		</if>
+		<if test="DELFLAG !=null and DELFLAG !='' "> and u.DELFLAG = #{DELFLAG}		</if>
+		<if test="JGMC !=null and JGMC !='' "> and j.JGMC like '%'||#{JGMC}||'%'		</if>
+		<if test="JGXXID !=null and JGXXID !='' "> and j.JGXXID like '%'||#{JGXXID}||'%'		</if>
+		and j.IS_DRP_LEDGER ='0'
+	</sql>
+	<sql id="orderSql">
+		order by 
+		<if test="orderField !=null and orderField !='' ">   			
+			$orderField$,		
+		</if>
+		BMBH
+	</sql>
+	<!-- 查询SQL -->
+	<sql id="coreSql">
+		<![CDATA[  SELECT U.BMXXID,U.BMBH,
+		                U.BMMC,U.BMJC,U.DH,U.CZ,U.DZYJ,U.SJBM,
+		                K. BMMC SJBMMC,
+		                U.BMZT,U.QTSM,U.XXDZ,U.JGXXID,J.JGMC,U.ZTXXID,U.XH,U.YZBM,
+		                U.ZYDZ,
+		                U.DELFLAG FROM T_SYS_BMXX U LEFT JOIN T_SYS_JGXX J ON U.JGXXID=J.JGXXID
+		                left join T_SYS_BMXX K on K.BMXXID = U.SJBM
+		                ]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+		<include refid="orderSql" />
+	</sql>
+
+	<!-- 分页查询 -->
+	<select id="pageQuery" resultMap="BMXXModel" parameterType="map">
+		<include refid="coreSql" />
+		<if test="orderBy != null and orderBy != '' ">
+			order by ${orderBy}
+		</if>
+	</select>
+	
+	<select id="pageQuery1" resultType="java.util.HashMap" parameterType="map">
+		<include refid="coreSql" />
+		<if test="orderBy != null and orderBy != '' ">
+			order by ${orderBy}
+		</if>
+	</select>
+
+	<!-- 分页计数 -->
+	<select id="pageCount" parameterType="map" resultType="int">
+		<![CDATA[SELECT count(U.BMXXID) cnt FROM T_SYS_BMXX U LEFT JOIN T_SYS_JGXX J ON U.JGXXID=J.JGXXID ]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+	</select>
+
+	<!-- 查询 -->
+	<select id="query" parameterType="map"
+		resultType="java.util.HashMap">
+		<include refid="coreSql" />
+	</select>
+	<!-- 新增 -->
+	<insert id="insert" parameterType="map">
+		<![CDATA[
+		 insert into T_SYS_BMXX(BMXXID,BMBH,BMMC,BMJC,DH,CZ,DZYJ,ZYDZ,YZBM,SJBM,BMZT,QTSM,XXDZ,XH,JGXXID,ZTXXID,DELFLAG,IS_DRP_LEDGER)
+		 values(#{BMXXID,jdbcType=VARCHAR},#{BMBH,jdbcType=VARCHAR},#{BMMC,jdbcType=VARCHAR},#{BMJC,jdbcType=VARCHAR},#{DH,jdbcType=VARCHAR},#{CZ,jdbcType=VARCHAR},#{DZYJ,jdbcType=VARCHAR},
+		 #{ZYDZ,jdbcType=VARCHAR},#{YZBM,jdbcType=VARCHAR},#{SJBM,jdbcType=VARCHAR},#{BMZT,jdbcType=VARCHAR},#{QTSM,jdbcType=VARCHAR},#{XXDZ,jdbcType=VARCHAR},#{XH,jdbcType=VARCHAR},#{JGXXID,jdbcType=VARCHAR},#{ZTXXID,jdbcType=VARCHAR},0,0)
+		]]>
+	</insert>
+	<!-- 根据ID修改 -->
+	<update id="updateById" parameterType="map">
+		<![CDATA[ update T_SYS_BMXX ]]>
+		<!-- CHANAME, CHADES,CHADATE,CHASTU     -->
+		<set>
+			<if test="BMBH !=null">BMBH = #{BMBH},</if>
+			<if test="BMMC !=null">BMMC = #{BMMC},</if>
+			<if test="BMJC !=null">BMJC = #{BMJC},</if>
+			<if test="DH !=null">DH = #{DH},</if>
+			<if test="CZ !=null">CZ = #{CZ},</if>
+			<if test="DZYJ !=null">DZYJ = #{DZYJ},</if>
+			<if test="ZYDZ !=null">ZYDZ = #{ZYDZ},</if>
+			<if test="YZBM !=null">YZBM = #{YZBM},</if>
+			<if test="SJBM !=null">SJBM = #{SJBM},</if>
+			<if test="BMZT !=null">BMZT = #{BMZT},</if>
+			<if test="QTSM !=null">QTSM = #{QTSM},</if>
+			<if test="XXDZ !=null">XXDZ = #{XXDZ},</if>
+			<if test="XH !=null">XH = #{XH},</if>
+			<if test="JGXXID !=null">JGXXID = #{JGXXID},</if>
+			<if test="ZTXXID !=null">ZTXXID = #{ZTXXID},</if>
+		</set>
+		<![CDATA[ where BMXXID = #{BMXXID} ]]>
+	</update>
+
+<!-- 根据NO修改 -->
+	<update id="updateByNo" parameterType="map">
+		<![CDATA[ update T_SYS_BMXX ]]>
+		<set>
+		<!-- CHANAME, CHADES,CHADATE,CHASTU     -->
+			<if test="BMMC !=null">BMMC = #BMMC#,</if>
+			<if test="BMJC !=null">BMJC = #BMJC#,</if>
+			<if test="DH !=null">DH = #DH#,</if>
+			<if test="CZ !=null">CZ = #CZ#,</if>
+			<if test="DZYJ !=null">DZYJ = #DZYJ#,</if>
+			<if test="ZYDZ !=null">ZYDZ = #ZYDZ#,</if>
+			<if test="YZBM !=null">YZBM = #YZBM#,</if>
+			<if test="SJBM !=null">SJBM = #SJBM#,</if>
+			<if test="BMZT !=null">BMZT = #BMZT#,</if>
+			<if test="QTSM !=null">QTSM = #QTSM#,</if>
+			<if test="XXDZ !=null">XXDZ = #XXDZ#,</if>
+			<if test="XH !=null">XH = #XH#,</if>
+			<if test="JGXXID !=null">JGXXID = #JGXXID#,</if>
+			<if test="ZTXXID !=null">ZTXXID = #ZTXXID#,</if>
+		</set>
+		<![CDATA[ where BMBH = #BMBH# ]]>
+	</update>
+	<!-- 删除部门 -->
+	<delete id="delete" parameterType="String">
+		<![CDATA[ delete from  T_SYS_BMXX  where BMXXID = #{BMXXID,jdbcType=VARCHAR} ]]>
+	</delete>
+    
+    <insert id="insertBM" parameterType="map">
+       insert into t_sys_datarecycle(DATARECYCLEID,DELETOR,DELTIME,BUSINESSTYPE,DF1,DF2,DF3,DF4,DF5,DF6,DF7,DF8,DF9,DF10,DF11,DF12,DF13,DF14,DF15,DF16,DF17,DF18)
+	    select #DATARECYCLEID#,#DELETOR#,sysdate,'部门信息维护',BMXXID,BMBH,BMMC,BMJC,DH,CZ,DZYJ,SJBM,BMZT,QTSM,XXDZ,JGXXID,ZTXXID,XH,YZBM,ZYDZ,DELFLAG,CWDZM
+        from T_SYS_BMXX
+	    where BMXXID = #BMXXID:VARCHAR#
+    </insert>
+	<select id="loadById" parameterType="map"
+		resultType="java.util.HashMap">
+		<![CDATA[  SELECT U.BMXXID,
+		                U.BMBH,
+		                U.BMMC,
+		                U.BMJC,
+		                U.DH,
+		                U.CZ,
+		                U.DZYJ,
+		                U.SJBM,
+		                (SELECT BMMC FROM T_SYS_BMXX B WHERE B.BMXXID = U.SJBM) SJBMMC,
+		                U.BMZT,
+		                U.QTSM,
+		                U.XXDZ,
+		                U.JGXXID,
+		                J.JGMC,
+		                U.ZTXXID,
+		                U.XH,
+		                U.YZBM,
+		                U.ZYDZ,
+		                U.DELFLAG FROM T_SYS_BMXX U LEFT JOIN T_SYS_JGXX J ON U.JGXXID=J.JGXXID WHERE U.BMXXID = #{BMXXID}]]>
+	</select>
+
+	<!-- 部门树 -->
+	<select id="queryTree" parameterType="map" resultType="com.centit.sys.model.BMXXTree">
+		<![CDATA[ SELECT JGXXID ID, JGMC NAME, SJJG PID, '0' FLAG,${ctx}||'/styles/'||${theme}||'/images/tree3/jg.png' icon FROM T_SYS_JGXX WHERE DELFLAG = 0 and IS_DRP_LEDGER='0'
+					UNION ALL
+				  SELECT BMXXID ID, BMMC NAME, NVL(SJBM, JGXXID) PID, '1' FLAG,${ctx}||'/styles/'||${theme}||'/images/tree3/bm.png' FROM T_SYS_BMXX WHERE DELFLAG = 0 and IS_DRP_LEDGER='0'
+				  order by NAME
+				  ]]>
+	</select>
+
+	<select id="getExits" parameterType="String" resultType="int">
+		<![CDATA[SELECT COUNT(T.BMBH) FROM T_SYS_BMXX T WHERE T.BMBH=#{BMBH} ]]>
+	</select>
+	
+	<select id="getWsxSJ" parameterType="map" resultType="int">
+		<![CDATA[select count(0) from (  SELECT * FROM T_SYS_BMXX T start with bmxxid=#{BMXXID} connect by  bmxxid = prior SJBM) u where u.bmzt<>'启用' and u.bmxxid <>#{BMXXID}]]>
+	</select>
+	
+	<select id="getWtyXJ" parameterType="map" resultType="int">
+		<![CDATA[select count(0) from T_SYS_RYXX where bmxxid in (select bmxxid from 
+		(SELECT * FROM T_SYS_BMXX T start with bmxxid=#{BMXXID} connect by  prior bmxxid =  SJBM) u where u.bmzt='启用' and u.delflag='0')
+			and delflag='0' and ryzt='启用'	
+		]]>
+	</select>
+	
+	<update id="updateAllById" parameterType="map">
+		<![CDATA[ update T_SYS_BMXX set bmzt='停用'  where BMXXID in (select bmxxid from 
+		(SELECT * FROM T_SYS_BMXX T start with bmxxid=#{BMXXID} connect by  prior bmxxid =   SJBM) u where u.bmzt='启用' and u.delflag='0')]]>
+	</update>
+	
+	<update id="updateRById" parameterType="map">
+		<![CDATA[ update T_SYS_RYXX  set RYZT='停用' where BMXXID in (select bmxxid from 
+		(SELECT * FROM T_SYS_BMXX T start with bmxxid=#{BMXXID} connect by  prior bmxxid =   SJBM) u where u.bmzt='启用' and u.delflag='0')
+			and delflag='0' and ryzt='启用'	 ]]>
+	</update>
+	
+	<select id="loadBMZT" parameterType="String" resultType="string">
+		<![CDATA[ select BMZT from T_SYS_BMXX WHERE BMXXID = #{SJBM}]]>
+	</select>
+	
+	<update id="updateStateById" parameterType="map">	
+		<![CDATA[ update T_SYS_BMXX ]]>
+		<set>
+			<if test="DELFLAG !=null">DELFLAG = #{DELFLAG},</if>
+		</set>
+		<![CDATA[ where BMXXID in(select BMXXID from T_SYS_BMXX
+                              start with BMXXID = #{BMXXID}
+                              connect by prior BMXXID = SJBM) ]]>	
+	</update>
+	
+	<select id="loadJGZT" parameterType="String" resultType="String">
+		<![CDATA[ select JGZT from T_SYS_JGXX WHERE JGXXID = #{SJJG}]]>
+	</select>
+	
+	<!-- 查询部门表中最大的同步时间 -->
+	<select id="queryMaxTbTime" resultType="String" >
+		select MAX(TB_TIME) AS TB_TIME from T_SYS_BMXX
+	</select>
+	
+	<!-- 查询从NC过来需要新插入的部门 -->
+	<select id="queryInsertNcBmxx" resultType="map" parameterType="map">
+		SELECT
+			ORGSCODE || '_' || CODE AS BMXXID,
+			CODE AS BMBH,
+			NAME AS BMMC,
+			<!-- SHORTNAME AS BMJC, -->
+			ORGSCODE || '_' || FATHERDEPTCODE AS SJBM,
+			ORGSCODE AS JGXXID,
+			TEL AS DH,
+			MEMO AS QTSM,
+			DETAILINFO AS XXDZ,
+			trim(ENABLESTATE) AS BMZT,
+			'0' AS DELFLAG,
+			TS AS TB_TIME 
+		FROM
+			NC_ORG_DEPTVIEW t1
+		WHERE
+			NOT EXISTS (
+				SELECT
+					1
+				FROM
+					T_SYS_BMXX t2
+				WHERE
+					T1.ORGSCODE || '_' || T1.CODE = t2.BMXXID
+			) 
+		<if test="syncTime !=null and syncTime !='' ">
+		 <!-- and <![CDATA[ TS >= to_date(#{syncTime},'yyyy-MM-DD HH24:MI:SS')]]> -->
+		 and TS >= #{syncTime}
+		</if>
+	</select>
+	
+	<!-- 查询从NC过来需要更新的部门 -->
+	<select id="queryUpdateNcBmxx" resultType="map" parameterType="map">
+		SELECT
+			ORGSCODE || '_' || CODE AS BMXXID,
+			CODE AS BMBH,
+			NAME AS BMMC,
+			SHORTNAME AS BMJC,
+			ORGSCODE || '_' || FATHERDEPTCODE AS SJBM,
+			ORGSCODE AS JGXXID,
+			TEL AS DH,
+			MEMO AS QTSM,
+			DETAILINFO AS XXDZ,
+			trim(ENABLESTATE) AS BMZT,
+			'0' AS DELFLAG,
+			TS AS TB_TIME 
+		FROM
+			NC_ORG_DEPTVIEW t1
+		WHERE
+			 EXISTS (
+				SELECT
+					1
+				FROM
+					T_SYS_BMXX t2
+				WHERE
+					T1.ORGSCODE || '_' || T1.CODE = t2.BMXXID
+			) 
+		<if test="syncTime !=null and syncTime !='' ">
+		 <!-- and <![CDATA[ TS >= to_date(#{syncTime},'yyyy-MM-DD HH24:MI:SS')]]> -->
+		 and TS >= #{syncTime}
+		</if>
+	</select>
+	
+	<insert id="insertBmxxList" parameterType="java.util.List">
+	    <foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+	      <![CDATA[
+		 insert into T_SYS_BMXX
+		   ( BMXXID,
+		     BMBH,
+		     BMMC,
+		     BMJC,
+		     DH,
+		     CZ,
+		     DZYJ,
+		     ZYDZ,
+		     YZBM,
+		     SJBM,
+		     BMZT,
+		     QTSM,
+		     XXDZ,
+		     XH,
+		     JGXXID,
+		     ZTXXID,
+		     DELFLAG,
+		     TB_TIME)
+		 values
+		 (   #{item.BMXXID,jdbcType=VARCHAR},
+			 #{item.BMBH,jdbcType=VARCHAR},
+			 #{item.BMMC,jdbcType=VARCHAR},
+			 #{item.BMJC,jdbcType=VARCHAR},
+			 #{item.DH,jdbcType=VARCHAR},
+			 #{item.CZ,jdbcType=VARCHAR},
+			 #{item.DZYJ,jdbcType=VARCHAR},
+			 #{item.ZYDZ,jdbcType=VARCHAR},
+			 #{item.YZBM,jdbcType=VARCHAR},
+			 #{item.SJBM,jdbcType=VARCHAR},
+			 #{item.BMZT,jdbcType=VARCHAR},
+			 #{item.QTSM,jdbcType=VARCHAR},
+			 #{item.XXDZ,jdbcType=VARCHAR},
+			 #{item.XH,jdbcType=VARCHAR},
+			 #{item.JGXXID,jdbcType=VARCHAR},
+			 #{item.ZTXXID,jdbcType=VARCHAR},
+		     0,
+		     to_date(#{item.TB_TIME,jdbcType=VARCHAR},'yyyy-mm-dd hh24:mi:ss')
+		 );
+		]]>
+	    </foreach>
+	</insert>
+	
+	<update id="updateBmxxList" parameterType="java.util.List">
+	  <foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+	     <![CDATA[ update T_SYS_BMXX ]]>
+			<set>
+				<if test="item.BMBH !=null">BMBH = #{item.BMBH},</if>
+				<if test="item.BMMC !=null">BMMC = #{item.BMMC},</if>
+				<if test="item.BMJC !=null">BMJC = #{item.BMJC},</if>
+				<if test="item.DH !=null">DH = #{item.DH},</if>
+				<if test="item.CZ !=null">CZ = #{item.CZ},</if>
+				<if test="item.DZYJ !=null">DZYJ = #{item.DZYJ},</if>
+				<if test="item.ZYDZ !=null">ZYDZ = #{item.ZYDZ},</if>
+				<if test="item.YZBM !=null">YZBM = #{item.YZBM},</if>
+				<if test="item.SJBM !=null">SJBM = #{item.SJBM},</if>
+				<if test="item.BMZT !=null">BMZT = #{item.BMZT},</if>
+				<if test="item.QTSM !=null">QTSM = #{item.QTSM},</if>
+				<if test="item.XXDZ !=null">XXDZ = #{item.XXDZ},</if>
+				<if test="item.XH !=null">XH = #{item.XH},</if>
+				<if test="item.JGXXID !=null">JGXXID = #{item.JGXXID},</if>
+				<if test="item.ZTXXID !=null">ZTXXID = #{item.ZTXXID},</if>
+				<if test="item.TB_TIME !=null">TB_TIME = to_date(#{item.TB_TIME},'yyyy-mm-dd hh24:mi:ss'),</if>
+			</set>
+		<![CDATA[ where BMXXID = #{item.BMXXID}; ]]>
+	  </foreach>
+	</update>
+	
+	<update id="MergeDateBmxx">
+		MERGE INTO t_sys_bmxx A USING (
+		SELECT
+			orgscode||'-'||code as BMXXID,
+		    code as BMBH,
+		    name as BMMC,
+		    fatherdeptcode as SJBM,
+		    orgscode as JGXXID,
+		    orgscode as ZTXXID,
+		    enablestate as BMZT,
+		    0 as DELFLAG
+			FROM
+				nc_org_deptview
+		) b ON (A.BMXXID = b.BMXXID)
+		WHEN MATCHED THEN
+			UPDATE
+		SET A.BMBH = b.BMBH, A.BMMC = b.BMMC,A.SJBM = b.SJBM
+		,A.JGXXID = b.JGXXID,A.ZTXXID = b.ZTXXID,A.BMZT = b.BMZT
+		,A.DELFLAG = b.DELFLAG
+		WHEN NOT MATCHED THEN
+			INSERT (
+				A.BMXXID,
+				A.BMBH,
+				A.BMMC,
+				A.SJBM,
+				A.JGXXID,
+				A.ZTXXID,
+				A.BMZT,
+				A.DELFLAG
+			)
+		VALUES
+			(
+				b.BMXXID,
+				b.BMBH,
+				b.BMMC,
+				b.SJBM,
+				b.JGXXID,
+				b.ZTXXID,
+				b.BMZT,
+				b.DELFLAG
+			)
+	</update>
+</mapper>
+
+
+

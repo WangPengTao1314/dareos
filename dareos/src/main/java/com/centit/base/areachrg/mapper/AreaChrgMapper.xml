@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- 
+ *@module 基础数据
+ *@func  区域分管信息
+ *@version 1.1
+ *@author  
+ *  -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.centit.base.areachrg.mapper.AreaChrgMapper">
+
+    <!-- 通过typeAlias使得我们在下面使用AreaChrgModel实体类的时候不需要写包名 -->
+	
+
+	<!-- 使用LLGL装载结果集 -->
+	<resultMap type="com.centit.base.area.model.AreaTree" id="AreaTree"></resultMap>
+	<resultMap id="AreaChrgModel" type="com.centit.base.areachrg.model.AreaChrgModel">
+              <result column="AREA_CHRG_ID" property="AREA_CHRG_ID" />
+	</resultMap>
+	
+	<!-- 查询SQL -->
+	<sql id="coreSql">
+		<![CDATA[select u.AREA_ID,u.AREA_NO,u.AREA_NAME ,u.AREA_ID_P,u.AREA_NO_P,u.AREA_NAME_P,
+		 u.STATE,u.CREATOR,u.CRE_NAME,
+		 to_char(u.CRE_TIME,'yyyy-MM-DD HH24:MI:SS') CRE_TIME,u.UPDATOR,u.UPD_NAME,
+		 to_char(u.UPD_TIME,'yyyy-MM-DD HH24:MI:SS') UPD_TIME,u.DEPT_ID,u.DEPT_NAME,u.ORG_ID,u.ORG_NAME,
+		 u.LEDGER_ID,u.LEDGER_NAME,u.DEL_FLAG  from BASE_AREA u ]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+		 
+	   
+			<include refid="orderSql" />
+	
+	</sql>
+	
+	<!-- 动态查询 and 列表分页 -->
+	<sql id="queryDynSql">
+	    <if test="AREA_ID !=null and AREA_ID !='' ">
+			(u.AREA_ID = #{AREA_ID} OR u.AREA_ID_P = #{AREA_ID})
+		</if> 
+        <if test="AREA_NO !=null and AREA_NO !='' ">
+			and u.AREA_NO= #{AREA_NO}
+		</if> 
+		<if test="AREA_NAME !=null and AREA_NAME !='' ">
+			and u.AREA_NAME like '%'|| #{AREA_NAME} ||'%'
+		</if> 
+		<if test="AREA_NO_P !=null and AREA_NO_P !='' ">
+			and u.AREA_NO_P like '%'|| #{AREA_NO_P} ||'%'
+		</if> 
+		<if test="AREA_NAME_P !=null and AREA_NAME_P !='' ">
+			and u.AREA_NAME_P like '%'|| #{AREA_NAME_P} ||'%'
+		</if> 
+	    <if test="STATE !=null and STATE !='' ">
+			and u.STATE = #{STATE}
+		</if> 
+		 <if test="DEL_FLAG !=null and DEL_FLAG !='' ">
+			and u.DEL_FLAG = #{DEL_FLAG}
+		</if> 
+	  <if test="QXJBCON !=null and QXJBCON !='' ">
+	       and  ${QXJBCON}
+	  </if>
+	</sql>
+	<sql id="orderSql">
+	order by
+	   <if test="orderField !=null and orderField !='' ">
+			${orderField}
+		</if>
+	</sql>
+	
+	<!-- AREA 分页查询 -->
+	<select id="pageQuery" parameterType="map"
+		resultType="java.util.HashMap">
+		
+		<include refid="coreSql" />
+		
+	</select>
+
+	 
+
+	
+	<!-- AREA分页计数 -->
+	<select id="pageCount" parameterType="map" resultType="int">
+		<![CDATA[SELECT count(u.AREA_ID) cnt FROM BASE_AREA u]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+	</select>
+	
+	<!-- 区域树 -->
+	<select id="queryTree" parameterType="String" resultMap="AreaTree">
+ 		<![CDATA[
+		select AREA_ID id,AREA_NO||'('||AREA_NAME||')' name ,AREA_ID_P pid from BASE_AREA 
+		]]>
+	</select>
+	
+	
+    <select id="loadById" parameterType="String"
+		resultType="java.util.HashMap">
+		<![CDATA[  select u.AREA_CHRG_ID,u.AREA_ID,u.CHRG_TYPE,u.CHRG_NO,u.CHRG_NAME,u.JOB,u.CHRG_ID,u.DEL_FLAG from BASE_AREA_CHRG u
+					where u.AREA_CHRG_ID = #{AREA_CHRG_ID}]]>
+	</select>
+	
+	
+	<!-- 根据区域ID查询 分管明细信息 -->
+	<select id="query" parameterType="map"
+		resultType="java.util.HashMap">
+		<![CDATA[ select u.AREA_CHRG_ID,u.AREA_ID,u.CHRG_TYPE,u.CHRG_NO,u.CHRG_NAME,u.JOB,u.CHRG_ID,u.DEL_FLAG from BASE_AREA_CHRG u where u.AREA_ID=#{AREA_ID} and DEL_FLAG=0]]>
+	</select>
+	
+	<select id="loadByIds" parameterType="String" resultType="java.util.HashMap">
+		<![CDATA[  
+		 	select u.AREA_CHRG_ID,u.AREA_ID,u.CHRG_TYPE,u.CHRG_NO,u.CHRG_NAME,u.JOB,u.CHRG_ID,u.DEL_FLAG
+	          from BASE_AREA_CHRG u where u.AREA_CHRG_ID in (${IDs})]]>
+	</select>
+	
+	
+    <insert id="insert" parameterType="java.util.List">
+    	<foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+		<![CDATA[
+		 insert into BASE_AREA_CHRG(AREA_CHRG_ID,AREA_ID,CHRG_TYPE,CHRG_NO,CHRG_NAME,JOB,CHRG_ID,DEL_FLAG)
+		 values(#{item.AREA_CHRG_ID},#{item.AREA_ID},#{item.CHRG_TYPE},#{item.CHRG_NO},#{item.CHRG_NAME},#{item.JOB},#{item.CHRG_ID},#{item.DEL_FLAG});
+		]]>
+		</foreach>  
+	</insert>
+	
+	<update id="updateById" parameterType="java.util.List">
+		<foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+			<![CDATA[ update BASE_AREA_CHRG ]]>
+			<set>
+				<if test="item.CHRG_TYPE !=null and item.CHRG_TYPE !='' "><![CDATA[CHRG_TYPE = #{item.CHRG_TYPE}]]>,</if>
+				<if test="item.CHRG_NAME !=null and item.CHRG_NAME !='' "><![CDATA[CHRG_NAME = #{item.CHRG_NAME}]]>,</if>
+				<if test="item.CHRG_NO !=null and item.CHRG_NO !='' "><![CDATA[CHRG_NO = #{item.CHRG_NO}]]>,</if>
+				<if test="item.CHRG_ID !=null and item.CHRG_ID !='' "><![CDATA[CHRG_ID = #{item.CHRG_ID}]]>,</if>
+				<if test="item.JOB !=null and item.JOB !='' "><![CDATA[JOB = #{item.JOB}]]>,</if>
+			</set>
+			<![CDATA[ where AREA_CHRG_ID = #{item.AREA_CHRG_ID}; ]]>
+		</foreach>
+	</update>	
+	
+	 
+    
+	
+	<!-- 批量删除  -->
+	<delete id="deleteByIds" parameterType="String">
+		<![CDATA[delete from  BASE_AREA_CHRG t where AREA_CHRG_ID in (${areaChrgIDs}) ]]>
+	</delete>
+	
+	<!-- 批量删除  软删除-->
+	<update id="updateDELByIds" parameterType="String">
+		<![CDATA[update BASE_AREA_CHRG t set t.DEL_FLAG=1 where AREA_CHRG_ID in (${areaChrgIDs}) ]]>
+	</update>
+	
+	<!-- 批量删除  软删除 根据areaID-->
+	<update id="updateDELByAreaId" parameterType="String">
+		<![CDATA[update BASE_AREA_CHRG t set t.DEL_FLAG=1 where AREA_ID = (${areaId}) ]]>
+	</update>
+	
+	
+	<select id="queryBhForInt" parameterType="map" resultType="int">
+			select count(AREA_NO) from BASE_AREA where AREA_NO=#{AREA_NO}
+	</select>
+
+	<select id="loadQUXXZT" parameterType="String" resultType="String">
+		<![CDATA[ select STATE from BASE_AREA WHERE AREA_ID = #{AREA_ID_P}]]>
+	</select>
+	
+	<!-- 查重 -->
+	<select id="findRepeat" parameterType="map" resultMap="AreaChrgModel">
+	    SELECT u.AREA_CHRG_ID,u.AREA_ID,u.CHRG_TYPE,u.CHRG_NO,u.CHRG_NAME,u.JOB,u.DEL_FLAG FROM BASE_AREA_CHRG u where u.DEL_FLAG=0 and u.AREA_ID = #AREA_ID# and u.CHRG_NO in (${CHRGNOS})
+	    
+		 <if test="AREACHRGIDS !=null and AREACHRGIDS !='' ">and <![CDATA[AREA_CHRG_ID not in (${AREACHRGIDS})]]></if>
+		
+	</select>
+	 
+
+	 
+	
+	
+	 
+	<delete id="delete" parameterType="String">
+	<![CDATA[delete from BASE_AREA 
+							where AREA_ID in(select AREA_ID from T_SYS_JGXX
+                              start with AREA_ID = #{AREA_ID}
+                              connect by prior AREA_ID = AREA_ID_P)
+     ]]>
+	</delete>
+	
+	
+ 
+	
+	
+	<update id="startById" parameterType="map">	
+	 
+	</update>
+	
+</mapper>
+

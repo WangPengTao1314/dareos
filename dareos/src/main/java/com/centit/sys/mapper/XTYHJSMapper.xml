@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.centit.sys.mapper.XTYHJSMapper">
+
+	<resultMap id="XTYHJSBean" type="com.centit.sys.model.XTYHJSBean" />
+	
+	<!-- 动态查询 and 列表分页 -->
+	<sql id="queryDynSql">
+		<if test="XTYHID != null and XTYHID !='' ">
+			and u.XTYHID = #{XTYHID}
+		</if>
+	</sql>
+	<sql id="SQLFORLOGIN">
+	   <![CDATA[ 
+	   		select 
+	   			distinct a.XTJSID,
+	   			a.JSBH,
+	   			a.JSMC   
+	   		from T_SYS_XTYHJS u,T_SYS_XTJS a 
+	   		where u.XTJSID=a.XTJSID 
+	   		and u.XTYHID=#{XTYHID} 
+	   		and a.STATE='启用' 
+	   		and a.DELFLAG=0 
+	   		and u.DELFLAG=0 ]]>
+	</sql>
+	
+	 <!-- 查询 -->
+	<select id="queryFORLOGIN" parameterType="string"
+		resultType="java.util.HashMap">
+		<include refid="SQLFORLOGIN" />
+	</select>
+	
+	<insert id="insertChild" parameterType="java.util.List">
+		<foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+       		insert into T_SYS_XTYHjs(XTYHJSID,XTJSID,XTYHID,DELFLAG) values(#{item.XTYHJSID},#{item.XTJSID},#{item.XTYHID},#{item.DELFLAG});
+       </foreach>  
+   </insert>
+   
+   <sql id="coreSql">
+	   <![CDATA[select c.XTYHJSID ,c.XTJSID ,d.YHBH ,d. YHM ,c.xm
+                from (select b.xtyhjsid,b.xtjsid,b.xtyhid,a.xm
+                      from T_SYS_XTYHjs b 
+                      left join t_SYS_XTYH d on d.XTYHID=b.XTYHID and d.delflag=0
+                      left join T_SYS_RYXX a on a.RYXXID=d.RYXXID and a.DELFLAG=0
+                      where 
+                       b.xtjsid=#{XTYHID}
+                      and b.delflag=0) c,T_SYS_XTYH d
+                where c.xtyhid=d.xtyhid
+                ]]>
+	</sql>
+	
+	<!-- 分页查询 -->
+	<select id="pageQuery" parameterType="map"
+		resultMap="XTYHJSBean">
+		<include refid="coreSql" />
+	</select>
+	
+	<!-- 查询 -->
+	<select id="query" parameterType="map"
+		resultType="java.util.HashMap">
+		<include refid="coreSql" />
+	</select>
+   
+   <select id="loadByIds" parameterType="String" resultType="java.util.HashMap">
+		<![CDATA[  
+		select c.xtyhjsid,c.xtjsid,d.yhbh,d.yhm                 
+        from (select b.xtyhjsid,b.xtjsid,b.xtyhid                       
+              from T_SYS_XTYHjs b                      
+              where  b.xtyhjsid in (${xtjsids})) c,T_SYS_XTYH d                
+        where c.xtyhid=d.xtyhid 
+                ]]>
+	</select>
+	
+	<!-- delete from T_SYS_XTYHjs where xtyhjsid in (${xtyhjsids})  -->
+	<delete id="deleteChildByIds" parameterType="String">
+	   delete from T_SYS_XTYHjs
+	   where xtyhjsid in (${xtyhjsids})
+	</delete>
+	<insert id="insertXTYHJS" parameterType="map">
+	    insert into t_sys_datarecycle(DATARECYCLEID,DELETOR,DELTIME,BUSINESSTYPE,DF1,DF2,DF3,DF4,DF5)
+	    select #{DATARECYCLEID}||rownum,#{DELETOR},sysdate,'角色用户信息维护', XTYHJSID,XTJSID,XTYHID,STATE,DELFLAG
+        from T_SYS_XTYHjs where xtyhjsid in (${xtyhjsids})
+	</insert>
+	<!-- delete from T_SYS_XTYHjs where xtjsid=#{XTJSID} -->
+	<update id="deleteChild" parameterType="String">
+	   update T_SYS_XTYHjs
+	   set delflag=1
+	   where xtjsid=#{XTJSID}
+	  
+	</update>
+	
+	<update id="updateChild" parameterType="java.util.List">
+		<foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+			  update T_SYS_XTYHJS set xtjsid=#{item.XTJSID},xtyhid=#{item.XTYHID}
+			  where xtyhjsid=#{item.XTYHJSID};
+		</foreach>  
+	</update>
+	
+	<select id="getYHBHList" parameterType="String" resultMap="XTYHJSBean">
+	   select xtyhjsid,xtyhid from T_SYS_XTYHjs where xtjsid=#{XTJSID} and delflag=0
+	</select>
+
+</mapper>
+
+
+

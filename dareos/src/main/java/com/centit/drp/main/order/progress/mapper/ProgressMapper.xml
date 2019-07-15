@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- 
+*@module 订单中心
+*@func 订单进度管理
+*@version 1.1 
+*@author 
+* -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper
+	namespace="com.centit.drp.main.order.progress.mapper.ProgressMapper">
+	
+	<!-- 
+		动态查询 and 列表分页 
+	-->
+	<sql id="queryDynSql">
+		<!-- <![CDATA[ and b.from_bill_id =m.tendering_id ]]> -->
+		<if test="SALE_ORDER_NO != '' and SALE_ORDER_NO != null">
+			and m.sale_order_no like '%'||#{SALE_ORDER_NO}||'%'
+		</if>
+		<if test="DELIVERY1 != '' and DELIVERY1 != null">
+			<![CDATA[ and to_char(m.delivery_date,'yyyy-MM-dd')  >= #{DELIVERY1}]]> 
+		</if>
+		<if test="DELIVERY2 != '' and DELIVERY2 != null">
+			<![CDATA[ and to_char(m.delivery_date,'yyyy-MM-dd')  <= #{DELIVERY2}]]> 
+		</if>
+		<if test="STATE != '' and STATE != null">
+			and m.state like '%'||#{STATE}||'%'
+		</if>
+	 	 <![CDATA[ and m.del_flag =0 ]]> 
+	</sql>
+	<sql id="orderSql">
+		order by 
+		<if test="orderField !=null and orderField !='' "> ${orderField} </if>
+	</sql>
+	<!-- 
+		查询SQL 
+	-->
+	<sql id="coreSql">
+		<![CDATA[ 
+			select m.order_degree_id ,
+			       m.order_degree_no ,
+			       m.order_degree_type,
+			       m.order_from,
+			       m.sale_order_no,
+			       to_char(m.delivery_date, 'yyyy-mm-dd') delivery_date,
+			       to_char(m.estimate_delivery_date, 'yyyy-mm-dd') estimate_delivery_date,
+			       to_char(m.order_date, 'yyyy-mm-dd') order_date,
+			       m.total_money,
+			       m.order_num,
+			       m.complete_num,
+			       m.send_num,
+			       m.confirm_peo,
+			       to_char(m.confirm_date, 'yyyy-mm-dd') confirm_date,
+			       m.state,
+			       m.remark,
+			       m.creator,
+			       m.cre_name,
+			       to_char(m.cre_time, 'yyyy-mm-dd') cre_time,
+			       m.del_flag,
+			       m.pur_dep,
+			       m.pur_name,
+			       m.prvd_no,
+			       m.prvd_name,
+			       m.ledger_id
+			  from ERP_ORDER_DEGREE m
+        ]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+		<include refid="orderSql" />
+		<!-- <![CDATA[ order by m.cre_time desc]]> -->
+	</sql>
+	<!-- 分页查询 -->
+	<select id="pageQuery" parameterType="map"
+		resultType="java.util.HashMap">
+		<include refid="coreSql" />
+	</select>
+	<!-- 
+		查询进度主表
+	 -->
+	<select id="toQuery" parameterType="map" resultType="java.util.HashMap">
+	 <![CDATA[ select m.order_degree_id ,
+			       m.order_degree_no ,
+			       m.order_degree_type,
+			       m.order_from,
+			       m.sale_order_no,
+			       to_char(m.delivery_date, 'yyyy-mm-dd') delivery_date,
+			       to_char(m.estimate_delivery_date, 'yyyy-mm-dd') estimate_delivery_date,
+			       to_char(m.order_date, 'yyyy-mm-dd') order_date,
+			       m.total_money,
+			       m.order_num,
+			       m.complete_num,
+			       m.send_num,
+			       m.confirm_peo,
+			       to_char(m.confirm_date, 'yyyy-mm-dd') confirm_date,
+			       m.state,
+			       m.remark,
+			       m.creator,
+			       m.cre_name,
+			       to_char(m.cre_time, 'yyyy-mm-dd') cre_time,
+			       m.del_flag,
+			       m.pur_dep,
+			       m.pur_name,
+			       m.prvd_no,
+			       m.prvd_name,
+			       m.ledger_id
+			  from ERP_ORDER_DEGREE m
+	         where m.order_degree_id=#{order_degree_id}
+	 ]]>
+	</select>
+	
+	<select id="toQuerySun" parameterType="map" resultType="java.util.HashMap">
+	 <![CDATA[select * from ERP_ORDER_DEGREE_DTL  where order_degree_id=#{ORDER_DEGREE_ID} order by group_no asc]]>
+	</select>
+	
+	<!-- 
+		主表编辑 
+	-->
+	<update id="edit" parameterType="map">
+		<![CDATA[ update   ERP_ORDER_DEGREE]]>
+		 <set>
+		 	<if test="state !=null">state=#{state},</if>
+		 	<if test="remark !=null">remark=#{remark},</if>
+		 	<if test="estimate_delivery_date !=null">estimate_delivery_date=to_date(#{estimate_delivery_date},'yyyy-mm-dd'),</if>
+		 </set>
+		 <![CDATA[where  order_degree_id = #{order_degree_id}]]>
+	</update>
+	<!--  
+		编辑子表
+	-->
+	<update id="editSun" parameterType="map">
+		<![CDATA[ update   ERP_ORDER_DEGREE_DTL]]>
+		<set>
+			<if test="order_num !=null">order_num=#{order_num},</if>
+			<if test="pro_num !=null">pro_num=#{pro_num},</if>  
+			<if test="send_num !=null">send_num=#{send_num},</if>  
+		</set>
+		 <![CDATA[ where order_degree_dtl_id = #{order_degree_dtl_id}]]>
+	</update>
+	
+	
+	
+	<!-- 根据招投标id更新状态 -->
+	<update id="updateByID" parameterType="map">
+		<![CDATA[ update   ERP_TENDERING
+		set del_flag =#{del_flag},
+		    updator  =#{updator},
+			upd_name =#{upd_name},
+			upd_time =sysdate
+		  where tendering_id = #{tendering_id}
+		  ]]>
+	</update>
+	
+   	<insert id="insertProgressModel" parameterType="com.centit.drp.main.order.progress.model.ProgressModel">
+		<![CDATA[
+		 insert into ERP_ORDER_DEGREE(
+		 	ORDER_DEGREE_ID,
+			ORDER_DEGREE_NO,
+			ORDER_DEGREE_TYPE,
+			ORDER_FROM,
+			SALE_ORDER_NO,
+			DELIVERY_DATE ,
+			ESTIMATE_DELIVERY_DATE,
+			ORDER_DATE,
+			TOTAL_MONEY,
+			ORDER_NUM,
+			COMPLETE_NUM,
+			SEND_NUM,
+			CONFIRM_PEO,
+			CONFIRM_DATE,
+			STATE,
+			REMARK,
+			CREATOR,
+			CRE_NAME,
+			CRE_TIME,
+			DEL_FLAG,
+			PUR_DEP,
+			PUR_NAME,
+			PRVD_NO,
+			PRVD_NAME,
+			LEDGER_ID
+		 )
+		 values(
+			#{order_degree_id,jdbcType=VARCHAR},
+			#{order_degree_no,jdbcType=VARCHAR},
+			#{order_degree_type,jdbcType=VARCHAR},
+		 	#{order_from,jdbcType=VARCHAR},
+		 	#{sale_order_no,jdbcType=VARCHAR},
+		 	to_date(#{delivery_date,jdbcType=VARCHAR},'yyyy-MM-DD'),
+		 	to_date(#{estimate_delivery_date,jdbcType=VARCHAR},'yyyy-MM-DD'),
+		 	to_date(#{order_date,jdbcType=VARCHAR},'yyyy-MM-DD'),
+		 	#{total_money,jdbcType=VARCHAR},
+		 	#{order_num,jdbcType=VARCHAR},
+		 	#{complete_num,jdbcType=VARCHAR},
+		 	#{send_num,jdbcType=VARCHAR},
+		 	#{confirm_peo,jdbcType=VARCHAR},
+		 	to_date(#{confirm_date,jdbcType=VARCHAR},'yyyy-MM-DD'),
+		 	#{state,jdbcType=VARCHAR},
+		 	#{remark,jdbcType=VARCHAR},
+		 	#{creator,jdbcType=VARCHAR},
+		 	#{cre_name,jdbcType=VARCHAR},
+		 	sysdate,
+		 	'0', 
+		 	#{pur_dep,jdbcType=VARCHAR},
+		 	#{pur_name,jdbcType=VARCHAR},
+		 	#{prvd_no,jdbcType=VARCHAR},
+		 	#{prvd_name,jdbcType=VARCHAR},
+		 	#{ledger_id,jdbcType=VARCHAR}
+		 )
+		]]>
+	</insert>
+	
+	<insert id="insertProgressDetModelList" parameterType="map">
+		<foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+			<![CDATA[
+			 insert into ERP_ORDER_DEGREE_DTL(
+			 	ORDER_DEGREE_DTL_ID,
+				ORDER_DEGREE_ID,
+				PRD_ID,
+				PRD_NO,
+				PRD_NAME,
+				PRD_SPEC,
+				HOLE_SPEC,
+				PRD_TOWARD,
+				PRD_QUALITY,
+				PRD_GLASS,
+				PRD_OTHER,
+				PRD_SERIES,
+				GROUP_NO,
+				STD_UNIT,
+				PRD_COLOR,
+				BRAND,
+				PRICE,
+				ORDER_NUM,
+				ORDER_AMOUNT,
+				PRO_NUM,
+				SEND_NUM,
+				DEL_FLAG
+			 )
+			 values(
+				#{item.order_degree_dtl_id,jdbcType=VARCHAR},
+				#{item.order_degree_id,jdbcType=VARCHAR},
+				#{item.prd_id,jdbcType=VARCHAR},
+			 	#{item.prd_no,jdbcType=VARCHAR},
+			 	#{item.prd_name,jdbcType=VARCHAR},
+			 	#{item.prd_spec,jdbcType=VARCHAR},
+			 	#{item.hole_spec,jdbcType=VARCHAR},
+			 	#{item.prd_toward,jdbcType=VARCHAR},
+			 	#{item.prd_quality,jdbcType=VARCHAR},
+			 	#{item.prd_glass,jdbcType=VARCHAR},
+			 	#{item.prd_other,jdbcType=VARCHAR},			 
+			 	#{item.prd_series,jdbcType=VARCHAR},
+			 	#{item.group_no,jdbcType=VARCHAR},
+			 	#{item.std_unit,jdbcType=VARCHAR},
+			 	#{item.prd_color,jdbcType=VARCHAR},
+			 	#{item.brand,jdbcType=VARCHAR},
+			 	#{item.price,jdbcType=VARCHAR},
+			 	#{item.order_num,jdbcType=VARCHAR},
+			 	#{item.order_amount,jdbcType=VARCHAR},
+			 	#{item.pro_num,jdbcType=VARCHAR},
+			 	#{item.send_num,jdbcType=VARCHAR},
+			 	'0'
+			 );
+			]]>
+		</foreach>
+	</insert>
+	
+
+</mapper>
+

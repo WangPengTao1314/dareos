@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<!--
+@author zzb
+@function 
+@version 2013-09-15 10:35:10
+-->
+<mapper namespace="com.centit.drp.sale.advcorder.mapper.AdvcorderMapper">
+	<insert id="insertTrace" parameterType="map">
+	insert into DRP_ADVC_ORDER_TRACE(
+		ADVC_ORDER_TRACE_ID,
+		ADVC_ORDER_ID,
+		ACTION,
+		ACTOR,
+		ACT_TIME,
+		BILL_NO,
+		REMARK
+	)values(
+		#{ADVC_ORDER_TRACE_ID},
+		#{ADVC_ORDER_ID},
+		#{ACTION},
+		#{ACTOR},
+		sysdate,
+		#{BILL_NO},
+		#{REMARK}
+	)
+</insert>
+</mapper>

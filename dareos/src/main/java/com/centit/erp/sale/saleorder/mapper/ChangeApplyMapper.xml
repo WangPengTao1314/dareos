@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<!-- @author zzb @function 销售订单变更申请 @version 2013-10-12 13:52:19 -->
+<mapper namespace="com.centit.erp.sale.saleorder.mapper.ChangeApplyMapper">
+	<!-- 使用ChangeApplyModel装载结果集 -->
+	<resultMap id="ChangeApplyModel" type="com.centit.erp.sale.saleorder.model.ChangeApplyModel">
+		<result column="CHANGE_APPLY_ID" property="CHANGE_APPLY_ID" />
+	</resultMap>
+
+	<!-- 动态查询 and 列表分页 -->
+	<sql id="queryDynSql">
+		<if test="FACTORY_NO !=null and FACTORY_NO !='' "> and s.FACTORY_NO like '%'||#{FACTORY_NO}||'%' </if>
+		<!--  <isNotEmpty prepend="and " property="QXJBCON">$QXJBCON$</isNotEmpty>-->
+		<if test="CHANGE_APPLY_ID !=null and CHANGE_APPLY_ID !='' ">
+			and u.CHANGE_APPLY_ID = #{CHANGE_APPLY_ID}
+		</if>
+		<if test="CHANGE_APPLY_NO !=null and CHANGE_APPLY_NO !='' ">
+			<![CDATA[ and u.CHANGE_APPLY_NO like '%'||#{CHANGE_APPLY_NO}||'%']]>
+		</if>
+		<if test="SALE_ORDER_ID   !=null and SALE_ORDER_ID   !='' "><![CDATA[ and u.SALE_ORDER_ID = #{SALE_ORDER_ID  } ]]> </if>
+		<if test="FACTORY_NO      !=null and FACTORY_NO      !='' "><![CDATA[ and s.FACTORY_NO like '%'||#{FACTORY_NO}||'%' ]]> </if>
+		<if test="GOODS_ORDER_NO  !=null and GOODS_ORDER_NO  !='' "><![CDATA[ and upper(s.FROM_BILL_NO) like upper('%'||#{GOODS_ORDER_NO}||'%') ]]> </if>
+		<if test="BILL_TYPE       !=null and BILL_TYPE       !='' "><![CDATA[ and s.BILL_TYPE = #{BILL_TYPE} ]]> </if>
+		<if test="CUST_NAME       !=null and CUST_NAME       !='' "><![CDATA[ and s.CUST_NAME like '%'||#{CUST_NAME}||'%' ]]> </if>
+		<if test="CUST_ADDR       !=null and CUST_ADDR       !='' "><![CDATA[ and s.CUST_ADDR like '%'||#{CUST_ADDR}||'%' ]]> </if>
+		<if test="CHAN_REMARK     !=null and CHAN_REMARK     !='' "><![CDATA[ and u.CHAN_REMARK     like '%'||#{CHAN_REMARK    }||'%' ]]> </if>
+		<if test="ORDER_REMARK    !=null and ORDER_REMARK    !='' "><![CDATA[ and u.ORDER_REMARK    like '%'||#{ORDER_REMARK   }||'%' ]]> </if>
+		<if test="TELL_PERSON     !=null and TELL_PERSON     !='' "><![CDATA[ and u.TELL_PERSON     like '%'||#{TELL_PERSON    }||'%' ]]> </if>
+		<if test="ORDER_HIS       !=null and ORDER_HIS       !='' "><![CDATA[ and u.ORDER_HIS       like '%'||#{ORDER_HIS      }||'%' ]]> </if>
+		<if test="ORDER_DTL_HIS   !=null and ORDER_DTL_HIS   !='' "><![CDATA[ and u.ORDER_DTL_HIS   like '%'||#{ORDER_DTL_HIS  }||'%' ]]> </if>
+		<if test="STATE           !=null and STATE           !='' "><![CDATA[ and u.STATE           like '%'||#{STATE          }||'%' ]]> </if>
+		<if test="DDSTATE         !=null and DDSTATE         !='' "><![CDATA[ and s.STATE           like '%'||#{DDSTATE        }||'%' ]]> </if>
+		<if test="NOTSTATE        !=null and NOTSTATE        !='' "><![CDATA[ and u.STATE != #{NOTSTATE} ]]> </if>
+		<if test="NOTDDSTATE      !=null and NOTDDSTATE      !='' "><![CDATA[ and s.STATE != #{NOTDDSTATE} ]]> </if>
+		<if test="STATES          !=null and STATES          !='' "><![CDATA[ and u.STATE IN (${STATES}) ]]> </if>
+		<if test="DDSTATES        !=null and DDSTATES        !='' "><![CDATA[ and s.STATE IN (${DDSTATES}) ]]> </if>
+		<if test="CREATOR         !=null and CREATOR         !='' "><![CDATA[ and u.CREATOR         like '%'||#{CREATOR        }||'%' ]]> </if>
+		<if test="CRE_NAME        !=null and CRE_NAME        !='' "><![CDATA[ and u.CRE_NAME        like '%'||#{CRE_NAME       }||'%' ]]> </if>
+		<if test="CRE_TIME        !=null and CRE_TIME        !='' "><![CDATA[ and u.CRE_TIME        like '%'||#{CRE_TIME       }||'%' ]]> </if>
+		<if test="DEPT_NAME       !=null and DEPT_NAME       !='' "><![CDATA[ and u.DEPT_NAME       like '%'||#{DEPT_NAME      }||'%' ]]> </if>
+		<if test="DEPT_ID         !=null and DEPT_ID         !='' "><![CDATA[ and u.DEPT_ID         like '%'||#{DEPT_ID        }||'%' ]]> </if>
+		<if test="ORG_ID          !=null and ORG_ID          !='' "><![CDATA[ and u.ORG_ID          like '%'||#{ORG_ID         }||'%' ]]> </if>
+		<if test="ORG_NAME        !=null and ORG_NAME        !='' "><![CDATA[ and u.ORG_NAME        like '%'||#{ORG_NAME       }||'%' ]]> </if>
+		<if test="UPDATOR         !=null and UPDATOR         !='' "><![CDATA[ and u.UPDATOR = #{UPDATOR        } ]]> </if>
+		<if test="UPD_NAME        !=null and UPD_NAME        !='' "><![CDATA[ and u.UPD_NAME        like '%'||#{UPD_NAME       }||'%' ]]> </if>
+		<if test="UPD_TIME        !=null and UPD_TIME        !='' "><![CDATA[ and u.UPD_TIME        like '%'||#{UPD_TIME       }||'%' ]]> </if>
+		<if test="LEDGER_NAME     !=null and LEDGER_NAME     !='' "><![CDATA[ and u.LEDGER_NAME     like '%'||#{LEDGER_NAME    }||'%' ]]> </if>
+		<if test="LEDGER_ID       !=null and LEDGER_ID       !='' "><![CDATA[ and u.LEDGER_ID = #{LEDGER_ID} ]]> </if>
+		<if test="DEL_FLAG        !=null and DEL_FLAG        !='' "><![CDATA[ and u.DEL_FLAG = #{DEL_FLAG} ]]> </if>
+		<if test="AUDIT_TIME      !=null and AUDIT_TIME      !='' "><![CDATA[ and u.AUDIT_TIME      like '%'||#{AUDIT_TIME     }||'%' ]]> </if>
+		<if test="AUDIT_NAME      !=null and AUDIT_NAME      !='' "><![CDATA[ and u.AUDIT_NAME      like '%'||#{AUDIT_NAME     }||'%' ]]> </if>
+		<if test="AUDIT_ID        !=null and AUDIT_ID        !='' "><![CDATA[ and u.AUDIT_ID = #{AUDIT_ID} ]]> </if>
+		
+		<if test="CHANN_ID !=null and CHANN_ID !='' "><![CDATA[ and s.CHANN_ID = #{CHANN_ID} ]]> </if>
+		<if test="ORDER_DATE_BEGIN !=null and ORDER_DATE_BEGIN !='' ">
+			<![CDATA[ and to_char(s.ORDER_DATE,'yyyy-MM-dd') >= #{ORDER_DATE_BEGIN} ]]>
+		</if>
+		<if test="ORDER_DATE_END !=null and ORDER_DATE_END !='' ">
+			<![CDATA[ and to_char(s.ORDER_DATE,'yyyy-MM-dd') <= #{ORDER_DATE_END} ]]>
+		</if>
+		<if test="ORDER_DELIVERY_DATE_BEGIN !=null and ORDER_DELIVERY_DATE_BEGIN !='' ">
+			<![CDATA[ and to_char(s.ORDER_DELIVERY_DATE,'yyyy-MM-dd') >= #{ORDER_DELIVERY_DATE_BEGIN} ]]>
+		</if>
+		<if test="ORDER_DELIVERY_DATE_END !=null and ORDER_DELIVERY_DATE_END !='' ">
+			<![CDATA[ and to_char(s.ORDER_DELIVERY_DATE,'yyyy-MM-dd') <= #{ORDER_DELIVERY_DATE_END} ]]>
+		</if>
+	</sql>
+	<sql id="orderSql">
+		order by 
+		<if test="orderField!=null and orderField !='' ">
+			${orderField},
+		</if>
+		u.CRE_TIME desc
+	</sql>
+
+	<!-- 查询SQL -->
+	<sql id="coreSql">
+		<![CDATA[ 
+			select 
+				CHANGE_APPLY_ID
+				, CHANGE_APPLY_NO
+				, s.SALE_ORDER_ID
+				, s.SALE_ORDER_NO
+				, s.BILL_TYPE
+				, s.FROM_BILL_ID
+				, s.FROM_BILL_NO
+				, s.BILL_TYPE2
+				, s.ORDER_CHANN_ID
+				, s.ORDER_CHANN_NO
+				, s.ORDER_CHANN_NAME
+				, to_char(s.ORDER_DATE,'yyyy-MM-DD') ORDER_DATE
+				, s.CHANN_ID
+				, s.CHANN_NO
+				, s.CHANN_NAME
+				, s.PRINT_NAME
+				, s.TRANSPORT
+				, s.TRANSPORT_SETTLE
+				, s.FACTORY_NO
+				, s.PROESS_TYPE
+				, s.URGENCY_TYPE
+				, s.SALE_ID
+				, s.SALE_NAME
+				, s.SALEDEPT_NAME
+				, s.SALEDEPT_ID
+				, to_char(s.PRE_RECV_DATE,'yyyy-MM-DD') PRE_RECV_DATE
+				, s.CUST_NAME
+				, s.IS_USE_REBATE
+				, s.RECV_CHANN_ID
+				, s.RECV_CHANN_NO
+				, s.RECV_CHANN_NAME
+				, s.PERSON_CON
+				, s.RECV_ADDR
+				, s.RECV_ADDR_NO
+				, s.TEL
+				, s.STATE
+				, s.REMARK
+				, s.REMARK2
+				, s.CREATOR
+				, s.CRE_NAME
+				, to_char(s.CRE_TIME,'yyyy-MM-DD HH24:MI:SS') CRE_TIME
+				, s.UPDATOR
+				, s.UPD_NAME
+				, to_char(s.UPD_TIME,'yyyy-MM-DD HH24:MI:SS') UPD_TIME
+				, s.LEDGER_NAME
+				, s.LEDGER_ID
+				, s.DEL_FLAG
+				, to_char(s.AUDIT_TIME,'yyyy-MM-DD HH24:MI:SS') AUDIT_TIME
+				, s.AUDIT_NAME
+				, s.AUDIT_ID
+				, s.DEPT_NAME
+				, s.DEPT_ID
+				, s.ORG_ID
+				, s.ORG_NAME
+				, s.AREA_ID
+				, s.AREA_NO
+				, s.AREA_NAME
+				, s.BASE_ADD_FLAG
+				, to_char(s.ORDER_DELIVERY_DATE,'yyyy-MM-DD') ORDER_DELIVERY_DATE
+				, s.CUST_TEL
+				, s.CUST_ADDR
+				, s.ORDER_TRACE_ID
+				, s.RETURN_SHOW_FLAG
+				, s.PROBLEM_FEEDBACK_ID
+				, s.PROBLEM_FEEDBACK_NO
+				, s.TOTAL_AMOUNT
+				, s.TOTAL_REBATE
+				, s.CHANGE_FLAG
+				, s.NC_ID
+				, s.PROJECT_ID
+				, s.PROJECT_NO
+				, s.PROJECT_NAME
+
+				, u.CHAN_REMARK
+				, u.ORDER_REMARK
+				, u.TELL_PERSON
+				, u.ORDER_HIS
+				, u.ORDER_DTL_HIS
+				, u.STATE APPLYSTATE
+				, to_char(u.AUDIT_TIME,'yyyy-MM-DD HH24:MI:SS') APPLY_AUDIT_TIME
+				, u.AUDIT_NAME APPLY_AUDIT_NAME
+				, u.AUDIT_ID APPLY_AUDIT_ID   
+			from ERP_CHANGE_APPLY u 
+			left join ERP_SALE_ORDER s on s.SALE_ORDER_ID = u.SALE_ORDER_ID and s.DEL_FLAG = '0'
+		 ]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+		<include refid="orderSql" />
+	</sql>
+
+	<!-- 分页查询 -->
+	<select id="pageQuery" parameterType="map"
+		resultType="java.util.HashMap">
+		<include refid="coreSql" />
+	</select>
+
+	<!-- 分页计数 -->
+	<select id="pageCount" parameterType="map" resultType="int">
+		<![CDATA[
+		SELECT count(u.CHANGE_APPLY_ID) cnt FROM ERP_CHANGE_APPLY u
+		]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+	</select>
+
+	<!-- 查询 -->
+	<select id="query" parameterType="map"
+		resultType="java.util.HashMap">
+		<include refid="coreSql" />
+	</select>
+
+	<insert id="insert" parameterType="map">
+		<![CDATA[
+		insert into ERP_CHANGE_APPLY(
+			CHANGE_APPLY_ID
+			, CHANGE_APPLY_NO
+			, SALE_ORDER_ID
+			, CHAN_REMARK
+			, ORDER_REMARK
+			, TELL_PERSON
+			, ORDER_HIS
+			, ORDER_DTL_HIS
+			, STATE
+			, CREATOR
+			, CRE_NAME
+			, CRE_TIME
+			, DEPT_NAME
+			, DEPT_ID
+			, ORG_ID
+			, ORG_NAME
+			, LEDGER_NAME
+			, LEDGER_ID
+			, DEL_FLAG
+		)
+		values(
+			#{CHANGE_APPLY_ID, jdbcType=VARCHAR}
+			, #{CHANGE_APPLY_NO, jdbcType=VARCHAR}
+			, #{SALE_ORDER_ID, jdbcType=VARCHAR}
+			, #{CHAN_REMARK, jdbcType=VARCHAR}
+			, #{ORDER_REMARK, jdbcType=VARCHAR}
+			, #{TELL_PERSON, jdbcType=VARCHAR}
+			, #{ORDER_HIS, jdbcType=CLOB}
+			, #{ORDER_DTL_HIS, jdbcType=CLOB}
+			, #{STATE, jdbcType=VARCHAR}
+			, #{CREATOR, jdbcType=VARCHAR}
+			, #{CRE_NAME, jdbcType=VARCHAR}
+			, sysdate
+			, #{DEPT_NAME, jdbcType=VARCHAR}
+			, #{DEPT_ID, jdbcType=VARCHAR}
+			, #{ORG_ID, jdbcType=VARCHAR}
+			, #{ORG_NAME, jdbcType=VARCHAR}
+			, #{LEDGER_NAME, jdbcType=VARCHAR}
+			, #{LEDGER_ID, jdbcType=VARCHAR}
+			, #{DEL_FLAG, jdbcType=INTEGER}
+		)
+		]]>
+	</insert>
+
+	<update id="updateById" parameterType="map">
+		<![CDATA[ update ERP_CHANGE_APPLY ]]>
+		<set>
+			<if test="CHANGE_APPLY_ID !=null and CHANGE_APPLY_ID !='' "><![CDATA[CHANGE_APPLY_ID = #{CHANGE_APPLY_ID, jdbcType=VARCHAR}]]>,</if>
+			<if test="CHANGE_APPLY_NO !=null and CHANGE_APPLY_NO !='' "><![CDATA[CHANGE_APPLY_NO = #{CHANGE_APPLY_NO, jdbcType=VARCHAR}]]>,</if>
+			<if test="SALE_ORDER_ID !=null and SALE_ORDER_ID !='' "><![CDATA[SALE_ORDER_ID = #{SALE_ORDER_ID , jdbcType=VARCHAR}]]>,</if>
+			<if test="CHAN_REMARK !=null and CHAN_REMARK !='' "><![CDATA[CHAN_REMARK = #{CHAN_REMARK , jdbcType=VARCHAR}]]>,</if>
+			<if test="ORDER_REMARK !=null and ORDER_REMARK !='' "><![CDATA[ORDER_REMARK = #{ORDER_REMARK , jdbcType=VARCHAR}]]>,</if>
+			<if test="TELL_PERSON !=null and TELL_PERSON !='' "><![CDATA[TELL_PERSON = #{TELL_PERSON , jdbcType=VARCHAR}]]>,</if>
+			<if test="ORDER_HIS !=null and ORDER_HIS !='' "><![CDATA[ORDER_HIS = #{ORDER_HIS , jdbcType=CLOB}]]>,</if>
+			<if test="ORDER_DTL_HIS !=null and ORDER_DTL_HIS !='' "><![CDATA[ORDER_DTL_HIS = #{ORDER_DTL_HIS , jdbcType=CLOB}]]>,</if>
+			<if test="STATE !=null and STATE !='' "><![CDATA[STATE = #{STATE , jdbcType=VARCHAR}]]>,</if>
+			<if test="DEPT_NAME !=null and DEPT_NAME !='' "><![CDATA[DEPT_NAME = #{DEPT_NAME , jdbcType=VARCHAR}]]>,</if>
+			<if test="DEPT_ID !=null and DEPT_ID !='' "><![CDATA[DEPT_ID = #{DEPT_ID , jdbcType=VARCHAR}]]>,</if>
+			<if test="ORG_ID !=null and ORG_ID !='' "><![CDATA[ORG_ID = #{ORG_ID , jdbcType=VARCHAR}]]>,</if>
+			<if test="ORG_NAME !=null and ORG_NAME !='' "><![CDATA[ORG_NAME = #{ORG_NAME , jdbcType=VARCHAR}]]>,</if>
+			<if test="UPDATOR !=null and UPDATOR !='' "><![CDATA[UPDATOR = #{UPDATOR , jdbcType=VARCHAR}]]>,</if>
+			<if test="UPD_NAME !=null and UPD_NAME !='' "><![CDATA[UPD_NAME = #{UPD_NAME , jdbcType=VARCHAR}]]>,</if>
+			<if test="UPD_TIME !=null and UPD_TIME !='' "><![CDATA[UPD_TIME = sysdate]]>,</if>
+			<if test="LEDGER_NAME !=null and LEDGER_NAME !='' "><![CDATA[LEDGER_NAME = #{LEDGER_NAME , jdbcType=VARCHAR}]]>,</if>
+			<if test="LEDGER_ID !=null and LEDGER_ID !='' "><![CDATA[LEDGER_ID = #{LEDGER_ID , jdbcType=VARCHAR}]]>,</if>
+			<if test="DEL_FLAG !=null and DEL_FLAG !='' "><![CDATA[DEL_FLAG = #{DEL_FLAG , jdbcType=INTEGER}]]>,</if>
+			<if test="AUDIT_TIME !=null and AUDIT_TIME !='' "><![CDATA[AUDIT_TIME = sysdate]]>,</if>
+			<if test="AUDIT_NAME !=null and AUDIT_NAME !='' "><![CDATA[AUDIT_NAME = #{AUDIT_NAME , jdbcType=VARCHAR}]]>,</if>
+			<if test="AUDIT_ID !=null and AUDIT_ID !='' "><![CDATA[AUDIT_ID = #{AUDIT_ID , jdbcType=VARCHAR}]]>,</if>
+		</set>
+		<![CDATA[ where CHANGE_APPLY_ID = #{CHANGE_APPLY_ID} ]]>
+	</update>
+	<!-- 软删除 只是更新状态-->
+	<delete id="delete" parameterType="map">
+		<![CDATA[ update ERP_CHANGE_APPLY ]]>
+			<set>
+			<if test="UPDATER !=null and UPDATER !='' "><![CDATA[UPDATER = #{UPDATOR , jdbcType=VARCHAR}]]>,</if>
+			<if test="DELFLAG !=null and DELFLAG !='' "><![CDATA[DELFLAG = #{DELFLAG}]]>,</if>
+			</set>
+		<![CDATA[ , UPDTIME = sysdate]]>
+		<![CDATA[ where CHANGE_APPLY_ID = #{CHANGE_APPLY_ID} ]]>
+	</delete>
+	
+	<select id="loadById" parameterType="String"
+		resultType="java.util.HashMap">
+		<include refid="coreSql" />
+	</select>
+</mapper>
+

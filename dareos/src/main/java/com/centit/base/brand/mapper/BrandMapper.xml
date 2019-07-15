@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.centit.base.brand.mapper.BrandMapper">
+	<resultMap id="DeliveraddrModelChld" type="com.centit.base.brand.model.BrandModel">
+		<result column="BRAND_ID" property="BRAND_ID" />
+		<result column="BRAND" property="BRAND" />
+		<result column="BRAND_EN" property="BRAND_EN" />
+		<result column="STATE" property="STATE" />
+		<result column="CREATOR" property="CREATOR" />
+		<result column="CRE_NAME" property="CRE_NAME" />
+		<result column="CRE_TIME" property="CRE_TIME" />
+		<result column="UPDATOR" property="UPDATOR" />
+		<result column="UPD_NAME" property="UPD_NAME" />
+		<result column="UPD_TIME" property="UPD_TIME" />
+		<result column="DEPT_ID" property="DEPT_ID" />
+		<result column="DEPT_NAME" property="DEPT_NAME" />
+		<result column="ORG_ID" property="ORG_ID" />
+		<result column="ORG_NAME" property="ORG_NAME" />
+		<result column="REMARK" property="REMARK" />
+	</resultMap>
+
+	<!-- 动态查询 and 列表排序 -->
+	<sql id="queryDynSql">
+		<if test="BRAND_EN !=null and BRAND_EN !='' ">
+			and BRAND_EN like '%'||#{BRAND_EN}||'%'</if>
+		<if test="BRAND !=null and BRAND !='' ">
+			and BRAND like '%'||#{BRAND}||'%'</if>
+		<if test="CRE_TIME_FROM !=null and CRE_TIME_FROM !='' ">
+			and <![CDATA[ CRE_TIME >= to_date(#{CRE_TIME_FROM},'yyyy-MM-DD HH24:MI:SS')]]>
+		</if>
+		<if test="STATE !=null and STATE !='' ">
+			and STATE=#{STATE}
+		</if>
+		<if test="CRE_TIME_TO !=null and CRE_TIME_TO !='' ">
+			and <![CDATA[ CRE_TIME <= to_date(#{CRE_TIME_TO},'yyyy-MM-DD HH24:MI:SS')]]>
+		</if>
+		<if test="DEL_FLAG !=null and DEL_FLAG !='' ">
+			and DEL_FLAG=#{DEL_FLAG}
+		</if>
+		<if test="QXJBCON !=null and QXJBCON !='' ">
+			and ${QXJBCON}
+		</if>
+	</sql>
+	<sql id="orderSql">
+		<if test="orderField != null and orderField != ''">
+			order by  ${orderField}
+		</if>
+	</sql>
+
+	<sql id="coreSql">
+		  <![CDATA[ 
+		  select 
+			u.BRAND_ID,
+			u.BRAND,
+			u.BRAND_EN,
+			u.STATE,
+			u.CREATOR,
+			u.CRE_NAME,
+			to_char(u.CRE_TIME,'yyyy-MM-DD HH24:MI:SS') CRE_TIME,
+			u.UPDATOR,
+			u.UPD_NAME,
+			to_char(u.UPD_TIME,'yyyy-MM-DD HH24:MI:SS') UPD_TIME,
+			u.DEPT_ID,
+			u.DEPT_NAME,
+			u.ORG_ID,
+			u.ORG_NAME,
+			u.REMARK
+		  from 
+			BASE_BRAND u 
+		   ]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+		
+		<include refid="orderSql" />
+	</sql>
+
+	<!-- 分页查询 -->
+	<select id="pageQuery" parameterType="map" resultType="java.util.HashMap">
+		<include refid="coreSql" />
+	</select>
+
+	<!-- 分页计数 -->
+	<select id="pageCount" parameterType="map" resultType="int">
+		<![CDATA[select 
+					count(BRAND_ID) cnt 
+				 from 
+					BASE_BRAND
+		]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+	</select>
+
+	<!-- 查询 -->
+	<select id="query" parameterType="map" resultType="java.util.HashMap">
+		<include refid="coreSql" />
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+		<include refid="orderSql" />
+	</select>
+
+	<!-- 根据ID查找 -->
+	<select id="loadById" parameterType="map" resultType="java.util.HashMap">
+		<![CDATA[
+		select 
+			u.BRAND_ID,
+			u.BRAND,
+			u.BRAND_EN,
+			u.STATE,
+			u.CREATOR,
+			u.CRE_NAME,
+			to_char(u.CRE_TIME,'yyyy-MM-DD HH24:MI:SS') CRE_TIME,
+			u.UPDATOR,
+			u.UPD_NAME,
+			to_char(u.UPD_TIME,'yyyy-MM-DD HH24:MI:SS') UPD_TIME,
+			u.DEPT_ID,
+			u.DEPT_NAME,
+			u.ORG_ID,
+			u.ORG_NAME,
+			u.REMARK
+		from 
+			BASE_BRAND u 
+		where
+			u.BRAND_ID = #{BRAND_ID}
+		]]>
+	</select>
+
+	<!-- 新增 -->
+	<insert id="insert" parameterType="map">
+		<![CDATA[
+		 	insert into  BASE_BRAND( 
+					BRAND_ID,
+					BRAND,
+					BRAND_EN,
+					STATE,
+					CREATOR,
+					CRE_NAME,
+					CRE_TIME,
+					DEPT_ID,
+					DEPT_NAME,
+					ORG_ID,
+					ORG_NAME,
+					REMARK,
+					DEL_FLAG
+		 	)values(
+					#{BRAND_ID,jdbcType=VARCHAR},
+					#{BRAND,jdbcType=VARCHAR},
+					#{BRAND_EN,jdbcType=VARCHAR},
+					#{STATE,jdbcType=VARCHAR},
+					#{CREATOR,jdbcType=VARCHAR},
+					#{CRE_NAME,jdbcType=VARCHAR},
+					sysdate,
+					#{DEPT_ID,jdbcType=VARCHAR},
+					#{DEPT_NAME,jdbcType=VARCHAR},
+					#{ORG_ID,jdbcType=VARCHAR},
+					#{ORG_NAME,jdbcType=VARCHAR},
+					#{REMARK,jdbcType=VARCHAR},
+					0
+					 )
+		]]>
+	</insert>
+
+	<!-- 根据ID修改 -->
+	<update id="updateById" parameterType="map">
+		<![CDATA[ update BASE_BRAND ]]>
+		<set>
+			<if test="BRAND != null ">
+			BRAND = #{BRAND},</if>
+			<if test="BRAND_EN != null ">
+			BRAND_EN = #{BRAND_EN},</if>
+			<if test="STATE != null ">
+			STATE = #{STATE},</if>
+			<if test="UPDATOR != null ">
+			UPDATOR = #{UPDATOR},</if>
+			<if test="UPD_NAME != null ">
+			UPD_NAME = #{UPD_NAME},</if>
+			<if test="UPDATOR != null ">
+			UPD_TIME = sysdate,</if>
+			<if test="REMARK != null ">
+			REMARK = #{REMARK},</if>
+		</set>
+		<![CDATA[ where BRAND_ID = #{BRAND_ID} ]]>
+	</update>
+
+	<!-- 删除 -->
+	<delete id="delete" parameterType="map">
+		<![CDATA[ 
+		 update BASE_BRAND 
+		   set 
+		   UPDATOR = #{UPDATOR},
+		   UPD_NAME = #{UPD_NAME},
+		   UPD_TIME = sysdate,
+		   DEL_FLAG = #{DEL_FLAG},
+		   BRAND_ID = #{BRAND_ID_UUID},
+		   REMARK = REMARK ||'   BRAND_ID：'||#{BRAND_ID}
+	      where BRAND_ID = #{BRAND_ID}
+	     ]]>
+	</delete>
+
+</mapper>
+

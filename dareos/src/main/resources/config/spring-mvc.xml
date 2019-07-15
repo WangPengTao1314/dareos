@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+		http://www.springframework.org/schema/mvc
+		http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd
+		http://www.springframework.org/schema/context 
+		http://www.springframework.org/schema/context/spring-context-3.2.xsd
+		http://www.springframework.org/schema/aop 
+      	http://www.springframework.org/schema/aop/spring-aop-4.0.xsd">
+	
+    <!-- 扫描@controller注解的控制器 -->
+    <context:component-scan base-package="com.centit.**.controller" use-default-filters="false">   
+    	<context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>  
+    </context:component-scan>
+    
+    <!-- aop动态代理，为了作用于Controller层  -->
+    <aop:aspectj-autoproxy proxy-target-class="true"/>
+    
+    <mvc:annotation-driven >
+    	<!-- @ResponseBody注解支持 -->
+		<mvc:message-converters register-defaults="true">
+		    <bean class="org.springframework.http.converter.StringHttpMessageConverter">
+		    	<constructor-arg value="UTF-8" index="0"></constructor-arg>
+		      	<property name="supportedMediaTypes" value = "text/plain;charset=UTF-8" />
+		    </bean>
+		    <bean id="mappingJacksonHttpMessageConverter"
+				class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+				<property name="supportedMediaTypes">
+             		<list>
+                 		<value>text/html;charset=UTF-8</value>
+               			<value>application/json;charset=UTF-8</value>
+                	</list>
+           		</property>
+           		<property name="objectMapper">
+	                <bean class="com.fasterxml.jackson.databind.ObjectMapper">
+	                    <property name="serializationInclusion">
+	                        <value type="com.fasterxml.jackson.annotation.JsonInclude.Include">NON_NULL</value>
+	                    </property>
+	                </bean>
+	            </property>
+			</bean>
+	  	</mvc:message-converters>
+	  	
+	  	<!-- @PageableDefault注解支持 -->
+	  	<!-- <mvc:argument-resolvers>
+			<bean class="org.springframework.data.web.PageableHandlerMethodArgumentResolver" >
+				<constructor-arg ref="sortResolver" />
+			</bean>
+		</mvc:argument-resolvers> -->
+	</mvc:annotation-driven>
+	<!-- <bean id="sortResolver" class="org.springframework.data.web.SortHandlerMethodArgumentResolver" /> -->
+
+    <!-- JSP视图解析器 -->  
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver"> 
+    	<property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/>
+        <property name="contentType" value="text/html;charset=UTF-8"/> 
+        <property name="prefix" value="../../pages/" />  
+        <property name="suffix" value=".jsp" />
+        <property name="order" value="1"/>
+    </bean>
+    
+    <!-- Html视图解析器 -->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+    	<property name="contentType" value="text/html;charset=UTF-8"/>
+	    <property name="prefix" value="../../pages/" />  
+        <property name="suffix" value=".html" />
+	    <property name="order" value="1"/>
+	</bean>
+    
+    <!-- 配置文件上传，如果没有使用文件上传可以不用配置，当然如果不配，那么配置文件中也不必引入上传组件包 -->  
+    <bean id="multipartResolver"    
+        class="org.springframework.web.multipart.commons.CommonsMultipartResolver">    
+        <!-- 默认编码 -->  
+        <property name="defaultEncoding" value="utf-8" />    
+        <!-- 文件大小最大值 -->  
+        <property name="maxUploadSize" value="104857600" /> <!-- 100M -->
+        <!-- 内存中的最大值 -->
+        <property name="maxInMemorySize" value="40960" />
+        <property name="resolveLazily" value="true" />
+    </bean>   
+	
+	<mvc:default-servlet-handler/>
+	
+	<!-- SpringMVC异常解析器 -->
+<!-- 	<bean id="exceptionResolver" class="com.centit.core.exception.ExceptionHandler"> -->
+<!-- 		<property name="maxUploadSize" value="104857600" /> -->
+<!-- 		<property name="exceptionMappings"> -->
+<!-- 			<props> -->
+<!-- 				<prop key="org.apache.shiro.authz.UnauthenticatedException">exception/401</prop> -->
+<!-- 				<prop key="org.apache.shiro.authz.UnauthorizedException">exception/403</prop> -->
+<!-- 				<prop key="java.lang.Exception">exception/error</prop> -->
+<!-- 			</props> -->
+<!-- 		</property>  -->
+<!-- 		<property name="statusCodes">      -->
+<!--              <props>      -->
+<!--                  <prop key="exception/500">500</prop>      -->
+<!--                  <prop key="exception/404">404</prop> -->
+<!--                  <prop key="exception/403">403</prop> -->
+<!--                  <prop key="exception/401">401</prop> -->
+<!--              </props>      -->
+<!--          </property>   -->
+ 		<!-- 设置日志输出级别，不定义则默认不输出警告等错误日志信息  -->  
+<!--         <property name="warnLogCategory" value="WARN"></property>   -->
+<!--         默认错误页面，当找不到上面mappings中指定的异常对应视图时，使用本默认配置   -->
+<!--         <property name="defaultErrorView" value="error/error"></property>   -->
+<!--         默认HTTP状态码   -->
+<!--         <property name="defaultStatusCode" value="500"></property>  -->
+<!-- 	</bean> -->
+	<!-- 框架异常处理Handler -->
+	<bean id="exceptionResolver" class="com.centit.commons.util.ExceptionResolver"></bean>
+	<!-- 对静态资源文件的访问 -->
+    <mvc:resources mapping="/statics/**" location="/statics/" cache-period="31556926"/>
+    <mvc:resources mapping="/modules/**" location="/modules/" cache-period="31556926" order="2"/>
+    <mvc:resources mapping="/upload/**" location="/upload/" cache-period="31556926"/>
+    
+    <!-- <bean class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
+     	<property name="urlMap">
+         	<map>
+              	<entry key="/modules/exception/**" value="myResourceHandler" />
+         	</map>
+     	</property>
+     	<property name="order" value="1" />
+	</bean>
+    
+    <bean id="myResourceHandler" name="myResourceHandler" 
+    	class="org.springframework.web.servlet.resource.ResourceHttpRequestHandler">
+      	<property name="locations" value="/modules/exception/" />
+      	<property name="supportedMethods">
+         	<list>
+            	<value>GET</value>
+            	<value>HEAD</value>
+            	<value>POST</value>
+     		</list>
+     	</property>
+	</bean> -->
+    
+    <!-- 启用Shiro注解 -->
+    <!-- <bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator" depends-on="lifecycleBeanPostProcessor"/> -->
+<!-- 	<aop:config proxy-target-class="true"></aop:config> -->
+<!-- 	<bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor"> -->
+<!-- 	    <property name="securityManager" ref="securityManager"/> -->
+<!-- 	</bean> -->
+</beans>

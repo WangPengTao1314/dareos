@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.centit.system.dept.mapper.SysDeptMapper">
+	<resultMap id="BaseResultMap" type="com.centit.system.dept.entity.SysDeptEntity">
+		<id column="DEPT_ID" property="deptId" jdbcType="VARCHAR" />
+		<result column="DEPT_NO" property="deptNo" jdbcType="VARCHAR" />
+		<result column="DEPT_NAME" property="deptName" jdbcType="VARCHAR" />
+		<result column="DEPT_NAME_ABBR" property="deptNameAbbr" jdbcType="VARCHAR" />
+		<result column="TEL" property="tel" jdbcType="VARCHAR" />
+		<result column="TAX" property="tax" jdbcType="VARCHAR" />
+		<result column="ADDRESS" property="address" jdbcType="VARCHAR" />
+		<result column="PAR_DEPT_ID" property="parDeptId" jdbcType="VARCHAR" />
+		<result column="PAR_DEPT_NAME" property="parDeptName" jdbcType="VARCHAR" />
+		<result column="ORG_ID" property="orgId" jdbcType="VARCHAR" />
+		<result column="ORG_NO" property="orgNo" jdbcType="VARCHAR" />
+		<result column="ORG_NAME" property="orgName" jdbcType="VARCHAR" />
+		<result column="LEADER_ID" property="leaderId" jdbcType="VARCHAR" />
+		<result column="LEADER_NAME" property="leaderName" jdbcType="VARCHAR" />
+		<result column="MEMO" property="memo" jdbcType="VARCHAR" />
+		<result column="CRE_ID" property="creId" jdbcType="VARCHAR" />
+		<result column="CRE_NAME" property="creName" jdbcType="VARCHAR" />
+		<result column="CRE_TIME" property="creTime" jdbcType="VARCHAR" />
+		<result column="UPD_ID" property="updId" jdbcType="VARCHAR" />
+		<result column="UPD_NAME" property="updName" jdbcType="VARCHAR" />
+		<result column="UPD_TIME" property="updTime" jdbcType="VARCHAR" />
+		<result column="STATE" property="state" jdbcType="VARCHAR" />
+	</resultMap>
+	<resultMap id="DeptTree" type="com.centit.system.dept.entity.SysDeptTree"></resultMap>
+	
+	<!-- 基础字段 -->
+	<sql id="Base_Column_List">
+		DEPT_ID, DEPT_NO, DEPT_NAME, DEPT_NAME_ABBR, TEL, TAX, ADDRESS,
+		PAR_DEPT_ID, PAR_DEPT_NAME, ORG_ID, ORG_NO, ORG_NAME, LEADER_ID, 
+		LEADER_NAME, MEMO, CRE_ID, CRE_NAME, CRE_TIME,
+		UPD_ID, UPD_NAME, UPD_TIME, STATE
+	</sql>
+	
+	<sql id="Simple_Column_List">
+		DEPT_ID, DEPT_NO, DEPT_NAME, PAR_DEPT_ID, PAR_DEPT_NAME, ORG_ID, ORG_NO, ORG_NAME
+	</sql>
+	
+	<!-- 列表查询条件 -->
+	<sql id="query_condition">
+		<!-- <if test="orgId != null and orgId != '' ">
+			and u.ORG_ID = #{orgId} 
+		</if> 
+		<if test="parDeptId != null and parDeptId != '' and hasSelf == null">
+			and u.PAR_DEPT_ID = #{parDeptId}
+		</if>-->		
+
+	    <if test="parDeptId == '10010001'">
+			and u.ORG_ID = #{parDeptId}
+		</if>		
+		<if test="parDeptId != '10010001' and hasSelf != null and hasSelf != ''">
+			and u.PAR_DEPT_ID = #{parDeptId} or u.DEPT_ID = #{parDeptId}
+		</if>
+		<if test="parDeptName != null and parDeptName != '' ">
+			and LOWER(u.PAR_DEPT_NAME) like LOWER(CONCAT('%',TRIM(#{parDeptName}),'%')) 
+		</if>
+		<if test="deptNo != null and deptNo != '' ">
+			and LOWER(u.DEPT_NO) like LOWER(CONCAT('%',TRIM(#{deptNo}),'%'))
+		</if>
+		<if test="deptName != null and deptName != '' ">
+			and LOWER(u.DEPT_NAME) like LOWER(CONCAT('%',TRIM(#{deptName}),'%'))
+		</if>
+		<if test="state != null and state != '' ">
+			and u.STATE = #{state}
+		</if>
+	</sql>
+	
+	<!-- 查询部门列表 -->
+	<select id="query" resultMap="BaseResultMap" parameterType="map">
+		select
+		<include refid="Base_Column_List" />
+		from SYS_DEPT u
+		<where>
+			<include refid="query_condition" />
+		</where>
+		<if test="orderBy != null and orderBy != '' ">
+			order by ${orderBy}
+		</if>
+		<if test="orderBy == null or orderBy == '' ">
+			order by ORG_ID, DEPT_NO
+		</if>
+	</select>
+	
+	<!-- 查询组织和部门的树形 -->
+	<select id="queryDeptTree" resultMap="DeptTree" parameterType="map">
+		select dept_id id, dept_no no, dept_name name, ifnull(PAR_DEPT_ID,org_id) pid, 
+			org_id oid, org_no ono, org_name oname, 1 type, state
+		from sys_dept d where org_id is not null
+		<if test="state != null and state != '' ">
+			and STATE = #{state}
+		</if>
+		<if test="deptId != null and deptId != '' ">
+			and dept_id != #{deptId}
+			and not exists(select 1 from sys_dept_flat f where f.PAR_DEPT_ID = #{deptId} and f.dept_id = d.dept_id)
+		</if>
+		union 
+		select org_id, org_no, org_name, PAR_ORG_ID, null, null, null, 0 type, state
+		from sys_org where org_id is not null 
+		<if test="state != null and state != '' ">
+			and STATE = #{state}
+		</if>
+		order by type,pid,name
+	</select>
+	
+	<select id="queryDeptListByParent" resultMap="DeptTree" parameterType="map">
+		<if test="parDeptId == null or parDeptId == '' ">
+			select org_id id, org_no no, org_name name, PAR_ORG_ID pid, state
+		      <!--   CASE WHEN getChildOrg (ORG_ID) = ORG_ID THEN 0 ELSE 1
+                END AS isParent -->
+		    from sys_org where PAR_ORG_ID = '' OR PAR_ORG_ID IS NULL
+		    order by pid,name
+		</if>		
+		<if test="parDeptId != null and parDeptId != '' ">
+			select DEPT_ID id, DEPT_NO no, DEPT_NAME name, PAR_DEPT_ID pid, state
+			      <!-- CASE WHEN getChildDept (DEPT_ID) = DEPT_ID THEN 0 ELSE 1
+	              END AS isParent -->
+			from sys_dept where 1 = 1 and 
+			<if test="parDeptId == '10010001'">
+			  PAR_DEPT_ID is null and ORG_ID = #{parDeptId}
+			</if>
+			<if test="parDeptId != '10010001'">
+			  PAR_DEPT_ID = #{parDeptId}
+			</if>
+			order by no,name
+		</if>							
+		
+	</select>	
+	
+	<!-- 按ID查询部门信息 -->
+	<select id="selectByDeptId" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List" />
+		from SYS_DEPT
+		where DEPT_ID = #{deptId,jdbcType=VARCHAR}
+	</select>
+	
+	<!-- 判断部门编码是否重复 -->
+	<select id="checkNoIsExists" resultType="int" parameterType="java.lang.String">
+		select count(1) from SYS_DEPT
+		where LOWER(DEPT_NO) = LOWER(#{deptNo,jdbcType=VARCHAR})
+	</select>
+	
+	<!-- 插入部门信息 -->
+	<insert id="insert" parameterType="com.centit.system.dept.entity.SysDeptEntity">
+		insert into SYS_DEPT (
+			DEPT_ID, 
+			DEPT_NO, 
+			DEPT_NAME,
+			DEPT_NAME_ABBR, 
+			TEL, 
+			TAX, 
+			ADDRESS, 
+			PAR_DEPT_ID, 
+			PAR_DEPT_NAME,
+			ORG_ID, 
+			ORG_NO, 
+			ORG_NAME, 
+			LEADER_ID, 
+			LEADER_NAME, 
+			MEMO,
+			CRE_ID, 
+			CRE_NAME, 
+			CRE_TIME, 
+			STATE
+		)
+		values (
+			#{deptId,jdbcType=VARCHAR}, 
+			#{deptNo,jdbcType=VARCHAR},
+			#{deptName,jdbcType=VARCHAR},
+			#{deptNameAbbr,jdbcType=VARCHAR}, 
+			#{tel,jdbcType=VARCHAR}, 
+			#{tax,jdbcType=VARCHAR},
+			#{address,jdbcType=VARCHAR}, 
+			#{parDeptId,jdbcType=VARCHAR}, 
+			#{parDeptName,jdbcType=VARCHAR},
+			#{orgId,jdbcType=VARCHAR}, 
+			#{orgNo,jdbcType=VARCHAR}, 
+			#{orgName,jdbcType=VARCHAR},
+			#{leaderId,jdbcType=VARCHAR}, 
+			#{leaderName,jdbcType=VARCHAR}, 
+			#{memo,jdbcType=VARCHAR},
+			#{creId,jdbcType=VARCHAR}, 
+			#{creName,jdbcType=VARCHAR}, 
+			#{creTime,jdbcType=VARCHAR},
+			#{state,jdbcType=VARCHAR}
+		)
+	</insert>
+	
+	<!-- 修改部门信息 -->
+	<update id="updateByDeptId" parameterType="com.centit.system.dept.entity.SysDeptEntity">
+		update SYS_DEPT
+		<set>
+			<if test="deptNo != null">
+				DEPT_NO = #{deptNo,jdbcType=VARCHAR},
+			</if>
+			<if test="deptName != null">
+				DEPT_NAME = #{deptName,jdbcType=VARCHAR},
+			</if>
+			<if test="deptNameAbbr != null">
+				DEPT_NAME_ABBR = #{deptNameAbbr,jdbcType=VARCHAR},
+			</if>
+			<if test="tel != null">
+				TEL = #{tel,jdbcType=VARCHAR},
+			</if>
+			<if test="tax != null">
+				TAX = #{tax,jdbcType=VARCHAR},
+			</if>
+			<if test="address != null">
+				ADDRESS = #{address,jdbcType=VARCHAR},
+			</if>
+			<if test="parDeptId != null">
+				PAR_DEPT_ID = #{parDeptId,jdbcType=VARCHAR},
+			</if>
+			<if test="parDeptName != null">
+				PAR_DEPT_NAME = #{parDeptName,jdbcType=VARCHAR},
+			</if>
+			<if test="orgId != null">
+				ORG_ID = #{orgId,jdbcType=VARCHAR},
+			</if>
+			<if test="orgNo != null">
+				ORG_NO = #{orgNo,jdbcType=VARCHAR},
+			</if>
+			<if test="orgName != null">
+				ORG_NAME = #{orgName,jdbcType=VARCHAR},
+			</if>
+			<if test="leaderId != null">
+				LEADER_ID = #{leaderId,jdbcType=VARCHAR},
+			</if>
+			<if test="leaderName != null">
+				LEADER_NAME = #{leaderName,jdbcType=VARCHAR},
+			</if>
+			<if test="memo != null">
+				MEMO = #{memo,jdbcType=VARCHAR},
+			</if>
+			<if test="updId != null">
+				UPD_ID = #{updId,jdbcType=VARCHAR},
+			</if>
+			<if test="updName != null">
+				UPD_NAME = #{updName,jdbcType=VARCHAR},
+			</if>
+			<if test="updTime != null">
+				UPD_TIME = #{updTime,jdbcType=VARCHAR},
+			</if>
+			<if test="state != null">
+				STATE = #{state,jdbcType=VARCHAR},
+			</if>
+		</set>
+		where DEPT_ID = #{deptId,jdbcType=VARCHAR}
+	</update>
+	
+	<!-- 判断部门是否有下级 -->
+	<select id="checkDeptHasChild" resultType="int" parameterType="java.lang.String">
+		select count(1) from SYS_DEPT
+		where PAR_DEPT_ID = #{deptId,jdbcType=VARCHAR}
+	</select>
+	
+	<!-- 判断部门下是否有人员 -->
+	<select id="checkDeptHasUser" resultType="int" parameterType="java.lang.String">
+		select count(1) from SYS_USER
+		where DEPT_ID = #{deptId,jdbcType=VARCHAR}
+	</select>
+	
+	<!-- 删除部门信息 -->
+	<delete id="deleteByDeptId" parameterType="java.lang.String">
+		delete from SYS_DEPT
+		where DEPT_ID = #{deptId,jdbcType=VARCHAR}
+	</delete>
+	
+	<!-- 启用/停用部门及其下级部门 -->
+	<update id="updateDeptState" parameterType="com.centit.system.dept.entity.SysDeptEntity">
+		update sys_dept 
+		<set>
+			<if test="updId != null">
+				UPD_ID = #{updId,jdbcType=VARCHAR},
+			</if>
+			<if test="updName != null">
+				UPD_NAME = #{updName,jdbcType=VARCHAR},
+			</if>
+			<if test="updTime != null">
+				UPD_TIME = #{updTime,jdbcType=VARCHAR},
+			</if>
+			<if test="state != null">
+				STATE = #{state,jdbcType=VARCHAR},
+			</if>
+		</set>
+		where dept_id in(select f.DEPT_ID from sys_dept_flat f where f.PAR_DEPT_ID = #{deptId,jdbcType=VARCHAR})
+		or dept_id = #{deptId,jdbcType=VARCHAR}
+	</update>
+	
+	<!-- 按ID查询直接子节点的数据 -->
+	<select id="getCountByParId" resultType="int" parameterType="java.lang.String">
+	    <if test="deptId == '10010001'">
+	      	select count(1) from SYS_ORG
+		    where PAR_ORG_ID = #{deptId,jdbcType=VARCHAR}
+	    </if>
+	    <if test="deptId != '10010001'">
+	      select count(1) from SYS_DEPT
+		  where PAR_DEPT_ID = #{deptId,jdbcType=VARCHAR}
+	    </if>		
+	</select>
+</mapper>

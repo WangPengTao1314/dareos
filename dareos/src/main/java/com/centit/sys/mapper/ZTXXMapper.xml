@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.centit.sys.mapper.ZTXXMapper">  
+
+	<!-- 使用LLGL装载结果集 -->
+	<resultMap id="ztwhModel" type="com.centit.sys.model.ZTWHModel">
+		<result column="ZTXXID" property="ZTXXID" />
+		<result column="ZTMC" property="ZTMC" />
+		<result column="YJZBJ" property="YJZBJ" />
+		<result column="ZZSH" property="ZZSH" />
+		<result column="JZRQ" property="JZRQ" />
+		<result column="ZGKJ" property="ZGKJ" />
+		<result column="ZSXX" property="ZSXX" />
+		<result column="STATE" property="STATE" />
+		<result column="ZTLB" property="ZTLB" />
+		<result column="ZTJC" property="ZTJC" />
+		<result column="SJZT" property="SJZT" />
+		<result column="BZXXID" property="BZXXID" />
+		<result column="DIRTYFLAG" property="DIRTYFLAG" />
+		<result column="JJLX" property="JJLX" />
+		<result column="ZTBH" property="ZTBH" />
+		<result column="YYZZH" property="YYZZH" />
+		<result column="CREATER" property="CREATER" />
+		<result column="CRETIME" property="CRETIME" />
+		<result column="UPDTIME" property="UPDTIME" />
+		<result column="UPDATER" property="UPDATER" />
+		<result column="ctrType" property="ctrType" />
+		<result column="WLDWXXID" property="WLDWXXID" />
+	</resultMap>
+ 
+    <sql id="orderSql">
+    	order by 
+		<if test="orderField !=null and orderField !='' ">
+		${orderField},
+		</if>
+		cretime desc
+	</sql>	
+    <!-- 动态查询 and 列表分页 -->
+	<sql id="queryDynSql">
+	   <if test="ZTXXID !=null and ZTXXID !='' ">
+	   (ZTXXID = #{ZTXXID} OR SJZT = #{ZTXXID})
+	   </if>
+	   <if test="ZTBH !=null and ZTBH !='' ">and  ztbh like '%'||#{ZTBH}||'%'</if>
+	   <if test="ZTMC !=null and ZTMC !='' ">and  ZTMC like '%'||#{ZTMC}||'%'</if>
+	   <if test="ZTJC !=null and ZTJC !='' ">and  ZTJC like '%'||#{ZTJC}||'%'</if>
+	   <if test="ZTLB !=null and ZTLB !='' ">and  ZTLB like '%'||#{ZTLB}||'%'</if>
+	   <if test="ZZSH !=null and ZZSH !='' ">and  ZZSH like '%'||#{ZZSH}||'%'</if>
+	   <if test="SJZT !=null and SJZT !='' ">and  sjztmc like '%'||#{SJZT}||'%'</if>
+	   <if test="ZT !=null and ZT !='' ">and  STATE like '%'||#{ZT}||'%'</if>
+	   <if test="DELFLAG !=null and DELFLAG !='' ">and  DELFLAG=#{DELFLAG}</if>
+	   <if test="QXJBCON !=null and QXJBCON !='' ">and $QXJBCON$</if>
+	  <if test="conditionString !=null and conditionString !='' ">and $conditionString$</if>
+	</sql>
+	
+	<sql id="coreSqll">
+	   <![CDATA[
+	       select ZTXXID,ZTBH,ZTMC,YJZBJ,SJZT,sjztmc,ZZSH,YYZZH,ZTLB,STATE,CREATER,CRENAME,ZTJC,to_char(CRETIME,'yyyy-MM-DD HH24:MI:SS')CRETIME
+	       from (select a.*,b.ztmc sjztmc from T_SYS_ZTXX a left join T_SYS_ZTXX b on a.sjzt = b.ztxxid)   
+	   ]]>
+	   <where>
+	      <include refid="queryDynSql"/>
+	   </where>
+		<include refid="orderSql"/>
+		
+	</sql>
+	<!-- 分页查询 -->
+	<select id="pageQuery" parameterType="map" resultType="java.util.HashMap">
+		<include refid="coreSqll" />
+	</select>
+	<!-- 分页计数 -->
+	<select id="pageCount" parameterType="map" resultType="int">
+		<![CDATA[SELECT count(1) cnt FROM (select a.*,b.ztmc sjztmc from T_SYS_ZTXX a left join T_SYS_ZTXX b on a.sjzt = b.ztxxid)  ]]>
+	   <where>
+	      <include refid="queryDynSql"/>
+	   </where>
+	</select>
+	
+<!-- 树查询 -->	
+	<!-- 分页查询 -->
+	<!-- 查询 下级帐套 及 自身 SQL -->
+	<select id="pageQuery1" parameterType="map" resultType="java.util.HashMap">
+		<![CDATA[ 
+		select * from (select a.delflag,a.ZTXXID, a.ZTBH, a.ZTMC,
+             a.YJZBJ,a.SJZT,b.ztmc sjztmc, a.ZZSH,a.YYZZH, a.ZTLB, a.STATE,a.CREATER,a.crename,
+             to_char(a.CRETIME, 'yyyy-MM-dd') CRETIME
+        from  T_SYS_ZTXX a left join  T_SYS_ZTXX b  on a.sjzt = b.ztxxid
+        where 1=1 AND a.delflag=0) u
+         start with 
+         u.DELFLAG = 0
+         and u.ztxxid = #{ZTXXID}
+         connect by prior u.ztxxid = u.sjzt
+        ]]>
+		<include refid="orderSql"/>
+	</select>
+	<!-- 下级帐套 及 自身 分页计数 -->
+	<select id="pageCount1" parameterType="map" resultType="int">
+		<![CDATA[ select count(1) cnt from (select a.delflag,a.ZTXXID, a.ZTBH, a.ZTMC,
+		               a.YJZBJ,a.SJZT,b.ztmc sjztmc, a.ZZSH,a.YYZZH, a.ZTLB, a.STATE,a.CREATER,a.crename,
+		               to_char(a.CRETIME, 'yyyy-MM-dd') CRETIME
+		          from  T_SYS_ZTXX a 
+		          left join  T_SYS_ZTXX b
+		          on a.sjzt = b.ztxxid
+		          where 1=1 AND a.delflag=0) u
+		           start with 
+		           u.DELFLAG = 0
+		           and u.ztxxid = #{ZTXXID}
+		                  connect by prior u.ztxxid = u.sjzt]]>
+	</select>
+	
+	<select id="getOne" parameterType="String" resultType="java.util.HashMap">
+	  select ZTXXID,ZTBH,ZTMC,YJZBJ,SJZT,ZZSH,YYZZH,ZTLB,STATE,ZTJC,CREATER,CRENAME,to_char(CRETIME,'yyyy-MM-DD') CRETIME
+	       from  T_SYS_ZTXX where ztxxid=#{ztxxid}
+	</select>
+	
+<!-- 结束 -->
+	<select id="getOneRecord" parameterType="String" resultType="java.util.HashMap">
+	   select sjztmc,ZTXXID,ZTMC,YJZBJ,ZZSH,ZTJC,JZRQ,ZGKJ,ZSXX,STATE ,ZTLB,SJZT,BZXXID,DIRTYFLAG,JJLX,ZTBH,YYZZH,CREATER,CRENAME,to_char(CRETIME,'yyyy-MM-dd HH24:MI:SS') CRETIME
+	   from (select a.*,b.ztmc sjztmc from  T_SYS_ZTXX a left join  T_SYS_ZTXX b on a.sjzt = b.ztxxid)
+	   where ztxxid=#{ztxxID}
+	   
+	</select>
+	
+	<!-- 更新 -->
+	<update id="updateById" parameterType="map">
+	    <![CDATA[ update  T_SYS_ZTXX ]]>
+	    <set>
+			<if test="ZTMC !=null and ZTMC !='' "><![CDATA[ZTMC = #{ZTMC}]]>,</if>
+			<if test="ZTJC !=null and ZTJC !='' "><![CDATA[ZTJC = #{ZTJC}]]>,</if>
+			<if test="YJZBJ !=null and YJZBJ !='' "><![CDATA[YJZBJ = TO_NUMBER(#{YJZBJ})]]>,</if>
+			<if test="SJZT !=null and SJZT !='' "><![CDATA[SJZT = #{SJZT}]]>,</if>
+			<if test="ZZSH !=null and ZZSH !='' "><![CDATA[ZZSH = #{ZZSH}]]>,</if>
+			<if test="YYZZH !=null and YYZZH !='' "><![CDATA[YYZZH = #{YYZZH}]]>,</if>
+			<if test="ZTLB !=null and ZTLB !='' "><![CDATA[ZTLB = #{ZTLB}]]>,</if>
+			<if test="UPDATER !=null and UPDATER !='' "><![CDATA[UPDATER = #{UPDATER}]]>,</if>
+	    	UPDTIME=sysdate
+		</set>
+		<![CDATA[ where ZTXXID = #{ZTXXID} ]]>
+	</update>
+	
+	<!-- 插入 -->
+	<insert id="insertRecord" parameterType="map">
+	   insert into T_SYS_ZTXX(ZTXXID,ZTBH,ZTMC,YJZBJ,SJZT,ZZSH,YYZZH,ZTLB,STATE,CREATER, CRETIME,DELFLAG,CRENAME,UPDTIME,UPDATER,ZTJC)
+	   values(
+	   	#{ZTXXID,jdbcType=VARCHAR},
+	   	#{ZTBH,jdbcType=VARCHAR},
+	   	#{ZTMC,jdbcType=VARCHAR},
+	   	to_number(#{YJZBJ,jdbcType=VARCHAR}),
+	   	#{SJZT,jdbcType=VARCHAR},
+	   	#{ZZSH,jdbcType=VARCHAR},
+	   	#{YYZZH,jdbcType=VARCHAR},
+	   	#{ZTLB,jdbcType=VARCHAR},
+	   	#{STATE,jdbcType=VARCHAR},
+	   	#{CREATER,jdbcType=VARCHAR},
+	   	sysdate,
+	   	#{DELFLAG,jdbcType=VARCHAR},
+	   	#{CRENAME,jdbcType=VARCHAR},
+	   	sysdate,
+	   	#{CRENAME,jdbcType=VARCHAR},
+	   	#{ZTJC,jdbcType=VARCHAR}
+	   	
+	   	) 
+	</insert>
+	
+	<!-- 得到编号列表 -->
+	<select id="getAllBH" resultMap="ztwhModel" >
+	   select ztbh,ztmc from T_SYS_ZTXX where delflag=0
+	</select>
+	
+	<update id="updateZTStatus" parameterType="map">
+	   update T_SYS_ZTXX
+	   set STATE=#{STATE}
+	   where ZTXXID=#{ztxxid}
+	</update>
+	
+	<update id="deleteById" parameterType="map">
+	   update T_SYS_ZTXX 
+	   set delflag=1,
+	       UPDATER=#{UPDATER},
+	       UPDTIME=sysdate
+	   where ZTXXID=#{ztxxid}
+	</update>
+	
+	<delete id="delete" parameterType="map">
+	   delete from  T_SYS_ZTXX 
+	   where ZTXXID=#{ztxxid} 
+	</delete>
+	
+	<select id="queryTree"  resultType="com.centit.sys.model.ZTWHTree">
+  		<![CDATA[
+			select ztxxid id,ztbh||'('||ztmc||')' name,sjzt pid from T_SYS_ZTXX where DELFLAG = 0
+			]]>
+	</select>
+	
+	<select id="getCountRecord" parameterType="String" resultType="int">
+	   select count(ztbh) from T_SYS_ZTXX where sjzt = #{ztxxid}
+	</select>
+	
+	<select id="querySjForInt" parameterType="map" resultType="int">
+			<![CDATA[select COUNT(*) from( select ZTXXID,state from  T_SYS_ZTXX
+                           start with ZTXXID = #{ztxxid}
+                          connect by prior SJZT=ZTXXID ) temp 
+                          where  trim(state)!=#{STATE} and ZTXXID! = #{ztxxid}]]>
+	</select>
+	
+	<select id="loadZTZT" parameterType="String" resultType="String">
+		<![CDATA[ select trim(STATE) STATE from T_SYS_ZTXX WHERE ZTXXID = #{SJZT}]]>
+	</select>
+</mapper>
+

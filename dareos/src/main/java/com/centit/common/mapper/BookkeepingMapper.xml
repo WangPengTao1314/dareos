@@ -1,0 +1,636 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.centit.common.mapper.BookkeepingMapper">
+	<!-- 充值信息 -->
+	<resultMap type="com.centit.erp.sale.depositinfo.model.DepositInfoModel" id="DepositInfoModel">
+		<result property="depositId" column="DEPOSIT_ID" />
+		<result property="depositNo" column="DEPOSIT_NO" />
+		<result property="depositType" column="DEPOSIT_TYPE" />
+		<result property="depositAmount" column="DEPOSIT_AMOUNT" />
+		<result property="channId" column="CHANN_ID" />
+		<result property="channNo" column="CHANN_NO" />
+		<result property="channName" column="CHANN_NAME" />
+		<result property="ledgerId" column="LEDGER_ID" />
+		<result property="ledgerName" column="LEDGER_NAME" />
+	</resultMap>
+	<!-- 信用申请信息 -->
+	<resultMap id="CreditReqModel" type="com.centit.erp.sale.creditreq.model.CreditReqModel">
+		<result property="creditReqId" column="CREDIT_REQ_ID"  />
+		<result property="creditReqNo" column="CREDIT_REQ_NO"  />
+		<result property="creditTotal" column="CREDIT_TOTAL"  />
+		<result property="ledgerId" column="LEDGER_ID"  />
+		<result property="ledgerName" column="LEDGER_NAME"  />
+		<result property="channId" column="CHANN_ID"  />
+		<result property="channNo" column="CHANN_NO"  />
+		<result property="channName" column="CHANN_NAME"  />
+	</resultMap>
+	<!-- 销售订单信息 -->
+	<resultMap id="SaleorderModel" type="com.centit.erp.sale.saleorder.model.SaleorderModel" >
+		<result property="SALE_ORDER_ID" column="SALE_ORDER_ID" />
+		<result property="SALE_ORDER_NO" column="SALE_ORDER_NO" />
+		<result property="TOTAL_AMOUNT" column="TOTAL_AMOUNT" />
+		<result property="TOTAL_REBATE" column="TOTAL_REBATE" />
+		<result property="LEDGER_ID" column="LEDGER_ID"  />
+		<result property="LEDGER_NAME" column="LEDGER_NAME"  />
+		<result property="CHANN_ID" column="CHANN_ID"  />
+		<result property="CHANN_NO" column="CHANN_NO"  />
+		<result property="CHANN_NAME" column="CHANN_NAME"  />
+		<result property="FACTORY_NO" column="FACTORY_NO"  />
+		
+	</resultMap>
+	<!-- 流水信息 -->
+	<resultMap type="com.centit.common.po.BookkeepingModel" id="BookkeepingModel">
+		<result property="bookkeepingId" column="BOOKKEEPING_ID" />
+		<result property="billId" column="BILL_ID" />
+		<result property="billNo" column="BILL_NO" />
+		<result property="billType" column="BILL_TYPE" />
+		<result property="bookkeepingType" column="BOOKKEEPING_TYPE" />
+		<result property="amountTotal" column="AMOUNT_TOTAL" />
+		<result property="rebateTotal" column="REBATE_TOTAL" />
+		<result property="creditTotal" column="CREDIT_TOTAL" />
+		<result property="optionTime" column="OPTION_TIME" />
+		<result property="optionPerson" column="OPTION_PERSON" />
+		<result property="ledgerId" column="LEDGER_ID" />
+		<result property="ledgerName" column="LEDGER_NAME" />
+		<result property="channId" column="CHANN_ID" />
+		<result property="channNo" column="CHANN_NO" />
+		<result property="channName" column="CHANN_NAME" />
+		<result property="direction" column="DIRECTION" />
+		<result property="amountMoney" column="AMOUNT_MONEY" />
+		<result property="freezMoney" column="FREEZ_MONEY" />
+		<result property="amountRebate" column="AMOUNT_REBATE" />
+		<result property="freezRebate" column="FREEZ_REBATE" />
+		<result property="amuntCredit" column="AMUNT_CREDIT" />
+		<result property="freezCredit" column="FREEZ_CREDIT" />
+		<result property="oweCredit" column="OWE_CREDIT" />
+	</resultMap>
+	
+	<!-- 发货指令信息 -->
+	<resultMap id="sendOrderModel" type="com.centit.drp.main.sales.deliver.order.model.OrderModel" >
+		<result property="send_order_id" column="send_order_id" />
+		<result property="send_order_no" column="send_order_no" />
+		<result property="sale_order_id" column="sale_order_id" />
+		<result property="sale_order_no" column="sale_order_no" />
+		<result property="total_amount" column="total_amount" />
+		<result property="total_rebate" column="total_rebate" />
+		<result property="ledger_id" column="ledger_id"  />
+		<result property="ledger_name" column="ledger_name"  />
+		<result property="chann_id" column="chann_id"  />
+		<result property="chann_no" column="chann_no"  />
+		<result property="chann_name" column="chann_name"  />
+		<result property="factory_no" column="factory_no"  />
+		
+	</resultMap>
+	
+	<!-- 要货单 -->
+<resultMap id="GoodsorderhdModel" type="com.centit.drp.sale.goodsorderhd.model.GoodsorderhdModel">
+	<result property="GOODS_ORDER_ID" column="GOODS_ORDER_ID"  />
+	<result property="GOODS_ORDER_NO" column="GOODS_ORDER_NO"  />
+	<result property="CHANN_ID" column="CHANN_ID"  />
+	<result property="CHANN_NO" column="CHANN_NO"  />
+	<result property="CHANN_NAME" column="CHANN_NAME"  />
+	<result property="TOTAL_REBATE" column="TOTAL_REBATE"  />
+	<result property="TOTAL_AMOUNT" column="TOTAL_AMOUNT"  />
+	<result property="LEDGER_ID" column="LEDGER_ID"  />
+</resultMap>
+
+<!-- 出库单 -->
+<resultMap id="storeOutModel" type="com.centit.erp.sale.store.model.ErpStoreOut">
+	<result property="store_out_id" column="store_out_id"  />
+	<result property="store_out_no" column="store_out_no"  />
+	<result property="send_order_id" column="send_order_id"  />
+	<result property="total_rebate" column="total_rebate"  />
+	<result property="total_amount" column="total_amount"  />
+	<result property="sale_order_no" column="sale_order_no"  />
+	
+</resultMap>
+
+			
+	
+	
+	<select id="getDepoInfo" parameterType="string" resultMap="DepositInfoModel">
+		select 
+			DEPOSIT_ID,
+			DEPOSIT_NO,
+			DEPOSIT_TYPE,
+			DEPOSIT_AMOUNT,
+			CHANN_ID,
+			CHANN_NO,
+			CHANN_NAME,
+			LEDGER_ID,
+			LEDGER_NAME
+		from ERP_DEPOSIT_INFO where DEPOSIT_ID=#{depositId} and PROCESS_FLAG='0' for update
+	</select>
+	
+	<insert id="insertBookkeeping" parameterType="com.centit.common.po.BookkeepingModel">
+		insert into BASE_BOOKKEEPING(
+			BOOKKEEPING_ID,
+			BILL_ID,
+			BILL_NO,
+			BILL_TYPE,
+			BOOKKEEPING_TYPE,
+			AMOUNT_TOTAL,
+			REBATE_TOTAL,
+			CREDIT_TOTAL,
+			OPTION_TIME,
+			OPTION_PERSON,
+			LEDGER_ID,
+			LEDGER_NAME,
+			CHANN_ID,
+			CHANN_NO,
+			CHANN_NAME,
+			DIRECTION,
+			AMOUNT_MONEY,
+			FREEZ_MONEY,
+			AMOUNT_REBATE,
+			FREEZ_REBATE,
+			AMUNT_CREDIT,
+			FREEZ_CREDIT,
+			OWE_CREDIT,
+			INDEX_NO
+		)values(
+			#{bookkeepingId,jdbcType=VARCHAR},
+			#{billId,jdbcType=VARCHAR},
+			#{billNo,jdbcType=VARCHAR},
+			#{billType,jdbcType=VARCHAR},
+			#{bookkeepingType,jdbcType=VARCHAR},
+			#{amountTotal,jdbcType=VARCHAR},
+			#{rebateTotal,jdbcType=VARCHAR},
+			#{creditTotal,jdbcType=VARCHAR},
+			sysdate,
+			#{optionPerson,jdbcType=VARCHAR},
+			#{ledgerId,jdbcType=VARCHAR},
+			#{ledgerName,jdbcType=VARCHAR},
+			#{channId,jdbcType=VARCHAR},
+			#{channNo,jdbcType=VARCHAR},
+			#{channName,jdbcType=VARCHAR},
+			#{direction,jdbcType=VARCHAR},
+			#{amountMoney,jdbcType=VARCHAR},
+			#{freezMoney,jdbcType=VARCHAR},
+			#{amountRebate,jdbcType=VARCHAR},
+			#{freezRebate,jdbcType=VARCHAR},
+			#{amuntCredit,jdbcType=VARCHAR},
+			#{freezCredit,jdbcType=VARCHAR},
+			#{oweCredit,jdbcType=VARCHAR},
+			BOOKKEEPING_INDEX.NEXTVAL
+		)
+	</insert>
+	
+	<insert id="batchInsertBookkeeping" parameterType="java.util.List">
+		<foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+			insert into BASE_BOOKKEEPING(
+				BOOKKEEPING_ID,
+				BILL_ID,
+				BILL_NO,
+				BILL_TYPE,
+				BOOKKEEPING_TYPE,
+				AMOUNT_TOTAL,
+				REBATE_TOTAL,
+				CREDIT_TOTAL,
+				OPTION_TIME,
+				OPTION_PERSON,
+				LEDGER_ID,
+				LEDGER_NAME,
+				CHANN_ID,
+				CHANN_NO,
+				CHANN_NAME,
+				DIRECTION,
+				AMOUNT_MONEY,
+				FREEZ_MONEY,
+				AMOUNT_REBATE,
+				FREEZ_REBATE,
+				AMUNT_CREDIT,
+				FREEZ_CREDIT,
+				OWE_CREDIT,
+				INDEX_NO
+			)values(
+				#{item.bookkeepingId,jdbcType=VARCHAR},
+				#{item.billId,jdbcType=VARCHAR},
+				#{item.billNo,jdbcType=VARCHAR},
+				#{item.billType,jdbcType=VARCHAR},
+				#{item.bookkeepingType,jdbcType=VARCHAR},
+				#{item.amountTotal,jdbcType=VARCHAR},
+				#{item.rebateTotal,jdbcType=VARCHAR},
+				#{item.creditTotal,jdbcType=VARCHAR},
+				sysdate,
+				#{item.optionPerson,jdbcType=VARCHAR},
+				#{item.ledgerId,jdbcType=VARCHAR},
+				#{item.ledgerName,jdbcType=VARCHAR},
+				#{item.channId,jdbcType=VARCHAR},
+				#{item.channNo,jdbcType=VARCHAR},
+				#{item.channName,jdbcType=VARCHAR},
+				#{item.direction,jdbcType=VARCHAR},
+				#{item.amountMoney,jdbcType=VARCHAR},
+				#{item.freezMoney,jdbcType=VARCHAR},
+				#{item.amountRebate,jdbcType=VARCHAR},
+				#{item.freezRebate,jdbcType=VARCHAR},
+				#{item.amuntCredit,jdbcType=VARCHAR},
+				#{item.freezCredit,jdbcType=VARCHAR},
+				#{item.oweCredit,jdbcType=VARCHAR},
+				BOOKKEEPING_INDEX.NEXTVAL
+			);
+		</foreach>
+	</insert>
+	
+	<select id="getChannInfo" parameterType="com.centit.common.po.BookkeepingModel" resultType="java.util.HashMap">
+		select 
+			a.CHANN_LEDGER_CHRG_ID "channLedgerChrgId",
+			NVL(a.AMOUNT_MONEY,0) "amountMoney",
+			NVL(a.FREEZ_MONEY,0) "freezMoney",
+			NVL(a.AMOUNT_REBATE,0) "amountRebate",
+			NVL(a.FREEZ_REBATE,0) "freezRebate",
+			NVL(a.AMUNT_CREDIT,0) "amuntCredit",
+			NVL(a.FREEZ_CREDIT,0) "freezCredit",
+			NVL(a.OWE_CREDIT,0) "oweCredit",
+			a.LEDGER_ID "ledgerId",
+			a.LEDGER_NAME "ledgerName",
+			a.LEDGER_NAME_ABBR "ledgerNameAbbr",
+			a.CHANN_ID "channId",
+			b.CHANN_NO "channNo",
+			b.CHANN_NAME "channName"
+		 from BASE_CHANN_LEDGER_CHRG a
+		 left join BASE_CHANN b on a.CHANN_ID = b.CHANN_ID
+		 where a.CHANN_ID=#{channId} and a.LEDGER_ID=#{ledgerId} and a.DEL_FLAG='0'
+		 for update
+	</select>
+	
+	<update id="updChannInfo" parameterType="map">
+		update BASE_CHANN_LEDGER_CHRG set 
+			AMOUNT_MONEY=#{amountMoney},
+			FREEZ_MONEY=#{freezMoney},
+			AMOUNT_REBATE=#{amountRebate},
+			FREEZ_REBATE=#{freezRebate},
+			AMUNT_CREDIT=#{amuntCredit},
+			FREEZ_CREDIT=#{freezCredit},
+			OWE_CREDIT=#{oweCredit}
+		where CHANN_LEDGER_CHRG_ID=#{channLedgerChrgId}
+	</update>
+	
+	<select id="getCreditReq" parameterType="string" resultMap="CreditReqModel">
+		select 
+			CREDIT_REQ_ID,
+			CREDIT_REQ_NO,
+			CREDIT_TOTAL,
+			CHANN_ID,
+			CHANN_NO,
+			CHANN_NAME,
+			LEDGER_ID,
+			LEDGER_NAME
+		from ERP_CREDIT_REQ
+		where  CREDIT_REQ_ID=#{creditReqId}
+	</select>
+	
+	<select id="getOweSale" parameterType="map" resultType="java.util.HashMap">
+		<![CDATA[
+			select 
+				a.BILL_ID "billId",
+				a.BILL_NO "billNo",
+				a.CREDIT_TOTAL-b.AMOUNT_TOTAL "money"
+			from BASE_BOOKKEEPING a
+			left join (
+				select 
+					sum(b.AMOUNT_TOTAL) AMOUNT_TOTAL,b.BILL_ID
+				from BASE_BOOKKEEPING b
+				where b.CHANN_ID = #{channId} and b.LEDGER_ID=#{ledgerId} and b.BILL_TYPE=#{repayType} and b.AMOUNT_TOTAL>0
+				group by b.BILL_ID
+			) b on a.BILL_ID=b.BILL_ID
+			where a.CHANN_ID = #{channId} and a.LEDGER_ID=#{ledgerId} and a.BILL_TYPE=#{oweType} and a.CREDIT_TOTAL>0
+			and b.AMOUNT_TOTAL< a.CREDIT_TOTAL
+		]]> 
+	</select>
+	
+	<select id="getSendOrder" parameterType="string" resultMap="sendOrderModel">
+		select 
+			send_order_id,
+			send_order_no,
+			sale_order_id,
+			sale_order_no,
+			total_rebate,
+			total_amount,
+			ledger_id,
+			ledger_name,
+			chann_id,
+			chann_no,
+			chann_name,
+			factory_no
+		from ERP_SEND_ORDER
+		where send_order_id = #{saleOrderId}
+	</select>
+	
+	<select id="getSaleOrder" parameterType="string" resultMap="SaleorderModel">
+		select 
+			SALE_ORDER_ID,
+			SALE_ORDER_NO,
+			TOTAL_REBATE,
+			TOTAL_AMOUNT,
+			LEDGER_ID,
+			LEDGER_NAME,
+			CHANN_ID,
+			CHANN_NO,
+			CHANN_NAME,
+			FACTORY_NO
+		from ERP_SALE_ORDER
+		where SALE_ORDER_ID = #{saleOrderId}
+	</select>
+	
+	<select id="getSaleOrderByFactoryNo" parameterType="string" resultMap="SaleorderModel">
+		select 
+			SALE_ORDER_ID,
+			SALE_ORDER_NO,
+			TOTAL_REBATE,
+			TOTAL_AMOUNT,
+			LEDGER_ID,
+			LEDGER_NAME,
+			CHANN_ID,
+			CHANN_NO,
+			CHANN_NAME,
+			FACTORY_NO
+		from ERP_SALE_ORDER
+		where FACTORY_NO = #{factoryNo}
+	</select>
+	
+	
+	<select id="getFreezInfo" parameterType="map" resultMap="BookkeepingModel">
+				select 
+  					NVL(a.AMOUNT_TOTAL,0) -NVL(b.AMOUNT_TOTAL,0) AMOUNT_TOTAL,
+  					NVL(a.REBATE_TOTAL,0)-NVL(b.REBATE_TOTAL,0) REBATE_TOTAL,
+ 				 	NVL(a.CREDIT_TOTAL,0)-NVL(b.CREDIT_TOTAL,0) CREDIT_TOTAL,
+  					a.LEDGER_ID,
+      				a.LEDGER_NAME,
+      				a.CHANN_ID,
+      				a.CHANN_NO,
+      				a.CHANN_NAME
+  				from(
+    				select 
+        				sum(NVL(a.AMOUNT_TOTAL,0)) AMOUNT_TOTAL,
+        				sum(NVL(a.REBATE_TOTAL,0)) REBATE_TOTAL,
+        				sum(NVL(a.CREDIT_TOTAL,0)) CREDIT_TOTAL,
+        				a.BILL_ID,
+        				a.LEDGER_ID,
+      					a.LEDGER_NAME,
+      					a.CHANN_ID,
+      					a.CHANN_NO,
+      					a.CHANN_NAME
+     			from BASE_BOOKKEEPING a
+      			where a.BILL_ID=#{billId}
+      				and a.BILL_TYPE = #{freezType}
+      			group by a.BILL_ID,
+      						   a.LEDGER_ID,
+      						   a.LEDGER_NAME,
+      						   a.CHANN_ID,
+      						   a.CHANN_NO,
+      						   a.CHANN_NAME
+  			) a left join (
+    				select 
+        				sum(NVL(a.AMOUNT_TOTAL,0)) AMOUNT_TOTAL,
+        				sum(NVL(a.REBATE_TOTAL,0)) REBATE_TOTAL,
+        				sum(NVL(a.CREDIT_TOTAL,0)) CREDIT_TOTAL,
+        				a.BILL_ID
+     				from BASE_BOOKKEEPING a
+      				where a.BILL_ID=#{billId}
+      					and a.BILL_TYPE = #{releaseType}
+      				group by a.BILL_ID
+  			) b on a.bill_id=b.BILL_ID
+	</select>
+	<delete id="delBookkeepingByBillId" parameterType="string">
+		delete from BASE_BOOKKEEPING where BILL_ID = #{billId}
+	</delete>
+	
+	<select id="getGoodsOrder" parameterType="string" resultMap="GoodsorderhdModel">
+		select 
+			GOODS_ORDER_ID,
+			GOODS_ORDER_NO,
+			CHANN_ID,
+			CHANN_NO,
+			CHANN_NAME,
+			TOTAL_REBATE,
+			TOTAL_AMOUNT,
+			LEDGER_ID
+		from DRP_GOODS_ORDER
+		where GOODS_ORDER_ID = #{goodsOrderId}
+	</select>
+	
+	<select id="getStoreOut" parameterType="string" resultMap="storeOutModel">
+		select 
+			store_out_id,
+			store_out_no,
+			send_order_id,
+			total_rebate,
+			total_amount,
+			sale_order_no
+		from ERP_STORE_OUT
+		where STORE_OUT_ID = #{storeOutId}
+	</select>
+	
+	<select id="getYesterdayExpireCredit" resultMap="CreditReqModel">
+		select 
+			u.CREDIT_REQ_ID,
+			u.CREDIT_REQ_NO,
+			u.CHANN_ID,
+			u.CHANN_NO,
+			u.CHANN_NAME,
+			u.CREDIT_TOTAL,
+			u.LEDGER_ID,
+			u.LEDGER_NAME
+		  from  ERP_CREDIT_REQ u 
+		  where u.DEL_FLAG='0' and u.STATE='审核通过' and to_char(u.EXPIRATION_DATE, 'yyyy-MM-DD') = to_char(sysdate-1,'yyyy-MM-DD')
+		  and PROCESS_FLAG='0'
+		  for update
+	</select>
+	
+	<select id="getTodayEffectCredit" resultType="string">
+		select 
+			u.CREDIT_REQ_ID
+		  from  ERP_CREDIT_REQ u 
+		  where u.DEL_FLAG='0' and u.STATE='审核通过' and to_char(u.EFFECTIVE_DATE, 'yyyy-MM-DD') = to_char(sysdate,'yyyy-MM-DD')
+		  and PROCESS_FLAG is null
+		  for update
+	</select>
+	
+	<update id="updCreditFlag" parameterType="map">
+		update ERP_CREDIT_REQ set PROCESS_FLAG = #{processFlag} where CREDIT_REQ_ID in (${creditReqId})
+	</update>
+	
+	
+	<select id="getCheckBookkeeping" resultType="java.util.HashMap">
+		<![CDATA[
+			select * from (select a.chann_ledger_chrg_id,a.chann_id,a.ledger_id,
+NVL(a.amount_money,0) "总金额",
+NVL(e.amount_total,0) "扣款金额",
+NVL(f.amount_total,0) "欠扣金额",
+NVL(a.amount_money,0)  "旧总金额",
+(NVL(c.amount_total,0) - NVL(e.amount_total,0)) "新总金额",
+
+NVL(a.amount_rebate,0)"总返利",
+NVL(g.REBATE_TOTAL,0) "新总返利",
+NVL(a.amunt_credit,0)"总信用",
+(NVL(d.CREDIT_TOTAL,0) -NVL(h.CREDIT_TOTAL,0)) "新总信用",
+NVL(a.freez_money,0) "冻结金额",
+NVL(b.amount_total,0) "新冻结金额",
+NVL(a.freez_rebate,0) "冻结返利",
+NVL(b.rebate_total,0) "新冻结返利",
+NVL(a.freez_credit,0) "冻结信用",
+NVL(b.credit_total,0) "新冻结信用"
+from base_chann_ledger_chrg a
+left join (select chann_id,
+       ledger_id,
+       abs(sum(NVL(a.amount_total, 0) * direction))amount_total,
+       abs(sum(NVL(a.rebate_total, 0) * direction))rebate_total,
+       abs(sum(NVL(a.credit_total, 0) * direction))credit_total
+  from (select a.amount_total,
+               a.rebate_total,
+               a.credit_total,
+               (case
+                 when direction = 1 then
+                  -1
+                 else
+                  1
+               end) direction,
+               chann_id,
+               ledger_id
+          from base_bookkeeping a
+          where bill_type in('冻结','释放冻结')) a
+ group by chann_id, ledger_id
+ ) b on a.chann_id=b.chann_id and a.ledger_id=b.ledger_id
+ left join (select a.chann_id,
+       a.ledger_id,
+       sum(NVL(a.amount_total, 0)) amount_total
+  from base_bookkeeping a
+ where a.bill_type = '充值'
+ group by a.chann_id, a.ledger_id) c on a.chann_id=c.chann_id and a.ledger_id=c.ledger_id
+ left join (select a.chann_id,
+       a.ledger_id,
+       sum(NVL(a.CREDIT_TOTAL, 0)) CREDIT_TOTAL
+  from base_bookkeeping a
+ where a.bill_type = '信用申请'
+ group by a.chann_id, a.ledger_id) d on a.chann_id=d.chann_id and a.ledger_id=d.ledger_id
+ 
+ left join (select a.chann_id,
+       a.ledger_id,
+       sum(NVL(a.amount_total, 0)) amount_total
+  from base_bookkeeping a
+ where a.bill_type = '额度扣减'
+ group by a.chann_id, a.ledger_id) e on a.chann_id=e.chann_id and a.ledger_id=e.ledger_id
+ 
+ left join (select a.chann_id,
+       a.ledger_id,
+       sum(NVL(a.CREDIT_TOTAL, 0)) amount_total
+  from base_bookkeeping a
+ where a.bill_type = '额度扣减'
+ group by a.chann_id, a.ledger_id) f on a.chann_id=f.chann_id and a.ledger_id=f.ledger_id
+  left join (select a.chann_id,
+       a.ledger_id,
+       sum(NVL(a.REBATE_TOTAL, 0)) REBATE_TOTAL
+  from base_bookkeeping a
+ where a.bill_type = '返利'
+ group by a.chann_id, a.ledger_id) g on a.chann_id=g.chann_id and a.ledger_id=g.ledger_id
+ 
+  left join (select a.chann_id,
+       a.ledger_id,
+       sum(NVL(a.CREDIT_TOTAL, 0)) CREDIT_TOTAL
+  from base_bookkeeping a
+ where a.bill_type = '信用到期'
+ group by a.chann_id, a.ledger_id) h on a.chann_id=h.chann_id and a.ledger_id=h.ledger_id
+ )
+ 
+ 
+ where "总金额"<>"新总金额" or "总返利"<>"新总返利" or "总信用"<>"新总信用" or "冻结金额"<>"新冻结金额" or "冻结返利"<>"新冻结返利"
+ or "冻结信用"<>"新冻结信用"  
+ 
+		]]>
+	</select>
+	
+	<!-- 初始化经销商额度 -->
+	
+	<select id="getInitChann" resultType="java.util.HashMap">
+		select a.* from money_temp a 
+	</select>
+	<insert id="insertDepositInfo" parameterType="com.centit.erp.sale.depositinfo.model.DepositInfoModel">
+		<![CDATA[
+		 	insert into  ERP_DEPOSIT_INFO( 
+				DEPOSIT_ID,
+				CHANN_ID,
+				DEPOSIT_TYPE,
+				CHANN_NO,
+				CHANN_NAME,
+				DEPOSIT_NO,
+				STATE,
+				REMARK,
+				CREATOR,
+				CRE_NAME,
+				CRE_TIME,
+				DEPT_ID,
+				DEPT_NAME,
+				ORG_ID,
+				ORG_NAME,
+				LEDGER_ID,
+				LEDGER_NAME,
+				DEL_FLAG,
+				DEPOSIT_AMOUNT
+			)values(
+				#{depositId,jdbcType=VARCHAR},
+				#{channId,jdbcType=VARCHAR},
+				#{depositType,jdbcType=VARCHAR},
+				#{channNo,jdbcType=VARCHAR},
+				#{channName,jdbcType=VARCHAR},
+				#{depositNo,jdbcType=VARCHAR},
+				#{state,jdbcType=VARCHAR},
+				#{remark,jdbcType=VARCHAR},
+				#{creator,jdbcType=VARCHAR},
+				#{creName,jdbcType=VARCHAR},
+				sysdate,
+				#{deptId,jdbcType=VARCHAR},
+				#{deptName,jdbcType=VARCHAR},
+				#{orgId,jdbcType=VARCHAR},
+				#{orgName,jdbcType=VARCHAR},
+				#{ledgerId,jdbcType=VARCHAR},
+				#{ledgerName,jdbcType=VARCHAR},
+				#{delFlag,jdbcType=VARCHAR},
+				#{depositAmount,jdbcType=VARCHAR}
+			)
+		]]>
+	</insert>
+	
+	<select id="checkDepositAndCreditRepeat" parameterType="string" resultType="int">
+		select count(1) from BASE_BOOKKEEPING where BILL_ID=#{billId}
+		group by BILL_ID,BILL_TYPE
+	</select>
+	
+	
+	
+	
+	
+	
+	
+	<!-- ==================刷新数据用=========================== -->
+	<select id="getAllChann" resultMap="BookkeepingModel">
+		select 
+			CHANN_ID,
+			LEDGER_ID 
+		from BASE_BOOKKEEPING 
+		group by CHANN_ID,LEDGER_ID
+	</select>
+	
+	<select id="getBKGByChannIdAndLedgerId" parameterType="string" resultMap="BookkeepingModel">
+		select * from BASE_BOOKKEEPING where CHANN_ID =#{channId} and LEDGER_ID =#{ledgerId}
+		order by index_no 
+	</select>
+	<update id="updAllBookkeeping" parameterType="java.util.List">
+		<foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+		update BASE_BOOKKEEPING set 
+		AMOUNT_MONEY=NVL(#{item.amountMoney,jdbcType=VARCHAR},0),
+		FREEZ_MONEY=NVL(#{item.freezMoney,jdbcType=VARCHAR},0),
+		AMOUNT_REBATE=NVL(#{item.amountRebate,jdbcType=VARCHAR},0),
+		FREEZ_REBATE=NVL(#{item.freezRebate,jdbcType=VARCHAR},0),
+		AMUNT_CREDIT=NVL(#{item.amuntCredit,jdbcType=VARCHAR},0),
+		FREEZ_CREDIT=NVL(#{item.freezCredit,jdbcType=VARCHAR},0),
+		OWE_CREDIT=NVL(#{item.oweCredit,jdbcType=VARCHAR},0)
+		where BOOKKEEPING_ID=#{item.bookkeepingId};
+		</foreach>
+	</update>
+	
+
+</mapper>
+
+
+

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+                           http://www.springframework.org/schema/context
+                           http://www.springframework.org/schema/context/spring-context-4.0.xsd
+                           http://www.springframework.org/schema/aop 
+                           http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+                           http://www.springframework.org/schema/task
+     					   http://www.springframework.org/schema/task/spring-task.xsd">
+
+	<!-- 支持注解 -->      				
+	<context:annotation-config />
+	
+	<!-- 扫描bean，过滤Controller-->
+	<context:component-scan base-package="com.centit">
+		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller" />
+		<context:exclude-filter type="annotation" expression="org.springframework.web.bind.annotation.ControllerAdvice" />
+	</context:component-scan>
+	
+	<!-- aop动态代理  -->
+	<aop:aspectj-autoproxy proxy-target-class="true"/>
+	
+	<!-- 自定义配置文件加载器 -->
+	<bean class="com.centit.core.utils.CustomizedProperties">
+		<property name="locations">
+			<list>
+				<value>classpath:properties/*.properties</value>
+			</list>
+		</property>
+	</bean>
+	
+	<!-- 加载资源文件 
+	<bean id="messageSource"  class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+        <property name="basenames">
+           	<list>
+             	<value>classpath:resource/sys_message</value
+           	</list>
+        </property>
+        <刷新资源文件的周期，以秒为单位 
+        <property name="cacheSeconds" value="60"/>
+ 	</bean-->
+	
+	<!-- 数据源配置 -->
+	<import resource="config/spring-dataSource.xml"/>
+	
+	<!-- Mybatis配置 -->
+	<import resource="config/spring-db-mybatis.xml"/>
+	
+	<!-- SpringDataJpa配置 -->
+	<!-- <import resource="config/spring-db-jpa.xml"/> -->
+	
+	<!-- 本地缓存-ehcache -->
+	<import resource="config/spring-ehcache.xml"/>
+	
+	<!-- Shiro安全验证框架 -->
+<!-- 	<import resource="config/shiro/spring-shiro.xml"/> -->
+	
+	<!-- 异步任务线程池 -->
+	<task:executor id="executor" pool-size="5"/>
+	<!-- 开启注解方式 -->
+	<task:annotation-driven executor="executor"/>
+</beans>  

@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MKList size="10">
+	<FMK MKNum="0" FMKName="供应商" FMKCode="FX001" MKSM="FX">
+	    <ZMK ZMKName="订单进度确认" ZMKCode="FX00101">
+			<ZMKQX QXName="查询" MKCode="FX0010101" />
+			<ZMKQX QXName="交期确认" MKCode="FX0010102" />
+            <ZMKQX QXName="进度反馈" MKCode="FX0010103" />
+			<QXJB JBName="机构集中" JBValue="0">ORG_ID in (#JGXXIDS#)</QXJB>
+			<QXJB JBName="多机构" JBValue="1">ORG_ID in (#DJGXXIDS#)</QXJB>
+			<QXJB JBName="本机构" JBValue="2">ORG_ID ='#JGXXID#'</QXJB>
+			<QXJB JBName="部门集中" JBValue="3">DEPT_ID in (#BMXXIDS#)</QXJB>
+			<QXJB JBName="多部门" JBValue="4">DEPT_ID in(#DBMXXIDS#)</QXJB>
+			<QXJB JBName="本部门" JBValue="5">DEPT_ID='#BMXXID#'</QXJB>
+			<QXJB JBName="本人员" JBValue="6">CREATOR='#XTYHID#'</QXJB>
+		</ZMK>
+	</FMK>
+	<FMK MKNum="1" FMKName="经销商" FMKCode="FX002" MKSM="FX">
+	    <ZMK ZMKName="我要订货" ZMKCode="FX00201">
+			<ZMKQX QXName="查询" MKCode="FX0020101" />
+			<ZMKQX QXName="购物车下单" MKCode="FX0020102" />
+			<QXJB JBName="机构集中" JBValue="0">u.ORG_ID in (#JGXXIDS#)</QXJB>
+			<QXJB JBName="多机构" JBValue="1">u.ORG_ID in (#DJGXXIDS#)</QXJB>
+			<QXJB JBName="本机构" JBValue="2">u.ORG_ID ='#JGXXID#'</QXJB>
+			<QXJB JBName="部门集中" JBValue="3">u.DEPT_ID in (#BMXXIDS#)</QXJB>
+			<QXJB JBName="多部门" JBValue="4">u.DEPT_ID in(#DBMXXIDS#)</QXJB>
+			<QXJB JBName="本部门" JBValue="5">u.DEPT_ID='#BMXXID#'</QXJB>
+			<QXJB JBName="本人员" JBValue="6">u.CREATOR='#XTYHID#'</QXJB>
+		</ZMK>
+		<ZMK ZMKName="总部库存查询" ZMKCode="FX00202">
+			<ZMKQX QXName="查询" MKCode="FX0020201" />
+			<ZMKQX QXName="下单" MKCode="FX0020202" />
+			<QXJB JBName="机构集中" JBValue="0">ORG_ID in (#JGXXIDS#)</QXJB>
+			<QXJB JBName="多机构" JBValue="1">ORG_ID in (#DJGXXIDS#)</QXJB>
+			<QXJB JBName="本机构" JBValue="2">ORG_ID ='#JGXXID#'</QXJB>
+			<QXJB JBName="部门集中" JBValue="3">DEPT_ID in (#BMXXIDS#)</QXJB>
+			<QXJB JBName="多部门" JBValue="4">DEPT_ID in(#DBMXXIDS#)</QXJB>
+			<QXJB JBName="本部门" JBValue="5">DEPT_ID='#BMXXID#'</QXJB>
+			<QXJB JBName="本人员" JBValue="6">CREATOR='#XTYHID#'</QXJB>
+		</ZMK>
+		<ZMK ZMKName="预订单维护" ZMKCode="FX00203">
+		   <ZMKQX QXName="查询" MKCode="FX0020301" />
+			<ZMKQX QXName="新增/修改" MKCode="FX0020302" />
+			<ZMKQX QXName="删除" MKCode="FX0020303" />
+			<ZMKQX QXName="申请修改" MKCode="FX0020304" />
+			<ZMKQX QXName="报价确认" MKCode="FX0020305" />
+			<ZMKQX QXName="售后反馈" MKCode="FX0020306" />
+			<ZMKQX QXName="提交" MKCode="FX0020307" />
+			<QXJB JBName="本机构" JBValue="2">ORG_ID ='#JGXXID#'</QXJB>
+			<QXJB JBName="本人员" JBValue="6">CREATOR='#XTYHID#'</QXJB>
+		</ZMK>
+		<ZMK ZMKName="下级预订单处理" ZMKCode="FX00204">
+		   <ZMKQX QXName="查询" MKCode="FX0020401" />
+			<ZMKQX QXName="报价" MKCode="FX0020402" />
+			<ZMKQX QXName="转总部订单" MKCode="FX0020403" />
+			<ZMKQX QXName="退回" MKCode="FX0020404" />
+			<QXJB JBName="机构集中" JBValue="0">ORG_ID in (#JGXXIDS#)</QXJB>
+			<QXJB JBName="多机构" JBValue="1">ORG_ID in (#DJGXXIDS#)</QXJB>
+			<QXJB JBName="本机构" JBValue="2">ORG_ID ='#JGXXID#'</QXJB>
+			<QXJB JBName="部门集中" JBValue="3">DEPT_ID in (#BMXXIDS#)</QXJB>
+			<QXJB JBName="多部门" JBValue="4">DEPT_ID in(#DBMXXIDS#)</QXJB>
+			<QXJB JBName="本部门" JBValue="5">DEPT_ID='#BMXXID#'</QXJB>
+			<QXJB JBName="本人员" JBValue="6">CREATOR='#XTYHID#'</QXJB>
+		</ZMK>
+		<ZMK ZMKName="销售订单查询" ZMKCode="FX00205">
+		   <ZMKQX QXName="查询" MKCode="FX0020501" />
+			<ZMKQX QXName="变更申请" MKCode="FX0020502" />
+			<ZMKQX QXName="流程跟踪" MKCode="FX0020503" />
+			<ZMKQX QXName="收货确认" MKCode="FX0020504" />
+			<ZMKQX QXName="问题反馈" MKCode="FX0020505" />
+			<QXJB JBName="机构集中" JBValue="0">ORG_ID in (#JGXXIDS#)</QXJB>
+			<QXJB JBName="多机构" JBValue="1">ORG_ID in (#DJGXXIDS#)</QXJB>
+			<QXJB JBName="本机构" JBValue="2">ORG_ID ='#JGXXID#'</QXJB>
+			<QXJB JBName="部门集中" JBValue="3">DEPT_ID in (#BMXXIDS#)</QXJB>
+			<QXJB JBName="多部门" JBValue="4">DEPT_ID in(#DBMXXIDS#)</QXJB>
+			<QXJB JBName="本部门" JBValue="5">DEPT_ID='#BMXXID#'</QXJB>
+			<QXJB JBName="本人员" JBValue="6">CREATOR='#XTYHID#'</QXJB>
+		</ZMK>
+		<ZMK ZMKName="销售订单变更" ZMKCode="FX00206">
+			<ZMKQX QXName="查询" MKCode="FX0020601" />
+			<ZMKQX QXName="报价确认" MKCode="FX0020602" />
+			<QXJB JBName="机构集中" JBValue="0">ORG_ID in (#JGXXIDS#)</QXJB>
+			<QXJB JBName="多机构" JBValue="1">ORG_ID in (#DJGXXIDS#)</QXJB>
+			<QXJB JBName="本机构" JBValue="2">ORG_ID ='#JGXXID#'</QXJB>
+			<QXJB JBName="部门集中" JBValue="3">DEPT_ID in (#BMXXIDS#)</QXJB>
+			<QXJB JBName="多部门" JBValue="4">DEPT_ID in(#DBMXXIDS#)</QXJB>
+			<QXJB JBName="本部门" JBValue="5">DEPT_ID='#BMXXID#'</QXJB>
+			<QXJB JBName="本人员" JBValue="6">CREATOR='#XTYHID#'</QXJB>
+		</ZMK>
+		<ZMK ZMKName="问题反馈单" ZMKCode="FX00207">
+			<ZMKQX QXName="查询" MKCode="FX0020701" />
+			<ZMKQX QXName="新增/修改" MKCode="FX0020702" />
+			<ZMKQX QXName="删除" MKCode="FX0020703" />
+			<QXJB JBName="机构集中" JBValue="0">ORG_ID in (#JGXXIDS#)</QXJB>
+			<QXJB JBName="多机构" JBValue="1">ORG_ID in (#DJGXXIDS#)</QXJB>
+			<QXJB JBName="本机构" JBValue="2">ORG_ID ='#JGXXID#'</QXJB>
+			<QXJB JBName="部门集中" JBValue="3">DEPT_ID in (#BMXXIDS#)</QXJB>
+			<QXJB JBName="多部门" JBValue="4">DEPT_ID in(#DBMXXIDS#)</QXJB>
+			<QXJB JBName="本部门" JBValue="5">DEPT_ID='#BMXXID#'</QXJB>
+			<QXJB JBName="本人员" JBValue="6">CREATOR='#XTYHID#'</QXJB>
+		</ZMK>
+		<ZMK ZMKName="我的账户" ZMKCode="FX00208">
+			<ZMKQX QXName="查询" MKCode="FX0020801" />
+			<QXJB JBName="机构集中" JBValue="0">ORG_ID in (#JGXXIDS#)</QXJB>
+			<QXJB JBName="多机构" JBValue="1">ORG_ID in (#DJGXXIDS#)</QXJB>
+			<QXJB JBName="本机构" JBValue="2">ORG_ID ='#JGXXID#'</QXJB>
+			<QXJB JBName="部门集中" JBValue="3">DEPT_ID in (#BMXXIDS#)</QXJB>
+			<QXJB JBName="多部门" JBValue="4">DEPT_ID in(#DBMXXIDS#)</QXJB>
+			<QXJB JBName="本部门" JBValue="5">DEPT_ID='#BMXXID#'</QXJB>
+			<QXJB JBName="本人员" JBValue="6">CREATOR='#XTYHID#'</QXJB>
+		</ZMK>
+		<ZMK ZMKName="我的账单" ZMKCode="FX00209">
+			<ZMKQX QXName="查询" MKCode="FX0020901" />
+			<ZMKQX QXName="账单确认" MKCode="FX0020902" />
+			<QXJB JBName="机构集中" JBValue="0">ORG_ID in (#JGXXIDS#)</QXJB>
+			<QXJB JBName="多机构" JBValue="1">ORG_ID in (#DJGXXIDS#)</QXJB>
+			<QXJB JBName="本机构" JBValue="2">ORG_ID ='#JGXXID#'</QXJB>
+			<QXJB JBName="部门集中" JBValue="3">DEPT_ID in (#BMXXIDS#)</QXJB>
+			<QXJB JBName="多部门" JBValue="4">DEPT_ID in(#DBMXXIDS#)</QXJB>
+			<QXJB JBName="本部门" JBValue="5">DEPT_ID='#BMXXID#'</QXJB>
+			<QXJB JBName="本人员" JBValue="6">CREATOR='#XTYHID#'</QXJB>
+		</ZMK>
+		<ZMK ZMKName="用户信息" ZMKCode="FX00210">
+			<ZMKQX QXName="查询" MKCode="FX0021001" />
+			<ZMKQX QXName="新增/修改" MKCode="FX0021002" />
+			<ZMKQX QXName="删除" MKCode="FX0021003" />
+			<ZMKQX QXName="启用/停用" MKCode="FX0021004" />
+			<QXJB JBName="机构集中" JBValue="0">ORG_ID in (#JGXXIDS#)</QXJB>
+			<QXJB JBName="多机构" JBValue="1">ORG_ID in (#DJGXXIDS#)</QXJB>
+			<QXJB JBName="本机构" JBValue="2">ORG_ID ='#JGXXID#'</QXJB>
+			<QXJB JBName="部门集中" JBValue="3">DEPT_ID in (#BMXXIDS#)</QXJB>
+			<QXJB JBName="多部门" JBValue="4">DEPT_ID in(#DBMXXIDS#)</QXJB>
+			<QXJB JBName="本部门" JBValue="5">DEPT_ID='#BMXXID#'</QXJB>
+			<QXJB JBName="本人员" JBValue="6">CREATOR='#XTYHID#'</QXJB>
+		</ZMK>
+		<ZMK ZMKName="资金查询" ZMKCode="FX00211">
+			<ZMKQX QXName="查询" MKCode="FX0021101" />
+			<QXJB JBName="机构集中" JBValue="0">ORG_ID in (#JGXXIDS#)</QXJB>
+			<QXJB JBName="多机构" JBValue="1">ORG_ID in (#DJGXXIDS#)</QXJB>
+			<QXJB JBName="本机构" JBValue="2">ORG_ID ='#JGXXID#'</QXJB>
+			<QXJB JBName="部门集中" JBValue="3">DEPT_ID in (#BMXXIDS#)</QXJB>
+			<QXJB JBName="多部门" JBValue="4">DEPT_ID in(#DBMXXIDS#)</QXJB>
+			<QXJB JBName="本部门" JBValue="5">DEPT_ID='#BMXXID#'</QXJB>
+			<QXJB JBName="本人员" JBValue="6">CREATOR='#XTYHID#'</QXJB>
+		</ZMK>
+	</FMK>
+
+</MKList>

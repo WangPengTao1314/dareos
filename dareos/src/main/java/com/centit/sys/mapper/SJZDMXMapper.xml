@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.centit.sys.mapper.SJZDMXMapper">
+
+	
+
+	<!-- 使用LLGL装载结果集 -->
+	<resultMap id="SJZDMxModel" type="com.centit.sys.model.SJZDMxModel">
+		<result column="SJZDID"     property="SJZDID" />
+		<result column="SJZDMXID"   property="SJZDMXID" />
+		<result column="SJXMC"      property="SJXMC" />
+		<result column="SJXZ"       property="SJXZ" />
+		<result column="SJSJZDMXID" property="SJSJZDMXID" />
+		<result column="SJGL"       property="SJGL" />
+		<result column="DELFLAG"    property="DELFLAG" />
+		<result column="CREATER"    property="CREATER" />
+		<result column="CRETIME"    property="CRETIME" />
+		<result column="REMARK"     property="REMARK" />
+		<result column="UPDTIME"    property="UPDTIME" />
+		<result column="KEYCODE"    property="KEYCODE" />
+		<result column="BASE_CODE"  property="BASE_CODE" />
+	</resultMap>
+
+	<!-- 动态查询 and 列表分页 -->
+	<sql id="queryDynSql">
+		<if test="SJZDMXID !=null and SJZDMXID !='' ">
+			u.SJZDMXID = #{SJZDMXID}
+		</if>
+		<if test="SJZDID !=null and SJZDID !='' ">
+			and u.SJZDID = #{SJZDID}
+		</if>
+		<if test="SJXMC !=null and SJXMC !='' ">
+			and u.SJXMC like '%'||#{SJXMC}||'%'
+		</if>
+		<if test="SJXMCEQ !=null and SJXMCEQ !='' ">
+			and u.SJXMC = #{SJXMCEQ}
+		</if>
+		<if test="SJXZ !=null and SJXZ !='' ">
+			and u.SJXZ like '%'||#{SJXZ}||'%'
+		</if>
+		<if test="SJSJZDMXID !=null and SJSJZDMXID !='' ">
+			and u.SJSJZDMXID like '%'||#{SJSJZDMXID}||'%'
+		</if>
+		<if test="SJGL !=null and SJGL !='' ">
+			and u.SJGL like '%'||#{SJGL}||'%'
+		</if>
+		<if test="DELFLAG !=null and DELFLAG !='' ">
+			and u.DELFLAG = #{DELFLAG}
+		</if>
+	</sql>
+    <sql id="orderSql">
+		<if test="orderField !=null and orderField !='' ">
+		order by
+			 ${orderField}
+		</if>
+	</sql>
+	<!-- 查询SQL -->
+	<sql id="coreSql">
+		<![CDATA[  select u.*, a.SJXMC as SJSJZDMXMC
+	from T_SYS_SJZDMX u left join  T_SYS_SJZDMX a on u.sjsjzdmxid = a.sjzdmxid  ]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+		<include refid="orderSql"/>
+		
+	</sql>
+	
+	<!-- 分页查询 -->
+	<select id="pageQuery" parameterType="map"
+		resultType="java.util.HashMap">
+		<include refid="coreSql" />
+	</select>
+
+	<!-- 分页计数 -->
+	<select id="pageCount" parameterType="map" resultType="int">
+		<![CDATA[SELECT count(SJZDMXID) cnt FROM T_SYS_SJZDMX u  ]]>
+		<where>
+			<include refid="queryDynSql"/>
+		</where>
+	</select>
+
+   <!-- 查询 -->
+	<select id="query" parameterType="map"
+		resultMap="SJZDMxModel">
+		<include refid="coreSql" />
+	</select>
+	
+	<insert id="insert" parameterType="java.util.List">
+		<foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+			<![CDATA[
+			 insert into T_SYS_SJZDMX(KEYCODE,SJZDMXID,SJZDID,SJXMC,SJXZ,SJSJZDMXID,SJGL,CRETIME,UPDTIME,DELFLAG,REMARK)
+			 values(#{item.KEYCODE},#{item.SJZDMXID},#{item.SJZDID},#{item.SJXMC},#{item.SJXZ},#{item.SJSJZDMXID},#{item.SJGL},sysdate,sysdate,0,#{item.REMARK});
+			]]>
+		</foreach>
+	</insert>
+
+	<update id="updateById" parameterType="java.util.List">
+		<foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+			<![CDATA[ update T_SYS_SJZDMX ]]>
+			<set>
+				<if test="item.SJZDID !=null and item.SJZDID !='' "><![CDATA[SJZDID = #{item.SJZDID}]]>,</if>
+				<if test="item.SJZDMXID !=null and item.SJZDMXID !='' "><![CDATA[SJZDMXID = #{item.SJZDMXID}]]>,</if>
+				<if test="item.SJXMC !=null and item.SJXMC !='' "><![CDATA[SJXMC = #{item.SJXMC}]]>,</if>
+				<if test="item.SJXZ !=null and item.SJXZ !='' "><![CDATA[SJXZ = #{item.SJXZ}]]>,</if>
+				<if test="item.KEYCODE !=null and item.KEYCODE !='' "><![CDATA[KEYCODE = #{item.KEYCODE}]]>,</if>
+				<if test="item.SJSJZDMXID !=null and item.SJSJZDMXID !='' "><![CDATA[SJSJZDMXID = #{item.SJSJZDMXID}]]>,</if>
+				<if test="item.SJGL !=null and item.SJGL !='' "><![CDATA[SJGL = #{item.SJGL}]]>,</if>
+				<if test="item.REMARK !=null and item.REMARK !='' "><![CDATA[REMARK = #{item.REMARK}]]>,</if>
+			</set>
+			<![CDATA[ where SJZDMXID = #{item.SJZDMXID}; ]]>
+		</foreach>
+	</update>
+	<!-- 删除菜单 -->
+	<delete id="deleteByFkId" parameterType="String">
+		<![CDATA[ update T_SYS_SJZDMX set delflag='1' where SJZDID = #{SJZDID} ]]>
+	</delete>
+	<delete id="deleteByIds" parameterType="String">
+		<![CDATA[ delete from T_SYS_SJZDMX  where SJZDMXID in (${sjzdmxids}) ]]>
+	</delete>
+	<insert id="insertSJZDMX" parameterType="map">
+	    insert into t_sys_datarecycle(DATARECYCLEID,DELETOR,DELTIME,BUSINESSTYPE,DF1,DF2,DF3,DF4,DF5,DF6,DF7,DF8,DF9,DF10,DF11,DF12)
+	    select #{DATARECYCLEID}||rownum,#{DELETOR},sysdate,'数据字典明细信息维护', SJZDMXID,SJZDID,SJXMC,SJXZ,SJSJZDMXID,SJGL,DELFLAG,CREATER,CRETIME,REMARK,UPDTIME,KEYCODE
+        from T_SYS_SJZDMX where SJZDMXID in (${sjzdmxids})
+	</insert>
+	<select id="loadById" parameterType="map" resultType="java.util.HashMap">
+		<![CDATA[  select u.*, a.SJXMC as SJSJZDMXMC
+	from T_SYS_SJZDMX u left join  T_SYS_SJZDMX a on u.sjsjzdmxid = a.sjzdmxid where  u.SJZDMXID = #{SJZDMXID}]]>
+	</select>
+	<select id="loadByIds" parameterType="String" resultType="java.util.HashMap">
+		<![CDATA[  
+		 	select u.*, a.SJXMC as SJSJZDMXMC
+	from T_SYS_SJZDMX u left join  T_SYS_SJZDMX a on u.sjsjzdmxid = a.sjzdmxid
+		  where u.SJZDMXID in (${SJZDMXIDS})]]>
+	</select>
+	
+	<select id="getMXBySJZDID" parameterType="map" resultMap="SJZDMxModel">
+	    SELECT * FROM T_SYS_SJZDMX t where t.DELFLAG=0 and t.SJZDID=#{SJZDID}
+	    
+		 <if test="SJZDMXIDS !=null and SJZDMXIDS !='' ">and <![CDATA[SJZDMXID not in (${SJZDMXIDS})]]></if>
+		
+	</select>
+</mapper>
+

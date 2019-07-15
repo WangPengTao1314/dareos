@@ -1,0 +1,1081 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- *@module 发货管理 *@func 发货指令 *@version 1.1 *@author * -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper
+	namespace="com.centit.drp.main.sales.deliver.order.mapper.OrderMapper">
+	<resultMap id="sendDtlModel" type="com.centit.drp.main.sales.deliver.order.model.SendDtlModel" >
+		<result property="send_order_dtl_id" column="send_order_dtl_id" />
+		<result property="row_no" column="row_no" />
+		<result property="sale_order_dtl_id" column="sale_order_dtl_id" />
+		<result property="sale_order_id" column="sale_order_id" />
+		<result property="group_no" column="group_no" />
+		<result property="prd_id" column="prd_no" />
+		<result property="prd_name" column="prd_name" />
+		<result property="prd_no" column="prd_no" />
+		<result property="hole_spec" column="hole_spec" />
+		<result property="prd_spec" column="prd_spec" />
+		<result property="prd_toward" column="prd_toward" />
+		<result property="prd_quality" column="prd_quality" />
+		<result property="prd_color" column="prd_color" />
+		<result property="prd_glass" column="prd_glass" />
+		<result property="prd_other" column="prd_other" />
+		<result property="prd_series" column="prd_series" />
+		<result property="brand" column="brand" />
+		<result property="std_unit" column="std_unit" />
+		<result property="price" column="price" />
+		<result property="dect_rate" column="dect_rate" />
+		<result property="dect_price" column="dect_price" />
+		<result property="rebate_amount" column="rebate_amount" />
+		<result property="order_num" column="order_num" />
+		<result property="order_amount" column="order_amount" />
+		<result property="advc_send_date" column="advc_send_date" />
+		<result property="remark" column="remark" />
+		<result property="del_flag" column="del_flag" />
+		<result property="send_num" column="send_num" />
+		<result property="send_order_id" column="send_order_id" />
+		<result property="projected_area" column="projected_area" />
+		<result property="expand_area" column="expand_area" /> 
+		<result property="send_amount" column="send_amount" />
+		<result property="rebate_price" column="rebate_price" />
+		<result property="is_no_lock_flag" column="is_no_lock_flag" />
+	</resultMap>
+	
+	<!--NC接口数据传授  -->
+	<!-- 发货指令信息 -->
+	<resultMap id="sendOrderModel" type="com.centit.drp.main.sales.deliver.order.model.OrderModel" >
+		<result property="send_order_id" column="send_order_id" />
+		<result property="send_order_no" column="send_order_no" />
+		<result property="sale_order_id" column="sale_order_id" />
+		<result property="sale_order_no" column="sale_order_no" />
+		<result property="bill_type" column="bill_type" />
+		<result property="order_chann_id" column="order_chann_id" />
+		<result property="order_chann_no" column="order_chann_no" />
+		<result property="order_chann_name" column="order_chann_name" />
+		<result property="order_date" column="order_date" />
+		<result property="chann_id" column="chann_id" />
+		<result property="chann_no" column="chann_no" />
+		<result property="chann_name" column="chann_name" />
+		<result property="print_name" column="print_name" />
+		<result property="transport" column="transport" />
+		<result property="transport_settle" column="transport_settle" />
+		<result property="factory_no" column="factory_no" />
+		<result property="proess_type" column="proess_type" />
+		<result property="sale_id" column="sale_id" />
+		<result property="sale_name" column="sale_name" />
+		<result property="saledept_name" column="saledept_name" />
+		<result property="saledept_id" column="saledept_id" />
+		<result property="pre_recv_date" column="pre_recv_date" />
+		<result property="cust_name" column="cust_name" />
+		<result property="is_use_rebate" column="is_use_rebate" />
+		<result property="recv_chann_id" column="recv_chann_id" />
+		<result property="recv_chann_no" column="recv_chann_no" />
+		<result property="recv_chann_name" column="recv_chann_name" />
+		<result property="person_con" column="person_con" />
+		<result property="recv_addr" column="recv_addr" />
+		<result property="recv_addr_no" column="recv_addr_no" />
+		<result property="tel" column="tel" />
+		<result property="state" column="state" />
+		<result property="remark" column="remark" />
+		<result property="remark2" column="remark2" />
+		<result property="ledger_name" column="ledger_name" />
+		<result property="ledger_id" column="ledger_id" />
+		<result property="del_flag" column="del_flag" />
+		<result property="dept_name" column="dept_name" />
+		<result property="dept_id" column="dept_id" />
+		<result property="org_id" column="org_id" />
+		<result property="org_name" column="org_name" />
+		<result property="area_id" column="area_id" />
+		<result property="area_no" column="area_no" />
+		<result property="area_name" column="area_name" />
+		<result property="order_delivery_date" column="order_delivery_date" />
+		<result property="cust_tel" column="cust_tel" />
+		<result property="cust_addr" column="cust_addr" />
+		<result property="send_order_id" column="send_order_id" />
+		<result property="send_order_no" column="send_order_no" />
+		<result property="total_amount" column="total_amount" />
+		<result property="total_rebate" column="total_rebate" />
+		<result property="cre_time" column="cre_time" />
+		<result property="creator" column="creator" />
+		<result property="cre_name" column="cre_name" />
+		<result property="updator" column="updator" />
+		<result property="upd_name" column="upd_name" />
+		<result property="upd_time" column="upd_time" />
+	</resultMap>
+
+	<!-- 动态查询 and 列表分页 -->
+	<sql id="queryDynSql">
+		<if test="SEND_ORDER_NO != '' and SEND_ORDER_NO != null">
+			and send_order_no like '%'||#{SEND_ORDER_NO}||'%'
+		</if>
+		<if test="SALE_ORDER_NO != '' and SALE_ORDER_NO != null">
+			and factory_no like '%'||#{SALE_ORDER_NO}||'%'
+		</if>
+		<if test="CHANN_NAME != '' and CHANN_NAME != null">
+			and chann_name like '%'||#{CHANN_NAME}||'%'
+		</if>
+		<if test="STATE != '' and STATE != null">
+			and state like '%'||#{STATE}||'%'
+		</if>
+		<if test="SALE_NAME != '' and SALE_NAME != null">
+			and sale_name like '%'||#{SALE_NAME}||'%'
+		</if>
+		<if test="STATES != '' and STATES != null">
+			and ${STATES}
+		</if>
+		<if test="BILL_TYPE != '' and BILL_TYPE != null">
+			and bill_type=#{BILL_TYPE}
+		</if>
+		<if test="billTypeQuery != '' and billTypeQuery!=null">
+			${billTypeQuery}
+		</if>
+		<if test="XTYHID != '' and XTYHID != null">
+			and user_id='${XTYHID}' and  xtyhid='${XTYHID}'
+		</if>
+		<if test="QXJBCON !=null and QXJBCON !='' ">
+			and ${QXJBCON}
+		</if> 
+		<if test="queryState != null and queryState!=''">
+			and state in (${queryState})
+		</if>
+		 <![CDATA[ and del_flag = 0 ]]>
+	</sql>
+	<sql id="orderSql">
+		order by 
+		<if test="orderField !=null and orderField !='' "> ${orderField} </if>
+	</sql>
+	<!-- 查询SQL -->
+	<sql id="coreSql">
+		<![CDATA[ select send_order_id,
+				       send_order_no,
+				       bill_type,
+				       chann_name,
+				       recv_addr,
+				       pre_recv_date,
+				       state,
+				       check_advice,
+				       cre_time,
+				       cre_time2,
+				       order_date,
+				       order_delivery_date,
+				       cre_name,
+				       sale_name,
+				       total_amount,
+				       total_rebate,
+				       del_flag,
+				       creator,
+				       factory_no,
+				       ledger_id,
+				       chann_id2,
+				       user_id,
+				       xtyhid,
+				       ledger_id2,
+				       user_name
+				  from (select e.send_order_id send_order_id,
+				               e.send_order_no send_order_no,
+				               e.bill_type bill_type,
+				               e.chann_name chann_name,
+				               e.recv_addr recv_addr,
+				               to_char(e.pre_recv_date, 'yyyy-MM-dd') pre_recv_date,
+				               e.state state,
+				               e.check_advice check_advice,
+				               to_char(e.cre_time, 'yyyy-MM-dd') cre_time,
+				               e.cre_time cre_time2,
+				               to_char(e.order_date, 'yyyy-MM-dd') order_date,
+				               to_char(e.order_delivery_date, 'yyyy-MM-dd') order_delivery_date,
+				               e.cre_name cre_name,
+				               e.sale_name sale_name,
+				               e.total_amount total_amount,
+				               e.total_rebate total_rebate,
+				               e.del_flag del_flag,
+				               e.creator  creator,
+				               e.factory_no factory_no,
+				               e.ledger_id ledger_id,
+				               a.chann_id chann_id2,
+				               a.user_id user_id,
+				               b.xtyhid xtyhid,
+				               b.ledger_id ledger_id2,
+				               (select u.XM
+				                  from T_SYS_XTYH t, T_SYS_RYXX u
+				                 where t.RYXXID = u.RYXXID
+				                   and t.XTYHID = e.creator) user_name
+				          from ERP_SEND_ORDER e
+				          left join base_user_chann_chrg a
+				            on e.chann_id = a.chann_id
+				          left join base_xtyh_ledger_chrg b
+				            on e.ledger_id = b.ledger_id)
+		]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>  
+		<include refid="orderSql" />
+	</sql>
+	<!--查询发货指令 -->
+	<select id="pageQuery2" parameterType="map"
+		resultType="java.util.HashMap">
+		<include refid="coreSql" />
+	</select>
+
+	<!--查询销售订单 -->
+	<select id="saleQuery" parameterType="map"
+		resultType="java.util.HashMap">
+		 <![CDATA[ select  
+		 			  e.recv_addr_no,   
+				      e. person_con, 
+				      e. sale_order_id,  
+				      e. sale_order_no,  
+				      e. bill_type,
+				      e. order_chann_id, 
+				      e. order_chann_no,  
+				      e. order_chann_name, 
+				      to_char(e. order_date,'yyyy-MM-dd') order_date,  
+				       e.chann_id, 
+				      e. chann_no, 
+				      e. chann_name,  
+				      e. print_name, 
+				      e. transport, 
+				       e.transport_settle, 
+				       e.factory_no,  
+				      e. proess_type, 
+				      e. sale_id, 
+				      e. sale_name, 
+				      e. saledept_name,  
+				      e. saledept_id, 
+				       to_char(e.pre_recv_date,'yyyy-MM-dd') pre_recv_date, 
+				      e. cust_name, 
+				       e.is_use_rebate  , 
+				       e.recv_chann_id,
+				       e.recv_chann_no, 
+				       e.recv_chann_name,  
+				       e.recv_addr, 
+				       e.tel,  
+				       e.state,  
+				       e.remark,  
+				       e.remark2,  
+				       e.ledger_name, 
+				       e.ledger_id,  
+				       e.dept_name,
+				       e.dept_id,  
+				       e.org_id, 
+				       e.org_name,  
+				       e.area_id,  
+				       e.area_no,  
+				       e.area_name,  
+				       e.base_add_flag, 
+				       to_char(e.order_delivery_date,'yyyy-MM-dd') order_delivery_date,  
+				       e.cust_tel, 
+				       e.cust_addr,  
+				       e.total_amount,
+  					   e.total_rebate, 
+				       e.del_flag,
+				       e.creator,
+				       (select u.XM from  t_Sys_Xtyh t,T_SYS_RYXX u where t.RYXXID =u.RYXXID and t.XTYHID=e.creator ) user_name  
+		 from  ERP_SALE_ORDER e
+		]]>
+		<where>
+			<include refid="querySale" />
+		</where>  
+	</select>
+	<sql id="querySale">
+	   <![CDATA[ 1=1 and  e.del_flag=0 ]]>
+	   <if test="SALE_ORDER_ID != '' and SALE_ORDER_ID != null">
+			and e.sale_order_id=#{SALE_ORDER_ID}
+	   </if>
+	   <if test="SALE_ORDER_NO != '' and SALE_ORDER_NO != null">
+			and e.sale_order_no=#{SALE_ORDER_NO}
+	   </if>
+	   <if test="FACTORY_NO != '' and FACTORY_NO != null">
+			and e.factory_no=#{FACTORY_NO}
+	   </if>
+	</sql>
+
+	<!-- 根据收货单查询 -->
+	<select id="toQuery" parameterType="map"
+		resultType="java.util.HashMap">
+		 <![CDATA[  select
+		 			   send_order_id,
+				       send_order_no,  
+				       recv_addr_no,   
+				       person_con, 
+				       sale_order_id,  
+				       sale_order_no,  
+				       bill_type,
+				       order_chann_id, 
+				       order_chann_no,  
+				       order_chann_name, 
+				       to_char(order_date,'yyyy-MM-dd') order_date, 
+				       chann_id, 
+				       chann_no, 
+				       chann_name,  
+				       print_name, 
+				       transport, 
+				       transport_settle, 
+				       factory_no,  
+				       proess_type, 
+				       sale_id, 
+				       sale_name, 
+				       saledept_name,  
+				       saledept_id, 
+				       to_char(pre_recv_date,'yyyy-MM-dd') pre_recv_date, 
+				       cust_name, 
+				       is_use_rebate  , 
+				       recv_chann_id,
+				       recv_chann_no, 
+				       recv_chann_name,  
+				       recv_addr, 
+				       tel,  
+				       state,  
+				       remark,  
+				       remark2,  
+				       ledger_name, 
+				       ledger_id,  
+				       dept_name,
+				       dept_id,  
+				       org_id, 
+				       org_name,  
+				       area_id,  
+				       area_no,  
+				       area_name,  
+				       to_char(order_delivery_date,'yyyy-MM-dd') order_delivery_date,  
+				       cust_tel, 
+				       cust_addr,  
+				       total_amount,
+                       total_rebate,
+                       check_advice   
+		    from ERP_SEND_ORDER   
+		  where  send_order_id=#{SEND_ORDER_ID} and del_flag=0]]>
+	</select>
+	
+	<!-- 根据收货单查询 -->
+	<select id="querySendIdByNcId" parameterType="String"
+		resultType="java.util.HashMap">
+		 <![CDATA[  select
+		 			   send_order_id 
+		    from ERP_SEND_ORDER   
+		  where nc_return_id =#{nc_return_id} and del_flag=0]]>
+	</select>
+	
+	<!-- 查询收货单子表明细 -->
+	<select id="toQuerySendSun" parameterType="map"
+		resultType="java.util.HashMap">
+		 <![CDATA[  
+		 	select 
+		 		e.SEND_ORDER_DTL_ID,
+      			e.ROW_NO,
+       			e.SALE_ORDER_DTL_ID,
+       			e.SALE_ORDER_ID,
+       			e.GROUP_NO,
+       			e.PRD_ID,
+       			e.PRD_NO,
+       			e.PRD_NAME,
+       			e.HOLE_SPEC,
+       			e.PRD_SPEC,
+       			e.PRD_TOWARD,
+       			e.PRD_QUALITY,
+       			e.PRD_COLOR,
+       			e.PRD_GLASS,
+       			e.PRD_OTHER,
+       			e.PRD_SERIES,
+       			e.BRAND,
+       			e.STD_UNIT,
+       			e.PRICE,
+      			e.DECT_RATE,
+       			e.DECT_PRICE,
+       			e.PROJECTED_AREA,
+       			e.EXPAND_AREA,
+       			e.SEND_AMOUNT,
+       			e.REBATE_AMOUNT,
+       			e.ORDER_NUM,
+       			e.ORDER_AMOUNT,
+       			to_char(e.ADVC_SEND_DATE, 'yyyy-MM-dd') ADVC_SEND_DATE,
+       			e.REMARK,
+       			e.DEL_FLAG,
+       			e.SEND_NUM,
+       			e.SEND_ORDER_ID,
+       			NVL(a.SENDED_NUM,0) SENDED_NUM,
+       			NVL(e.ORDER_NUM,0)-NVL(a.SENDED_NUM,0) WAITNUM,
+       			e.REBATE_PRICE,
+       			NVL(e.IS_NO_LOCK_FLAG, 0) IS_NO_LOCK_FLAG,
+       			(case  when NVL(e.IS_NO_LOCK_FLAG, 0) = 0 then '否'  else  '是'  end) IS_NO_LOCK_FLAG_TEXT,
+       			c.sjxmc  PRD_PLACE_TEXT,
+       			e.PRD_PLACE
+  			from ERP_SEND_ORDER_DTL e
+ 			 left join (select sum(NVL(a.sended_num,0))sended_num,a.sale_order_dtl_id from ERP_sale_ORDER_DTL a where a.del_flag=0 group by a.sale_order_dtl_id) a on a.sale_order_dtl_id=e.sale_order_dtl_id
+ 			 left join t_sys_sjzdmx c on e.PRD_PLACE = c.sjxz and  c.sjzdid='PRO_PLACE'
+ 			where e.SEND_ORDER_ID = #{SEND_ORDER_ID}
+   			and e.DEL_FLAG = 0
+   			order by e.GROUP_NO asc
+ ]]>
+	</select>
+
+	<!-- 根据发货单明细id查询 -->
+	<select id="queryDtlById" parameterType="map"
+		resultType="java.util.HashMap">
+		<![CDATA[select 
+					send_order_dtl_id ,
+					row_no ,
+					sale_order_dtl_id ,
+					sale_order_id ,
+					group_no ,
+					prd_id ,
+					prd_no ,
+					prd_name ,
+					hole_spec ,
+					prd_spec ,
+					prd_toward ,
+					prd_quality ,
+					prd_color ,
+					prd_glass ,
+					prd_other ,
+					prd_series ,
+					brand ,
+					std_unit ,
+					price ,
+					dect_rate ,
+					dect_price ,
+					rebate_price,
+					projected_area,
+					expand_area,
+					send_amount,
+					rebate_amount ,
+					order_num ,
+					order_amount ,
+					to_char(advc_send_date,'yyyy-MM-dd') advc_send_date,
+					remark ,
+					del_flag ,
+					send_num ,
+					send_order_id
+				from ERP_SEND_ORDER_DTL
+		where send_order_dtl_id = #{SEND_ORDER_DTL_ID} and del_flag=0 ]]>
+	</select>
+
+	<!-- 查询收货单子表明细 -->
+	<select id="toQuerySaleSun" parameterType="map"
+		resultType="java.util.HashMap">
+		 <![CDATA[  
+		 		select 
+		 			a.SALE_ORDER_DTL_ID,
+		 			a.GROUP_NO,
+		 			a.PRD_ID,
+		 			a.PRD_NO,
+		 			a.PRD_NAME,
+		 			a.HOLE_SPEC,
+		 			a.PRD_SPEC,
+		 			a.PRD_QUALITY,
+		 			a.PRD_COLOR,
+		 			a.PRD_TOWARD,
+		 			a.PRD_GLASS,
+		 			a.PRD_OTHER,
+		 			a.PRD_SERIES,
+		 			a.PROJECTED_AREA,
+		 			a.EXPAND_AREA,
+		 			a.ORDER_NUM,
+		 			a.SENDED_NUM,
+		 			(NVL(a.ORDER_NUM, 0)-NVL(b.SEND_NUM, 0)) WAITNUM,
+		 			(NVL(a.ORDER_NUM, 0)-NVL(b.SEND_NUM, 0)) SEND_NUM,
+		 			a.STD_UNIT,
+		 			a.PRICE,
+		 			a.DECT_RATE,
+		 			a.DECT_PRICE,
+		 			a.REMARK,
+		 			a.REBATE_PRICE,
+		 			a.REBATE_AMOUNT,
+		 			a.ORDER_AMOUNT SEND_AMOUNT,
+		 			a.PRD_SIZE,
+		 			a.PRD_PLACE,
+		 			a.IS_NO_REBATE_FLAG,
+		 			a.IS_NO_LOCK_FLAG,
+		 			a.FIGURE_NO,
+		 			a.ROW_NO
+ 				 from ERP_SALE_ORDER_DTL a
+ 				 left join (
+ 				 	select 
+ 				 		sum(NVL(b.SEND_NUM, 0)) SEND_NUM, 
+ 				 		SALE_ORDER_DTL_ID
+              		 from ERP_SEND_ORDER_DTL b
+              		where b.DEL_FLAG = '0'
+             		 group by b.SALE_ORDER_DTL_ID
+             		 ) b on a.SALE_ORDER_DTL_ID = b.SALE_ORDER_DTL_ID
+ 				where NVL(a.ORDER_NUM, 0) > NVL(b.SEND_NUM, 0)
+   				and a.DEL_FLAG = '0' and  SALE_ORDER_ID=#{SALE_ORDER_ID} 
+   				order by a.GROUP_NO asc
+   			 ]]>
+	</select>
+	
+	<!-- 统计单个销售订单下单个物品发货总数量 -->
+	<select id="allSendNum" parameterType="map"
+		resultType="java.util.Map">
+		 <![CDATA[  select 
+		                nvl(sum(el.send_num),0) allSend_num
+					    from ERP_SEND_ORDER e , ERP_SEND_ORDER_DTL el
+					     ]]>
+		<where>
+			<include refid="queryNum" />
+		</where>  
+	</select>
+	<select id="allSendNum2" parameterType="map"
+		resultType="java.util.HashMap">
+		 <![CDATA[  select 
+		                el.*
+					    from ERP_SEND_ORDER e , ERP_SEND_ORDER_DTL el
+					     ]]>
+		<where>
+			<include refid="queryNum" />
+		</where>  
+	</select>
+	<sql id="queryNum">
+	   <![CDATA[ 1=1 and e.send_order_id = el.send_order_id]]>
+	   <if test="SEND_ORDER_DTL_ID != '' and SEND_ORDER_DTL_ID != null">
+			and el.send_order_dtl_id=#{SEND_ORDER_DTL_ID}
+		</if>
+	    <if test="SALE_ORDER_ID != '' and SALE_ORDER_ID != null">
+			and e.sale_order_id=#{SALE_ORDER_ID}
+		</if>
+		<if test="SALE_ORDER_DTL_ID != '' and SALE_ORDER_DTL_ID != null">
+			and el.sale_order_dtl_id=#{SALE_ORDER_DTL_ID} 
+		</if>
+		<if test="SALE_ORDER_NO != '' and SALE_ORDER_NO != null">
+			and e.sale_order_no=#{SALE_ORDER_NO}  
+		</if>
+		<if test="RETURN_NC_ID != '' and RETURN_NC_ID != null">
+			and e.return_nc_id=#{RETURN_NC_ID}  
+		</if>
+		<if test="stateNUM != '' and stateNUM != null">
+			and e.state=#{stateNUM}
+		</if>
+		 <![CDATA[ and e.del_flag=0]]>
+	</sql>
+	<!--  
+	   发货单数据回写
+	-->
+	<select id="dataBackNC" parameterType="map"
+		resultType="java.util.HashMap">
+		 <![CDATA[  
+			select ol.out_num  out_num,
+			       ol.prd_no   prd_no,
+			       o.sale_order_no  sale_order_no,
+			       el.sale_order_dtl_id sale_order_dtl_id,
+			       el.send_order_dtl_id send_order_dtl_id
+			       from  ERP_STORE_OUT o,ERP_STORE_OUT_DTL ol ,ERP_SEND_ORDER_DTL el
+		]]>
+		<where>
+			<include refid="queryNC" />
+		</where>  
+	</select>
+	<sql id="queryNC">
+	   <![CDATA[ 1=1 and o.store_out_id=ol.store_out_id and ol.send_order_dtl_id=el.send_order_dtl_id]]>
+		<if test="STORE_OUT_ID != '' and STORE_OUT_ID != null">
+			and o.store_out_id=#{STORE_OUT_ID} 
+		</if>
+		<if test="SEND_ORDER_DTL_ID != '' and SEND_ORDER_DTL_ID != null">
+			and ol.send_order_dtl_id=#{SEND_ORDER_DTL_ID} 
+		</if>
+	</sql>
+	
+	<!-- 更改销售单据实际发货数量 -->
+	<update id="modifySaleDel" parameterType="map">
+		<![CDATA[ update   ERP_SALE_ORDER_DTL
+		          set sended_num=#{SENDED_NUM}
+		]]>
+		 <where>
+			<include refid="modifyData" />
+		</where>  
+	</update>
+	<update id="modifySale" parameterType="map">
+		<![CDATA[ update   ERP_SALE_ORDER]]>
+		<set>
+			<if test="SENDED_NUM != '' and SENDED_NUM != null">
+				 sended_num=#{SENDED_NUM},
+			</if>
+			<if test="UPDATOR != '' and UPDATOR != null">
+				updator=#{UPDATOR}, 
+			</if>
+			<if test="UPD_NAME != '' and UPD_NAME != null">
+				upd_name=#{UPD_NAME},
+			</if>
+			<if test="STATE != '' and STATE != null">
+				state=#{STATE},
+			</if>
+			<![CDATA[upd_time =sysdate ]]>
+		</set>
+		 <where>
+			<include refid="modifyData" />
+		</where>  
+	</update>
+	<sql id="modifyData">
+	   <![CDATA[ 1=1 ]]>
+		<if test="SALE_ORDER_DTL_ID != '' and SALE_ORDER_DTL_ID != null">
+			and sale_order_dtl_id=#{SALE_ORDER_DTL_ID} 
+		</if>
+		<if test="SALE_ORDER_ID != '' and SALE_ORDER_ID != null">
+			and sale_order_id=#{SALE_ORDER_ID} 
+		</if>
+		<if test="SALE_ORDER_NO != '' and SALE_ORDER_NO != null">
+			and sale_order_no=#{SALE_ORDER_NO} 
+		</if>
+	</sql>
+	<!--  -->
+	<insert id="insert" parameterType="com.centit.drp.main.sales.deliver.order.model.OrderModel">
+		<![CDATA[insert into ERP_SEND_ORDER
+		  (send_order_id,
+		   send_order_no,
+		   sale_order_id,
+		   sale_order_no,
+		   state,
+		   bill_type,
+		   pre_recv_date,
+		   order_date,
+		   remark,
+		   order_chann_name,
+		   order_chann_id,
+		   order_chann_no,
+		   recv_chann_id,
+		   recv_chann_no,
+		   recv_chann_name,
+		   sale_name,
+		   sale_id,
+		   chann_name,
+		   chann_no,
+		   chann_id,
+		   print_name,
+		   saledept_name,
+		   saledept_id,
+		   transport,
+		   transport_settle,
+		   tel,
+		   person_con,
+		   recv_addr,
+		   cust_tel,
+		   cust_name,
+		   cust_addr,
+		   factory_no,
+		   proess_type,
+		   remark2,
+		   order_delivery_date,
+		   ledger_name,
+		   ledger_id,
+		   area_id,
+		   area_no,
+		   area_name,
+		   del_flag,
+		   creator,
+		   cre_name,
+		   cre_time)
+		    values
+		   (
+		   #{send_order_id,jdbcType=VARCHAR},
+		   #{send_order_no,jdbcType=VARCHAR},
+		   #{sale_order_id,jdbcType=VARCHAR},
+		   trim(#{sale_order_no,jdbcType=VARCHAR}),
+		   #{state,jdbcType=VARCHAR},
+		   #{bill_type,jdbcType=VARCHAR} ,
+		   #{pre_recv_date,jdbcType=VARCHAR},
+		   #{order_date,jdbcType=VARCHAR},
+		   #{remark,jdbcType=VARCHAR},
+		   #{order_chann_name,jdbcType=VARCHAR},
+		   #{order_chann_id,jdbcType=VARCHAR},
+		   #{order_chann_no,jdbcType=VARCHAR},
+		   #{recv_chann_id,jdbcType=VARCHAR},
+		   #{recv_chann_no,jdbcType=VARCHAR},
+		   #{recv_chann_name,jdbcType=VARCHAR},
+		   #{sale_name,jdbcType=VARCHAR},
+		   #{sale_id,jdbcType=VARCHAR},
+		   #{chann_name,jdbcType=VARCHAR},
+		   #{chann_no,jdbcType=VARCHAR},
+		   #{chann_id,jdbcType=VARCHAR},
+		   #{print_name,jdbcType=VARCHAR},
+		   #{saledept_name,jdbcType=VARCHAR},
+		   #{saledept_id,jdbcType=VARCHAR},
+		   #{transport,jdbcType=VARCHAR},
+		   #{transport_settle,jdbcType=VARCHAR},
+		   #{tel,jdbcType=VARCHAR},
+		   #{person_con,jdbcType=VARCHAR},
+		   #{recv_addr,jdbcType=VARCHAR},
+		   #{cust_tel,jdbcType=VARCHAR},
+		   #{cust_name,jdbcType=VARCHAR},
+		   #{cust_addr,jdbcType=VARCHAR},
+		   #{factory_no,jdbcType=VARCHAR},
+		   #{proess_type,jdbcType=VARCHAR},
+		   #{remark2,jdbcType=VARCHAR},
+		   #{order_delivery_date,jdbcType=VARCHAR},
+		   #{ledger_name,jdbcType=VARCHAR},
+		   #{ledger_id,jdbcType=VARCHAR},
+		   #{area_id,jdbcType=VARCHAR},
+		   #{area_no,jdbcType=VARCHAR},
+		   #{area_name,jdbcType=VARCHAR},
+		   0,
+		   #{creator,jdbcType=VARCHAR},
+		   #{cre_name,jdbcType=VARCHAR},
+		   sysdate) ]]>
+	</insert>
+	
+	<update id="modify" parameterType="com.centit.drp.main.sales.deliver.order.model.OrderModel">
+		<![CDATA[ UPDATE ERP_SEND_ORDER ]]>
+		<set>
+		    <![CDATA[upd_time = sysdate,]]>
+			<if test="updator !=null and updator != '' ">updator =#{updator},</if>
+			<if test="upd_name !=null and upd_name != '' ">upd_name = #{upd_name},</if> 
+			<if test="nc_return_id !=null and nc_return_id != '' ">nc_return_id = #{nc_return_id},</if> 
+			<!--订货总金额，返利总额  -->
+			<if test="state !=null and state != '' ">state =#{state},</if>
+			<if test="transport !=null and transport != '' ">transport =#{transport},</if>
+			<if test="transport_settle !=null and transport_settle != '' ">transport_settle =#{transport_settle},</if>
+			<if test="tel !=null and tel != '' ">tel =#{tel},</if>
+			<if test="recv_addr !=null and recv_addr != '' ">recv_addr =#{recv_addr},</if>
+			<if test="cust_name !=null and cust_name != '' ">cust_name =#{cust_name},</if>
+			<if test="cust_tel !=null and cust_tel != '' ">cust_tel =#{cust_tel},</if>
+			<if test="cust_addr !=null and cust_addr != '' ">cust_addr =#{cust_addr},</if>
+			<if test="person_con !=null and person_con != '' ">person_con =#{person_con},</if>
+			<if test="check_advice !=null and check_advice != '' ">check_advice =#{check_advice},</if>
+			<if test="total_amount !=null and total_amount != '' ">total_amount=#{total_amount}, </if>
+			<if test="total_rebate !=null and total_rebate != '' ">total_rebate=#{total_rebate}, </if>
+		</set>      
+	   <![CDATA[where send_order_id = #{send_order_id}]]>
+	</update>
+	
+	<insert id="insertSun" parameterType="com.centit.drp.main.sales.deliver.order.model.SendDtlModel">
+		<![CDATA[
+			insert into ERP_SEND_ORDER_DTL 
+			(
+			sale_order_dtl_id,
+	        sale_order_id  ,
+	        group_no ,
+	        prd_id ,
+	        prd_no ,
+	        prd_name ,
+	        hole_spec ,
+	        prd_spec ,
+	        prd_toward ,
+	        prd_quality,
+	        prd_color ,
+	        prd_glass  ,
+	        prd_other  ,
+	        prd_series ,
+	        brand    ,
+	        std_unit ,
+	        price ,
+	        dect_rate ,
+	        dect_price ,
+	        rebate_amount ,
+	        rebate_price,
+	        order_num  ,
+	        order_amount ,
+	        advc_send_date ,
+	        remark ,
+	        send_num   ,
+	        row_no   ,
+	        projected_area,
+	        expand_area  ,
+	        send_order_dtl_id ,
+	        send_order_id  ,
+	        send_amount ,
+	        prd_size ,
+	        sended_num ,
+	        prd_place ,
+	        is_no_rebate_flag ,
+	        is_no_lock_flag ,
+	        figure_no,
+	        del_flag
+	       )values(
+			#{sale_order_dtl_id,jdbcType=VARCHAR},
+	        #{sale_order_id,jdbcType=VARCHAR}  ,
+	        #{group_no,jdbcType=VARCHAR} ,
+	        #{prd_id,jdbcType=VARCHAR} ,
+	        #{prd_no,jdbcType=VARCHAR} ,
+	        #{prd_name,jdbcType=VARCHAR} ,
+	        #{hole_spec,jdbcType=VARCHAR} ,
+	        #{prd_spec,jdbcType=VARCHAR} ,
+	        #{prd_toward,jdbcType=VARCHAR} ,
+	        #{prd_quality,jdbcType=VARCHAR},
+	        #{prd_color,jdbcType=VARCHAR} ,
+	        #{prd_glass,jdbcType=VARCHAR}  ,
+	        #{prd_other,jdbcType=VARCHAR}  ,
+	        #{prd_series,jdbcType=VARCHAR} ,
+	        #{brand,jdbcType=VARCHAR}    ,
+	        #{std_unit,jdbcType=VARCHAR} ,
+	        #{price,jdbcType=VARCHAR} ,
+	        #{dect_rate,jdbcType=VARCHAR} ,
+	        #{dect_price,jdbcType=VARCHAR} ,
+	        #{rebate_amount,jdbcType=VARCHAR} ,
+	        #{rebate_price,jdbcType=VARCHAR} ,
+	        #{order_num,jdbcType=VARCHAR}  ,
+	        #{order_amount,jdbcType=VARCHAR} ,
+	        #{advc_send_date,jdbcType=VARCHAR} ,
+	        #{remark,jdbcType=VARCHAR} ,
+	        #{send_num,jdbcType=VARCHAR}  ,
+	        #{row_no,jdbcType=VARCHAR}   ,
+	        #{projected_area,jdbcType=VARCHAR},
+	        #{expand_area,jdbcType=VARCHAR}  ,
+	        #{send_order_dtl_id,jdbcType=VARCHAR} ,
+	        #{send_order_id,jdbcType=VARCHAR}  ,
+	        #{send_amount,jdbcType=VARCHAR} ,
+	        #{prd_size,jdbcType=VARCHAR} ,
+	        #{sended_num,jdbcType=VARCHAR} ,
+	        #{prd_place,jdbcType=VARCHAR} ,
+	        #{is_no_rebate_flag,jdbcType=VARCHAR} ,
+	        #{is_no_lock_flag,jdbcType=VARCHAR} ,
+	        #{figure_no,jdbcType=VARCHAR},
+	        0)
+		 ]]>
+	</insert>
+	<!--预订明细表商品数量更新 -->
+	<update id="updateSunById" parameterType="com.centit.drp.main.sales.deliver.order.model.SendDtlModel">
+		<![CDATA[ UPDATE ERP_SEND_ORDER_DTL]]>
+		<set>
+			<if test="send_amount !=null">send_amount=#{send_amount},</if>
+			<if test="send_num !=null">send_num=#{send_num},</if>
+			<if test="rebate_amount !=null">rebate_amount=#{rebate_amount},</if>
+			<if test="dect_price !=null and dect_price != '' ">dect_price =#{dect_price},</if>
+			<if test="order_num !=null">order_num=#{order_num},</if>
+			<if test="order_amount !=null">order_amount=#{order_amount},</if>
+			<if test="sended_num !=null">sended_num=#{sended_num},</if>
+		</set>      
+	   <![CDATA[where send_order_dtl_id = #{send_order_dtl_id}]]>
+	</update>
+	
+	<update id="delSendDtlById" parameterType="string">
+		update ERP_SEND_ORDER_DTL set del_flag=1 where send_order_id=#{sendOrderId}
+	</update>
+	<!-- 更改发货指令单据状态 -->
+	<update id="updateByID" parameterType="map">
+		<![CDATA[ update   ERP_SEND_ORDER
+		set del_flag=#{del_flag},
+		    updator =#{updator},
+			upd_name =#{upd_name},
+			upd_time =sysdate
+		 where send_order_id = #{SEND_ORDER_ID} ]]>
+	</update>
+	<!--添加附件 -->
+	<insert id="insertFile" parameterType="java.util.Map">
+		<![CDATA[
+		 insert into BASE_ATT
+        (att_id,
+         att_path,
+         from_bill_id,
+         creator,
+         cre_name,
+         cre_time,
+         del_flag )
+      values
+        (#{att_id,jdbcType=VARCHAR},
+         #{att_path,jdbcType=VARCHAR},
+         #{from_bill_id,jdbcType=VARCHAR},
+         #{creator,jdbcType=VARCHAR},
+         #{cre_name,jdbcType=VARCHAR},
+         sysdate,
+          0)
+		]]>
+	</insert>
+	<delete id="deleteFile" parameterType="string">
+		<![CDATA[delete BASE_ATT where  from_bill_id=#{project_id}]]>
+	</delete>
+	
+	<select id="getSendOrder" parameterType="string" resultMap="sendOrderModel">
+		select 
+			   e.send_order_id,
+		       e.send_order_no, 
+		       e.sale_order_id,
+		       e.sale_order_no,  
+		       e.bill_type, 
+		       e.order_chann_id, 
+		       e.order_chann_no,  
+		       e.order_chann_name,
+		       e.order_date,
+		       e. chann_id,
+		       e.chann_no,
+		       e.chann_name,
+		       e.print_name,
+		       nvl(e.transport,' ') transport, 
+		       nvl(e.transport_settle,' ') transport_settle, 
+		       e.factory_no,  
+		       e.proess_type,
+		       e.sale_id,
+		       e.sale_name,  
+		       e.saledept_name,
+		       e.saledept_id, 
+		       e.order_delivery_date,
+		       nvl(e.cust_name,' ') cust_name, 
+		       e.is_use_rebate,
+		       e.recv_chann_id, 
+		       e.recv_chann_no, 
+		       e.recv_chann_name,
+		       e.person_con,
+		       e.recv_addr,
+		       e.recv_addr_no,
+		       nvl(e.tel,' ') tel,   
+		       e.state,
+		       nvl(e.remark,' ') remark,
+		       nvl(e.remark2,' ') remark2,
+		       e.ledger_name, 
+		       e.ledger_id,
+		       e.del_flag, 
+		       e.dept_name,  
+		       e.dept_id,
+		       e.org_id,
+		       e.org_name,  
+		       e.area_id,  
+		       e.area_no, 
+		       nvl(e.area_name,' ') area_name,   
+		       e.order_delivery_date,
+		       e.cust_tel,  
+		       nvl(e.cust_addr,' ') cust_addr, 
+		       e.send_order_id,  
+		       e.send_order_no,   
+		       e.total_amount,  
+		       e.total_rebate,
+		       to_char(e.cre_time,'yyyy-MM-DD HH:mi:ss')  cre_time,
+		       e.creator,
+			   e.cre_name,
+			   e.updator,
+			   e.upd_name,
+			   to_char(e.upd_time,'yyyy-MM-DD HH:mi:ss') upd_time
+		from ERP_SEND_ORDER e
+		where e.send_order_id = #{saleOrderId}
+		and e.del_flag=0
+	</select>
+	
+	<select id="getSendDtlOrder" parameterType="string" resultMap="sendDtlModel">
+		select 
+			   send_order_dtl_id,
+	           row_no,
+	           sale_order_dtl_id,
+	           sale_order_id,
+	           group_no,
+	           prd_id,
+	           prd_no,
+	           nvl(prd_name,' ') prd_name, 
+	           nvl(hole_spec,' ') hole_spec,
+	           nvl(prd_spec,' ') prd_spec, 
+	           nvl(prd_toward,' ') prd_toward, 
+	           prd_quality,
+	           nvl(prd_color,' ') prd_color, 
+	           nvl(prd_glass,' ') prd_glass, 
+	           nvl(prd_other,' ') prd_other, 
+	           nvl(prd_series,' ') prd_series, 
+	           nvl(brand,' ') brand, 
+	           nvl(std_unit,' ') std_unit, 
+	           price,
+	           dect_rate,
+	           dect_price,
+	           rebate_amount,
+	           order_num,
+	           order_amount,
+	           advc_send_date,
+	           nvl(remark,' ') remark, 
+	           send_num,
+	           send_order_id,
+	           nvl(projected_area,' ') projected_area, 
+	           nvl(expand_area,' ') expand_area, 
+	           send_amount,
+	           rebate_price ,
+	           NVL(IS_NO_LOCK_FLAG,0) IS_NO_LOCK_FLAG
+		from ERP_SEND_ORDER_DTL
+		where send_order_id = #{saleOrderId}
+		and del_flag=0 and nvl(send_num,0)>0 
+		order by group_no ASC ,row_no ASC
+	</select>
+	
+	<update id="updSendSendedNum" parameterType="java.util.List">
+		<foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+			update ERP_SEND_ORDER_DTL set SENDED_NUM=NVL(SENDED_NUM,0) + NVL(#{item.sendedNum,jdbcType=VARCHAR},0)
+			where SEND_ORDER_DTL_ID = #{item.sendOrderDtlId};
+		</foreach>
+	</update>
+	
+	
+	<update id="updSaleSendedNum" parameterType="java.util.List">
+		<foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+					update ERP_SALE_ORDER_DTL a  set a.SENDED_NUM = NVL(a.SENDED_NUM,0) + NVL(#{item.sendedNum,jdbcType=VARCHAR},0)
+					where SALE_ORDER_DTL_ID = (select SALE_ORDER_DTL_ID from ERP_SEND_ORDER_DTL where SEND_ORDER_DTL_ID=#{item.sendOrderDtlId});
+		</foreach>
+	</update>
+	
+	<select id="getSendIdByDtlIds" parameterType="string" resultType="string">
+		select SEND_ORDER_ID
+		from ERP_SEND_ORDER_DTL
+		where SEND_ORDER_DTL_ID in (${sendOrderDtlIds})
+		group by SEND_ORDER_ID
+	</select>
+	
+	<update id="updSendState" parameterType="map">
+		update ERP_SEND_ORDER a set a.STATE=#{state}
+		where a. SEND_ORDER_ID in (
+			select 
+				SEND_ORDER_ID 
+			from ERP_SEND_ORDER_DTL a
+			where SEND_ORDER_ID in (${sendOrderIds})
+			having sum(NVL(a.ORDER_NUM,0)) -sum(NVL(a.SENDED_NUM,0)) =0
+			group by a.SEND_ORDER_ID
+		)
+	</update>
+	<select id="getSendedSaleId" parameterType="string" resultType="string">
+		select 
+			a.SALE_ORDER_ID
+		from ERP_SALE_ORDER a
+		left join ERP_SALE_ORDER_DTL b on a.SALE_ORDER_ID=b.SALE_ORDER_ID
+		where a.FACTORY_NO=#{factoryNo}
+		having sum(NVL(b.ORDER_NUM,0)) = sum(NVL(b.SENDED_NUM,0))
+		group by a.SALE_ORDER_ID
+	</select>
+	
+	<select id="queryNumIsTrue" parameterType="string" resultType="java.util.HashMap">
+		<![CDATA[SELECT
+			wmsys.wm_concat(a.prd_name) prd_name 
+		FROM
+			erp_sale_order_dtl a 
+    		left join ERP_SALE_ORDER b on a.SALE_ORDER_ID = b.SALE_ORDER_ID
+		WHERE
+			ABS(NVL(a.order_num, 0)) < ABS (NVL(a.sended_num, 0))
+			and a.DEL_FLAG = 0
+			and b.FACTORY_NO = #{factory_no}]]>
+	</select>
+	
+	<select id="getSaleOrderById" parameterType="string" resultType="java.util.HashMap">
+		select 
+			SALE_ORDER_ID,
+			FACTORY_NO,
+			LEDGER_ID,
+			ORDER_TRACE_ID
+		from ERP_SALE_ORDER where SALE_ORDER_ID=#{saleOrderId}
+	</select>
+	
+	<select id="checkSendNum" parameterType="string" resultType="string">
+		<![CDATA[
+			select 
+				a.PRD_NAME
+  			from ERP_SALE_ORDER_DTL a
+  			left join (
+  				select 
+  					sum(abs(NVL(b.SEND_NUM, 0))) num, 
+  					b.SALE_ORDER_DTL_ID
+               from ERP_SEND_ORDER_DTL b
+              where b.DEL_FLAG = 0
+              group by b.SALE_ORDER_DTL_ID
+            ) b   on a.SALE_ORDER_DTL_ID = b.SALE_ORDER_DTL_ID
+ 			where a.SALE_ORDER_ID = #{SALE_ORDER_ID}
+   				and a.DEL_FLAG = 0
+   			and abs(NVL(a.ORDER_NUM,0))<abs(NVL(B.NUM,0))
+   		]]>
+	</select>
+	
+	<!-- 根据出库单ID获取出库明细 -->
+	<select id="getOutDtlById" parameterType="string" resultType="java.util.HashMap">
+		select 
+			a.SEND_ORDER_DTL_ID,
+			a.OUT_NUM 
+		from ERP_STORE_OUT_DTL a
+		where a.STORE_OUT_ID=#{storeOutId} and a.DEL_FLAG='0'
+	</select>
+	
+	<select id="getFactoryNoByOutId" parameterType="string" resultType="string">
+		select SALE_ORDER_NO from ERP_STORE_OUT where STORE_OUT_ID=#{storeOutId}
+	</select>
+	
+	<!--  校验返修发货单号-->
+	<select id="checkFactoryNO" parameterType="string"
+		resultType="int">
+		 <![CDATA[ select  count(*) from ERP_SEND_ORDER  where  del_flag=0   and 
+		  ${FACTORY_NO} ]]>
+	</select>
+	
+</mapper>
+

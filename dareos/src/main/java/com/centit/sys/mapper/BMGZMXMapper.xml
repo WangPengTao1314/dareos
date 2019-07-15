@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.centit.sys.mapper.BMGZMXMapper">
+
+
+	<!-- 使用LLGL装载结果集 -->
+	<resultMap id="BmgzMxModel" type="com.centit.sys.model.BmgzMxModel">
+		<result column="BMGZMXID" property="BMGZMXID" />
+	</resultMap>
+
+	<!-- 动态查询 and 列表分页 -->
+	<sql id="queryDynSql">
+		<if test="BMGZMXID !=null and BMGZMXID !='' ">
+			u.BMGZMXID =#{BMGZMXID}
+		</if>
+		<if test="BMGZID !=null and BMGZID !='' ">
+			and u.BMGZID =#{BMGZID}
+		</if>		
+		<if test="DELFLAG !=null and DELFLAG !='' ">
+			and u.DELFLAG = #{DELFLAG}
+		</if>
+	</sql>
+    <sql id="orderSql">
+			 order by
+		<if test="orderField !=null and orderField !='' ">
+				${orderField},
+		</if>
+		CRETIME DESC 
+	</sql>
+	<!-- 查询SQL -->
+	<sql id="coreSql">
+		<![CDATA[  select u.BMGZMXID,u.BMGZID,u.DLX,u.DELFLAG,u.CREATER,u.CRETIME,u.UPDATER,u.UPDTIME,u.DCD,u.DT,u.NYS,u.BC,u.STATE,u.CSZ
+		  from T_SYS_BMGZMX u ]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+		<include refid="orderSql"/>
+		
+	</sql>
+	
+	<!-- 分页查询 -->
+	<select id="pageQuery" parameterType="map"
+		resultType="com.centit.sys.model.BmgzMxModel">
+		
+	<include refid="coreSql" /> 
+	
+	</select>
+
+	<!-- 分页计数 -->
+	<select id="pageCount" parameterType="map" resultType="int">
+		<![CDATA[SELECT count(BMGZMXID) cnt FROM T_SYS_BMGZMX u ]]>
+		<where>
+			<include refid="queryDynSql"/>
+		</where>
+	</select>
+
+   <!-- 查询 -->
+	<select id="query" parameterType="map"
+		resultType="com.centit.sys.model.BmgzMxModel">
+		<include refid="coreSql" />
+	</select>
+	
+	<insert id="insert" parameterType="map">
+	<foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+	
+		<![CDATA[
+		 insert into T_SYS_BMGZMX(BMGZMXID,BMGZID,DLX,DELFLAG,CREATER,CRETIME,UPDATER,UPDTIME,DCD,DT,NYS,BC,CSZ,STATE)
+		 values(#{item.BMGZMXID},#{item.BMGZID},#{item.DLX},0,#{item.CREATER},sysdate,#{item.UPDATER},sysdate,to_number(#{item.DCD}),#{item.DT},#{item.NYS},to_number(#{item.BC}),
+		        to_number(#{item.CSZ}),#{item.STATE});
+		]]>
+		</foreach>
+	</insert>
+
+	<update id="updateById" parameterType="java.util.List">
+	<foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+	
+		<![CDATA[ update T_SYS_BMGZMX set ]]>
+		<!-- CHANAME, CHADES,CHADATE,CHASTU -->
+		
+			<if test="item.BMGZID !=null and item.BMGZID !=''"><![CDATA[BMGZID = #{item.BMGZID}]]>,</if>
+			<if test="item.DLX !=null and item.DLX !=''"><![CDATA[DLX = #{item.DLX}]]>,</if>
+			<if test="item.DELFLAG !=null and item.DELFLAG !=''"><![CDATA[DELFLAG = #{item.DELFLAG}]]>,</if>
+			<if test="item.DELFLAG !=null and item.DELFLAG !=''"><![CDATA[DELFLAG = #{item.UPDATER}]]>,</if>
+			<if test="item.DCD !=null and item.DCD !=''"><![CDATA[DCD = to_number(#{item.DCD})]]>,</if>
+			<if test="item.DT !=null and item.DT !=''"><![CDATA[DT = #{item.DT}]]>,</if>
+			<if test="item.NYS !=null and item.NYS !=''"><![CDATA[NYS = #{item.NYS}]]>,</if>
+			<if test="item.BC !=null and item.BC !=''"><![CDATA[BC = to_number(#{item.BC})]]>,</if>
+			<if test="item.CSZ !=null and item.CSZ !=''"><![CDATA[CSZ = to_number(#{item.CSZ})]]>,</if>
+			<if test="item.STATE !=null and item.STATE !=''"><![CDATA[STATE = #{item.STATE}]]>,</if>
+		UPDTIME = sysdate 
+		<![CDATA[ where BMGZMXID = #{item.BMGZMXID}; ]]>
+		</foreach>
+	</update>
+	<!-- 删除菜单 -->
+	<delete id="deleteByFkId" parameterType="String">
+		<!--  delete from T_SYS_BMGZMX where BMGZID = #BMGZID:VARCHAR#  -->
+		<![CDATA[ update T_SYS_BMGZMX set DELFLAG =1 where BMGZID = #{BMGZID,jdbcType=VARCHAR} ]]>
+	</delete>
+	<delete id="deleteByIds" parameterType="String">
+		<!-- delete from T_SYS_BMGZMX where BMGZMXID in ($CMLMXIDS$)  -->
+		<![CDATA[ delete from T_SYS_BMGZMX where BMGZMXID in (${bmgzMxIds}) ]]>
+	</delete>
+	<insert id="insertBMGZMX" parameterType="map">
+	   insert into t_sys_datarecycle(DATARECYCLEID,DELETOR,DELTIME,BUSINESSTYPE,DF1,DF2,DF3,DF4,DF5,DF6,DF7,DF8,DF9,DF10,DF11,DF12,DF13,DF14)
+	    select #{DATARECYCLEID}||rownum,#{DELETOR},sysdate,'编码规则明细信息维护',BMGZMXID,BMGZID,DLX,DCD,DT,NYS,BC,CSZ,DELFLAG,CREATER,CRETIME,UPDATER,UPDTIME,STATE
+        from T_SYS_BMGZMX  where  BMGZMXID in (${bmgzMxIds})
+	</insert>
+	<select id="loadById" parameterType="map" resultType="java.util.HashMap">
+		<![CDATA[  select u.BMGZMXID,u.BMGZID,u.DLX,u.DELFLAG,u.CREATER,u.CRETIME,u.UPDATER,u.UPDTIME,u.DCD,u.DT,u.NYS,u.BC,u.STATE,u.CSZ
+		     from T_SYS_BMGZMX u where u.BMGZMXID = #{BMGZMXID}]]>
+	</select>
+	<select id="loadByIds" parameterType="String" resultType="com.centit.sys.model.BmgzMxModel">
+		<![CDATA[  
+		  select u.BMGZMXID,u.BMGZID,u.DLX,u.DELFLAG,u.CREATER,u.CRETIME,u.UPDATER,u.UPDTIME,u.DCD,u.DT,u.NYS,u.BC,u.STATE,u.CSZ
+		  from T_SYS_BMGZMX u
+		  where u.BMGZMXID in (${BMGZMXIDS})]]>
+	</select>
+	
+	<select id="getZcd" parameterType="String" resultType="int">
+		<![CDATA[  select sum(DCD)
+		     from T_SYS_BMGZMX u where u.BMGZID = #{BMGZID} and DELFLAG =0]]>
+	</select>
+	
+</mapper>
+

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- 
+*@module 订单管理 
+*@func 发货指令
+*@version 1.1 
+*@author 
+* -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.centit.drp.main.sales.deliver.repairShip.mapper.RepairShipMapper">
+	 
+	
+
+</mapper>
+

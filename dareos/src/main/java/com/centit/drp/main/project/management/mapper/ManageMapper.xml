@@ -1,0 +1,560 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- 
+*@module 工程项目 
+*@func 招投标管理 
+*@version 1.1 
+*@author 
+* -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.centit.drp.main.project.management.mapper.ManageMapper">
+	
+	<!-- 动态查询 and 列表分页 -->
+	<sql id="queryDyn">
+		<if test="PROJECT_NO != '' and PROJECT_NO != null">
+			and e.project_no like '%'||#{PROJECT_NO}||'%'
+		</if>
+		<if test="PROJECT_NAME != '' and PROJECT_NAME != null">
+			and e.project_name like '%'||#{PROJECT_NAME}||'%'
+		</if>
+		<if test="CONTRACT_UNIT != '' and CONTRACT_UNIT != null">
+			and e.contract_unit like '%'||#{CONTRACT_UNIT}||'%'
+		</if>
+		<if test="STATE != '' and STATE != null">
+			and e.state like '%'||#{STATE}||'%'
+		</if>
+		<if test="PROJECT_MANAGER != '' and PROJECT_MANAGER != null">
+			and e.project_manager like '%'||#{PROJECT_MANAGER}||'%'
+		</if>
+		<if test="XTYHID != '' and XTYHID != null">
+			and (e.creator=#{XTYHID} or e.updator=#{XTYHID}) 
+		</if>
+		 <![CDATA[ and e.del_flag = 0 ]]>  
+		<if test="DEL_FLAG !=null and DEL_FLAG !='' "> and e.DEL_FLAG = #{DEL_FLAG} </if>
+		<if test="PROJECT_NAME_EQ !=null and PROJECT_NAME_EQ !='' ">and <![CDATA[e.PROJECT_NAME=#{PROJECT_NAME_EQ}]]></if>
+	</sql>
+	<sql id="orderSql">
+		order by 
+		<if test="orderField !=null and orderField !='' "> ${orderField} </if>
+	</sql>
+	<!-- 查询SQL -->
+	<sql id="coreSql">
+		<![CDATA[ select 
+			e.project_id project_id,
+	       e.project_no project_no,
+	       e.project_name project_name,
+	       e.tendering_id tendering_id,
+	       e.tendering_no ,
+	       e.project_type project_type,
+	       e.contract_unit contract_unit,
+	       e.address address,
+	       e.charge_person charge_person,
+	       e.warranty_period warranty_period,
+	       to_char(e.start_date, 'yyyy-MM-dd') start_date,
+	       to_char(e.settle_date, 'yyyy-MM-dd') settle_date,
+	       e.settle_amount settle_amount,
+	       e.unit_full_name unit_full_name,
+	       e.unit_address unit_address,
+	       e.bank_acct bank_acct,
+	       e.bank_name bank_name,
+	       e.ax_burden ax_burden,
+	       e.remark remark,
+	       e.sample_att_id sample_att_id,
+	       e.sample_houses_att_id sample_houses_att_id,
+	       e.contract_sing_att_id contract_sing_att_id,
+	       e.project_handover_att_id project_handover_att_id,
+	       e.material_apply_att_id material_apply_att_id,
+	       e.install_contract_sing_att_id install_contract_sing_att_id,
+	       e.goods_order_att_id goods_order_att_id,
+	       e.send_pro_att_id send_pro_att_id,
+	       e.visa_att_id visa_att_id,
+	       e.replenishment_att_id replenishment_att_id,
+	       e.service_att_id service_att_id,
+	       e.creator creator, 
+	       e.cre_name cre_name,
+	       to_char(e.cre_time, 'yyyy-MM-dd') cre_time,
+	       e.updator updator,
+	       e.upd_name upd_name,
+	       to_char(e.upd_time, 'yyyy-MM-dd') upd_time,
+	       e.dept_id dept_id,
+	       e.dept_name dept_name,
+	       e.del_flag del_flag,
+	       to_char(e.check_accept, 'yyyy-MM-dd') check_accept,
+	       to_char(e.warranty_amount_expire_date, 'yyyy-MM-dd') warranty_amount_expire_date,
+	       e.state state,
+	       e.contact_a_person contact_a_person,
+	       e.supply_unit supply_unit,
+	       e.salesman salesman,
+	       e.project_manager project_manager,
+	       e.contracts_number contracts_number,
+	       e.colour_and_material colour_and_material,
+	       e.appearance_requirement appearance_requirement,
+	       e.material_requirement material_requirement,
+	       e.hardware_config hardware_config,
+	       e.packaging_requirements packaging_requirements,
+	       e.process_drawing process_drawing,
+	       e.out_prd_amount out_prd_amount,
+	       (select u.XM from  t_Sys_Xtyh t,T_SYS_RYXX u where t.RYXXID =u.RYXXID and t.XTYHID=e.creator ) user_name  
+		from ERP_PROJECT e ]]>
+		<where>
+			<include refid="queryDyn" />
+		</where>
+		<include refid="orderSql" />
+		<!-- <![CDATA[ order by e.cre_time desc]]> -->
+	</sql>
+	<!-- 
+	   分页查询 
+	-->
+	<select id="pageQuery" parameterType="map"
+		resultType="java.util.HashMap">
+		<include refid="coreSql" />
+	</select>
+	
+	<!--统计实际出货总金额-->
+	<select id="sumMonery" parameterType="map" resultType="java.util.Map">
+		<![CDATA[ select sum(el.sended_num * el.dect_price) OUT_PRD_AMOUNT
+				    from ERP_SALE_ORDER e, ERP_SALE_ORDER_DTL el
+				   where e.sale_order_id = el.sale_order_id
+				     and e.state = '已发货'
+				     and e.project_id =#{PROJECT_ID}]]>
+	</select>
+	
+	<!--
+		查询项目单挑记录回显
+	-->
+	<select id="toQuery" parameterType="map" resultType="java.util.HashMap">
+		<![CDATA[ select 
+			e.project_id project_id,
+	       e.project_no project_no,
+	       e.project_name project_name,
+	       e.tendering_id tendering_id,
+	       e.tendering_no  tendering_no,
+	       e.project_type project_type,
+	       e.contract_unit contract_unit,
+	       e.address address,
+	       e.charge_person charge_person,
+	       e.warranty_period warranty_period,
+	       to_char(e.start_date, 'yyyy-MM-dd') start_date,
+	       to_char(e.settle_date, 'yyyy-MM-dd') settle_date,
+	       e.settle_amount settle_amount,
+	       e.unit_full_name unit_full_name,
+	       e.unit_address unit_address,
+	       e.bank_acct bank_acct,
+	       e.bank_name bank_name,
+	       e.ax_burden ax_burden,
+	       e.remark remark,
+	       e.creator creator, 
+	       e.cre_name cre_name,
+	       to_char(e.cre_time, 'yyyy-MM-dd') cre_time,
+	       e.updator updator,
+	       e.upd_name upd_name,
+	       to_char(e.upd_time, 'yyyy-MM-dd') upd_time,
+	       e.dept_id dept_id,
+	       e.dept_name dept_name,
+	       e.del_flag del_flag,
+	       to_char(e.check_accept, 'yyyy-MM-dd') check_accept,
+	       to_char(e.warranty_amount_expire_date, 'yyyy-MM-dd') warranty_amount_expire_date,
+	       e.state state,
+	       e.contact_a_person contact_a_person,
+	       e.supply_unit supply_unit,
+	       e.salesman salesman,
+	       e.project_manager project_manager,
+	       e.contracts_number contracts_number,
+	       e.colour_and_material colour_and_material,
+	       e.appearance_requirement appearance_requirement,
+	       e.material_requirement material_requirement,
+	       e.hardware_config hardware_config,
+	       e.packaging_requirements packaging_requirements,
+	       e.process_drawing process_drawing,
+	       e.out_prd_amount out_prd_amount
+		from ERP_PROJECT e
+		where e.project_id=#{project_id}]]>
+	</select>
+	<!--
+		查询付款记录
+	-->
+	<select id="listQuery" parameterType="map"
+		resultType="java.util.HashMap">
+		<![CDATA[ select 
+					project_payable_id,
+				   payable_stage,
+				   payable_condition,
+				   to_char(payable_date, 'yyyy-MM-dd') payable_date,
+				   payable_rate,
+				   payable_amount,
+				   reality_amount,
+				   to_char(request_amount_date, 'yyyy-MM-dd') request_amount_date,
+				   to_char(invoice_date, 'yyyy-MM-dd') invoice_date,
+				   invoice_amount,
+				   to_char(back_amount_date, 'yyyy-MM-dd') back_amount_date,
+				   back_amount,
+				   out_prd_amount,
+				   project_id
+			from erp_project_payable where project_id=#{PROJECT_ID} 
+			order by payable_stage asc  ]]>
+	</select>
+	
+	<!--  
+		编辑
+	-->
+	<update id="modify" parameterType="map">
+		<![CDATA[ UPDATE ERP_PROJECT ]]> 
+		<set>
+			<if test=" project_name !=null">project_name =#{project_name},</if>
+	        <if test=" tendering_id !=null">tendering_id =#{tendering_id},</if>
+	        <if test=" tendering_no !=null">tendering_no =#{tendering_no},</if>
+	        <if test=" project_type !=null">project_type =#{project_type},</if>
+	        <if test=" contract_unit !=null">contract_unit =#{contract_unit},</if>
+	        <if test=" address !=null">address =#{address},</if>
+	        <if test=" warranty_period !=null"> warranty_period =#{warranty_period}, </if>
+	        <if test=" start_date !=null">start_date =#{start_date},</if>
+	        <if test=" settle_date !=null">settle_date =#{settle_date},</if>
+	        <if test=" settle_amount !=null"> settle_amount =#{settle_amount}, </if>
+	        <if test=" unit_address !=null">unit_address =#{unit_address},</if>
+	        <if test=" bank_acct !=null">bank_acct =#{bank_acct}, </if>
+	        <if test=" bank_name !=null">bank_name =#{bank_name}, </if>
+	        <if test=" remark !=null">remark =#{remark},</if>
+	        <if test=" updator !=null"> updator =#{updator},</if>
+	        <if test=" upd_name !=null">upd_name =#{upd_name},</if>
+	        <if test=" upd_time !=null">upd_time =sysdate,  </if>
+	        <if test=" dept_id !=null"> dept_id =#{dept_id},</if>
+	        <if test=" dept_name !=null">dept_name =#{dept_name},</if>
+	        <if test=" check_accept !=null">check_accept   =#{check_accept},</if>
+	        <if test="contact_a_person  !=null"> contact_a_person=#{contact_a_person},</if>
+         	<if test=" supply_unit !=null">supply_unit =#{supply_unit},</if>
+         	<if test="salesman  !=null">salesman =#{salesman},</if>
+         	<if test="project_manager  !=null">project_manager =#{project_manager},</if>
+         	<if test="contracts_number  !=null">contracts_number =#{contracts_number},</if>
+         	<if test="colour_and_material  !=null">colour_and_material =#{colour_and_material},</if>
+         	<if test="appearance_requirement  !=null">appearance_requirement =#{appearance_requirement},</if>
+         	<if test="material_requirement  !=null">material_requirement =#{material_requirement},</if>
+         	<if test="hardware_config  !=null">hardware_config =#{hardware_config},</if>
+         	<if test="packaging_requirements  !=null">packaging_requirements =#{packaging_requirements},</if>
+         	<if test="process_drawing  !=null">process_drawing =#{process_drawing},</if>
+         	<if test="out_prd_amount  !=null">out_prd_amount =#{out_prd_amount},</if>
+         	<if test="ax_burden  !=null">ax_burden =#{ax_burden},</if>
+	        <if test="warranty_amount_expire_date !=null"> warranty_amount_expire_date =#{warranty_amount_expire_date}</if>
+       </set>      
+	   <![CDATA[WHERE project_id = #{project_id} ]]>
+	</update>
+	<insert id="insert" parameterType="java.util.Map">
+		<![CDATA[
+		 insert into ERP_PROJECT
+        (project_id,
+         project_no,
+         project_name,
+         project_type,
+         tendering_id,
+         tendering_no,
+         contract_unit,
+         address,
+         warranty_period, 
+         start_date, 
+         settle_date, 
+         settle_amount,
+         unit_address,
+         bank_acct,
+         bank_name,
+         ax_burden,
+         remark  ,  
+         creator,
+         cre_name,
+         cre_time,    
+         dept_id,
+         dept_name,
+         del_flag,
+         check_accept,
+         warranty_amount_expire_date,
+         state,
+         contact_a_person,
+         supply_unit,
+         salesman,
+         project_manager,
+         contracts_number,
+         colour_and_material,
+         appearance_requirement,
+         material_requirement,
+         hardware_config,
+         packaging_requirements,
+         process_drawing,
+         out_prd_amount
+         )
+      values
+        (#{project_id,jdbcType=VARCHAR},
+         #{project_no,jdbcType=VARCHAR},
+         #{project_name,jdbcType=VARCHAR},
+         #{project_type,jdbcType=VARCHAR},
+         #{tendering_id,jdbcType=VARCHAR},
+         #{tendering_no,jdbcType=VARCHAR},
+         #{contract_unit,jdbcType=VARCHAR},
+         #{address,jdbcType=VARCHAR}, 
+         #{warranty_period,jdbcType=VARCHAR}, 
+          #{start_date,jdbcType=VARCHAR},
+         #{settle_date,jdbcType=VARCHAR}, 
+         nvl(#{settle_amount,jdbcType=VARCHAR},0), 
+         #{unit_address,jdbcType=VARCHAR}, 
+         #{bank_acct,jdbcType=VARCHAR}, 
+         #{bank_name,jdbcType=VARCHAR}, 
+         #{ax_burden,jdbcType=VARCHAR},
+         #{remark,jdbcType=VARCHAR},
+         #{creator,jdbcType=VARCHAR},
+         #{cre_name,jdbcType=VARCHAR},
+         sysdate,   
+         #{dept_id,jdbcType=VARCHAR},
+         #{dept_name,jdbcType=VARCHAR},
+         0,
+         #{check_accept,jdbcType=VARCHAR},
+         #{warranty_amount_expire_date,jdbcType=VARCHAR},
+         #{state,jdbcType=VARCHAR},
+         #{contact_a_person,jdbcType=VARCHAR},
+         #{supply_unit,jdbcType=VARCHAR},
+         #{salesman,jdbcType=VARCHAR},
+         #{project_manager,jdbcType=VARCHAR},
+         nvl(#{contracts_number,jdbcType=VARCHAR},0),
+         #{colour_and_material,jdbcType=VARCHAR},
+         #{appearance_requirement,jdbcType=VARCHAR},
+         #{material_requirement,jdbcType=VARCHAR},
+         #{hardware_config,jdbcType=VARCHAR},
+         #{packaging_requirements,jdbcType=VARCHAR},
+         #{process_drawing,jdbcType=VARCHAR},
+         nvl(#{out_prd_amount,jdbcType=VARCHAR},0))
+         
+		]]>
+	</insert>
+	<!-- 
+		删除项目:状态更新
+    -->
+	<update id="updateByID" parameterType="map">
+		<![CDATA[ update   ERP_PROJECT
+		set del_flag=#{del_flag},
+		    updator =#{updator},
+			upd_name =#{upd_name},
+			upd_time =sysdate
+		 where project_id = #{project_id} ]]>
+	</update>
+	
+	<!--
+		项目节点维护附件信息查询
+	-->
+	<select id="toQueryFile2" parameterType="map" resultType="java.util.HashMap">
+		 <![CDATA[ select * from BASE_ATT  where from_bill_id=#{project_id} and spare1=#{spare1} and del_flag=0 ]]>
+	</select>
+	
+	
+	<!-- 更新附件信息-->
+	<update id="updateFile" parameterType="map">
+		<![CDATA[ UPDATE ERP_PROJECT ]]> 
+		  <set >
+			<if test=" sample_att_id !=null">sample_att_id =#{sample_att_id},</if>
+			<if test=" sample_houses_att_id !=null">sample_houses_att_id =#{sample_houses_att_id},</if>
+			<if test=" contract_sing_att_id !=null">contract_sing_att_id =#{contract_sing_att_id},</if>
+			<if test=" project_handover_att_id !=null">project_handover_att_id =#{project_handover_att_id},</if>
+			<if test=" material_apply_att_id !=null">material_apply_att_id =#{material_apply_att_id},</if>
+			<if test=" install_contract_sing_att_id !=null">install_contract_sing_att_id =#{install_contract_sing_att_id},</if>
+			<if test=" goods_order_att_id !=null">goods_order_att_id =#{goods_order_att_id},</if>
+			<if test=" send_pro_att_id !=null"> send_pro_att_id =#{send_pro_att_id}, </if>
+			<if test=" visa_att_id !=null">visa_att_id =#{visa_att_id},</if>
+			<if test=" replenishment_att_id !=null">replenishment_att_id  =#{replenishment_att_id}, </if>
+			<if test=" service_att_id !=null">service_att_id   =#{service_att_id},</if>
+		</set>
+		<![CDATA[WHERE project_id = #{project_id} ]]>
+	</update>
+	
+	
+	 
+	<!--维护项目节点，汇款信息单编辑-->
+	<update id="editMX" parameterType="com.centit.drp.main.project.management.model.PayableModel">
+	    <![CDATA[ UPDATE ERP_PROJECT_PAYABLE ]]> 
+		   <set>
+		  	<if test=" payable_stage !=null">payable_stage =#{payable_stage},</if>
+		  	<if test=" payable_condition !=null">payable_condition =#{payable_condition},</if>
+		  	<if test=" payable_date !=null">payable_date =to_date(#{payable_date},'yyyy-MM-dd'),</if>
+		  	<if test=" payable_rate !=null">payable_rate =#{payable_rate}, </if>
+		  	<if test=" payable_amount !=null">payable_amount =to_number(#{payable_amount}),</if>
+		  	<if test=" reality_amount !=null">reality_amount =to_number(#{reality_amount}),</if>
+		  	<if test=" request_amount_date !=null">request_amount_date	=to_date(#{request_amount_date},'yyyy-MM-dd'),</if>
+			<if test=" invoice_date !=null">invoice_date=to_date(#{invoice_date},'yyyy-MM-dd'),</if>
+			<if test=" invoice_amount !=null">invoice_amount=to_number(#{invoice_amount}),</if>
+			<if test=" back_amount_date !=null">back_amount_date=to_date(#{back_amount_date},'yyyy-MM-dd'),</if>
+			<if test=" back_amount !=null">back_amount=to_number(#{back_amount}),</if>
+			<if test=" out_prd_amount !=null">out_prd_amount=to_number(#{out_prd_amount}),</if>
+		  </set> 	   
+		<![CDATA[WHERE project_payable_id = #{project_payable_id}  ]]>
+	</update>
+	<!--  -->
+	<delete id="deleteById" parameterType="string">
+		<![CDATA[ delete   ERP_PROJECT_PAYABLE WHERE project_payable_id = #{project_payable_id} ]]>
+	</delete>
+	<!-- 新增项目，编辑汇款信息单 -->
+	<insert id="insertMX" parameterType="com.centit.drp.main.project.management.model.PayableModel">
+			insert into ERP_PROJECT_PAYABLE
+		        ( project_payable_id  ,
+				  project_id ,
+				  payable_stage ,
+				  payable_condition ,
+				  payable_date ,
+				  payable_rate ,
+				  payable_amount ,
+				  reality_amount,
+				  
+				  request_amount_date,
+				  invoice_date,
+				  invoice_amount,
+				  back_amount_date,
+				  back_amount,
+				  out_prd_amount
+				  )
+		      values
+		<!-- <foreach collection="list" item="item" index="index" separator=","  > -->
+		        (#{project_payable_id},
+		         #{project_id},
+		         #{payable_stage},
+		         #{payable_condition},
+		         to_date(#{payable_date},'yyyy-MM-dd'),
+		         nvl(#{payable_rate},0),
+		         to_number(nvl(#{payable_amount},0)),
+		         to_number(nvl(#{reality_amount},0)),
+		         to_date(#{request_amount_date},'yyyy-MM-dd'),
+		         to_date(#{invoice_date},'yyyy-MM-dd'),
+				 to_number(nvl(#{invoice_amount},0)),
+				 to_date(#{back_amount_date},'yyyy-MM-dd'),
+				 to_number(nvl(#{back_amount},0)),
+				 to_number(nvl(#{out_prd_amount},0)))
+		<!-- </foreach>   -->
+	</insert>
+	
+	<!-- 查询SQL -->
+	<sql id="coreSqlFile">
+		<![CDATA[ select 
+				   	   e.project_directive_id project_directive_id,
+                       e.project_id project_id,
+                       e.project_no project_no,
+                       e.project_name project_name,
+                       e.directive_type directive_type,
+                       e.state state,
+                       e.creator creator,
+                       e.cre_name cre_name,
+                       to_char(e.cre_time, 'yyyy-MM-dd') cre_time,
+                       e.updator updator,
+                       e.upd_name upd_name,
+                       to_char(e.upd_time, 'yyyy-MM-dd hh:mi') upd_time,
+                       e.dept_id dept_id,
+                       e.dept_name dept_name,
+                       e.org_id org_id,
+                       e.org_name org_name,
+                       e.del_flag del_flag1,
+                       b.att_id att_id,
+                       b.att_path att_path,
+                       b.from_bill_id from_bill_id,
+                       b.creator creator2,
+                       b.cre_name cre_name2,
+                       to_char(b.cre_time , 'yyyy-MM-dd hh:mi') cre_time2,
+                       b.del_flag del_flag2
+			  from ERP_PROJECT_DIRECTIVE e, BASE_ATT b
+			]]>
+		<where>
+			<include refid="queryDynSqlFile" />
+		</where> 
+		<![CDATA[ order by e.cre_time ]]>
+	
+	</sql>
+	<sql id="queryDynSqlFile">
+		 <![CDATA[ e.project_directive_id=b.from_bill_id
+		        and e.del_flag=0 and b.del_flag=0 and e.state='待下发'
+		   ]]>  
+		<if test="project_id != '' and project_id != null">
+			and e.project_id=#{project_id}  
+		</if>
+		<if test="directive_type != '' and directive_type != null">
+			and e.directive_type=#{directive_type}  
+		</if>
+	</sql>
+	<!--查询附件-->
+	<select id="toQueryFile" parameterType="map" resultType="java.util.HashMap">
+		<include refid="coreSqlFile" />
+	</select>
+	
+	<!--
+		新增项目指令
+	-->
+	<insert id="insertOrderFile" parameterType="java.util.Map">
+			<![CDATA[ 
+				insert into ERP_PROJECT_DIRECTIVE
+				( project_directive_id,
+				  project_id,
+				  project_no,
+				  project_name,
+				  directive_type,
+				  state,
+				  creator,
+				  cre_name,
+				  cre_time,
+				  dept_id,
+				  dept_name,
+				  del_flag
+				)values
+				(
+				 #{project_directive_id},
+				  #{project_id},
+				  #{project_no},
+				  #{project_name},
+				  #{directive_type},
+				  #{state},
+				  #{creator},
+				  #{cre_name},
+				  sysdate,
+				  #{dept_id},
+				  #{dept_name},
+				  0)
+			 ]]>
+	</insert>
+	<!--
+		项目指令维护
+	-->
+	<update id="modifyOrderFile" parameterType="java.util.Map">
+	    <![CDATA[ UPDATE ERP_PROJECT_DIRECTIVE ]]> 
+		   <set>
+		  	<if test=" payable_stage !=null">payable_stage =#{payable_stage},</if>
+		  	<if test=" payable_condition !=null">payable_condition =#{payable_condition},</if>
+		  	<if test=" payable_date !=null">payable_date =to_date(#{payable_date},'yyyy-MM-dd'),</if>
+		  	<if test=" payable_rate !=null">payable_rate =#{payable_rate}, </if>
+		  	<if test=" payable_amount !=null">payable_amount =to_number(#{payable_amount}),</if>
+		  	<if test=" reality_amount !=null">reality_amount =to_number(#{reality_amount}),</if>
+		  	<if test=" request_amount_date !=null">request_amount_date	=to_date(#{request_amount_date},'yyyy-MM-dd'),</if>
+			<if test=" invoice_date !=null">invoice_date=to_date(#{invoice_date},'yyyy-MM-dd'),</if>
+			<if test=" invoice_amount !=null">invoice_amount=to_number(#{invoice_amount}),</if>
+			<if test=" back_amount_date !=null">back_amount_date=to_date(#{back_amount_date},'yyyy-MM-dd'),</if>
+			<if test=" back_amount !=null">back_amount=to_number(#{back_amount}),</if>
+			<if test=" out_prd_amount !=null">out_prd_amount=to_number(#{out_prd_amount}),</if>
+		  </set> 	   
+		<![CDATA[WHERE project_directive_id = #{project_directive_id}  ]]>
+	</update>
+	
+	
+	<!--批量保存附件-->
+	<insert id="insertFile" parameterType="java.util.List">
+	<foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+		 insert into BASE_ATT(
+		 	ATT_ID,
+		 	ATT_PATH,
+		 	FROM_BILL_ID,
+		 	SPARE1,
+		 	CREATOR,
+		 	CRE_NAME,
+		 	CRE_TIME,
+		 	DEL_FLAG
+		 	)
+		 values(
+		 	#{item.ATT_ID},
+		 	#{item.ATT_PATH},
+		 	#{item.FROM_BILL_ID},
+		 	#{item.SPARE1},
+		 	#{item.CREATOR},
+		 	#{item.CRE_NAME},
+		 	sysdate,
+		 	#{item.DEL_FLAG}					 
+		 );
+	</foreach>
+</insert>
+
+</mapper>
+

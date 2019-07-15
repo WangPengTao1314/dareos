@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- *@module 订单中心 *@func 问题反馈 *@version 1.1 *@author 王朋涛 * -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper
+	namespace="com.centit.drp.main.sales.deliver.after.mapper.AfterMapper">
+
+	<!-- 动态查询 and 列表分页 -->
+	<sql id="queryDynSql">
+		<if
+			test="PROBLEM_FEEDBACK_NO != '' and PROBLEM_FEEDBACK_NO != null">
+			and problem_feedback_no like '%'||#{PROBLEM_FEEDBACK_NO}||'%'
+		</if>
+		<if test="SALE_ORDER_NO != '' and SALE_ORDER_NO != null">
+			and sale_order_no like '%'||#{SALE_ORDER_NO}||'%'
+		</if>
+		<if test="PROBLEM_TYPE != '' and PROBLEM_TYPE != null">
+			and problem_type like '%'||#{PROBLEM_TYPE}||'%'
+		</if>
+		<if test="CUST_NAME != '' and CUST_NAME != null">
+			and cust_name like '%'||#{CUST_NAME}||'%'
+		</if>
+		<if test="CHANN_NAME != '' and CHANN_NAME != null">
+			and chann_name like '%'||#{CHANN_NAME}||'%'
+		</if>
+		<if test="STATE != '' and STATE != null">
+			and state like '%'||#{STATE}||'%'
+		</if> 
+		<if test="STATES != '' and STATES != null">
+			and ${STATES}
+		</if> 
+		<if test="QXJBCON !=null and QXJBCON !='' ">
+			and ${QXJBCON}
+		</if>
+		<if test="XTYHID != '' and XTYHID != null">
+			and  ${XTYHID}
+		</if>
+		 <![CDATA[ and del_flag = 0 ]]>
+	</sql>
+	<!-- 查询SQL -->
+	<sql id="coreSql">
+		<![CDATA[ select f.problem_feedback_id problem_feedback_id,
+			       f.problem_type problem_type,
+			       f. problem_feedback_no problem_feedback_no,
+			       f. sale_order_id sale_order_id,
+			       f. sale_order_no sale_order_no,
+			       f. cust_name cust_name,
+			       f. chann_no chann_no,
+			       f. chann_id chann_id,
+			       f. chann_name chann_name,
+			       to_char(f. delivery_time, 'yyyy-MM-dd') delivery_time,
+			       f. person_con person_con,
+			       f. recv_addr recv_addr,
+			       f. tel tel,
+			       f. problem_sketch problem_sketch,
+			       f. problem_detailed problem_detailed,
+			       f. dispose_type dispose_type,
+			       f. blame blame,
+			       f. amendment_id amendment_id,
+			       f. amendment_no amendment_no,
+			       f. factory_no factory_no,
+			       f. supply_amount supply_amount,
+			       f. del_flag del_flag,
+			       f. dept_name dept_name,
+			       f. dept_id dept_id,
+			       f. org_id org_id,
+			       f. org_name org_name,
+			       f. reason_analysis reason_analysis,
+			       f. creator creator,
+			       f. cre_name cre_name,
+			       to_char(f.cre_time, 'yyyy-MM-dd') cre_time,
+			       f. updator updator,
+			       f. upd_name upd_name,
+			       to_char(f.upd_time, 'yyyy-MM-dd') upd_time,
+			       f. problem_class problem_class,
+			       f. order_org order_org,
+			       f.order_trace_id order_trace_id,
+			       f. state state,
+			       f.return_reason return_reason,
+			       (select a.sjxmc
+          				from T_SYS_SJZD u
+          				left join T_SYS_SJZDMX a
+           		 	on u.sjzdid = a.sjzdid
+         			where u.delflag = 0
+           			and a.delflag = 0
+           			and u.state = '启用'
+          			 and u.SJZDBH = decode(order_org,
+                                 '107',
+                                 'AFTERSALE_ROBE',
+                                 '10801',
+                                 'AFTERSALE_CUPBOARD',
+                                 '116',
+                                 'AFTERSALE_DOOR',
+                                 '')
+           and a.sjxz =f.problem_type)  LEDGER_NAME_ABBR,
+			       (select u.XM
+			          from t_Sys_Xtyh t, T_SYS_RYXX u
+			         where t.RYXXID = u.RYXXID
+			           and t.XTYHID = f.creator) user_name
+			  from DRP_PROBLEM_FEEDBACK f
+			  ]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+		<![CDATA[ order by cre_time,problem_feedback_no desc]]>
+	</sql>
+	<!-- 分页查询 -->
+	<select id="pageQuery" parameterType="map"
+		resultType="java.util.HashMap">
+		<include refid="coreSql" />
+	</select>
+	 
+	<!--
+		获取单条记录数据
+	-->
+	<select id="toQuery" parameterType="map"
+		resultType="java.util.HashMap">
+		<![CDATA[ 
+			select
+				problem_feedback_id ,
+				problem_type ,
+				problem_feedback_no,
+				sale_order_id ,
+				sale_order_no ,
+				cust_name ,
+				chann_no ,
+				chann_id ,
+				chann_name ,
+				to_char(delivery_time,'yyyy-MM-dd') delivery_time,
+				person_con ,
+				recv_addr ,
+				tel ,
+				problem_sketch ,
+				problem_detailed ,
+				dispose_type ,
+				blame ,
+				amendment_id ,
+				amendment_no ,
+				factory_no ,
+				supply_amount ,
+				del_flag ,
+				dept_name ,
+				dept_id ,
+				org_id ,
+				org_name ,
+				reason_analysis ,
+				creator ,
+				cre_name ,
+				cre_time ,
+				updator ,
+				upd_name ,
+				upd_time ,
+				problem_class ,
+				order_org ,
+				state,
+				(select a.sjxmc
+          from T_SYS_SJZD u
+          left join T_SYS_SJZDMX a
+            on u.sjzdid = a.sjzdid
+         where u.delflag = 0
+           and a.delflag = 0
+           and u.state = '启用'
+           and u.SJZDBH = decode(order_org,
+                                 '107',
+                                 'AFTERSALE_ROBE',
+                                 '10801',
+                                 'AFTERSALE_CUPBOARD',
+                                 '116',
+                                 'AFTERSALE_DOOR',
+                                 '')
+           and a.sjxz =problem_type) LEDGER_NAME_ABBR
+			from DRP_PROBLEM_FEEDBACK
+				where 
+			problem_feedback_id =#{PROBLEM_FEEDBACK_ID}]]>
+	</select>
+	<!-- 删除：更新状态-->
+	<update id="updateByID" parameterType="map">
+		<![CDATA[ update   DRP_PROBLEM_FEEDBACK
+		set del_flag=#{del_flag},
+		    updator =#{updator},
+			upd_name =#{upd_name},
+			upd_time =sysdate
+		 where problem_feedback_id = #{PROBLEM_FEEDBACK_ID} ]]>
+	</update>
+	<!--编辑 -->
+	<update id="modify" parameterType="com.centit.drp.main.sales.deliver.after.model.AfterModel">
+		<![CDATA[ UPDATE DRP_PROBLEM_FEEDBACK ]]>
+		<set>
+			<if test=" problem_type !=null">problem_type=#{problem_type}, </if>
+			<if test=" order_trace_id !=null">order_trace_id=#{order_trace_id} ,</if>
+			<if test=" sale_order_id !=null">sale_order_id=#{sale_order_id} ,</if>
+			<if test=" sale_order_no !=null">sale_order_no=#{sale_order_no} ,  </if>
+			<if test=" cust_name !=null">cust_name=#{cust_name} ,</if>
+			<if test=" chann_name !=null">chann_name=#{chann_name} ,  </if>
+			<if test=" delivery_time !=null">delivery_time=#{delivery_time} ,</if>
+			<if test=" person_con !=null">person_con=#{person_con} , </if>
+			<if test=" recv_addr !=null">recv_addr=#{recv_addr} ,</if>
+			<if test=" tel !=null">tel=#{tel} ,</if>
+			<if test=" problem_sketch !=null">problem_sketch=#{problem_sketch} ,</if>
+			<if test=" problem_detailed !=null">problem_detailed=#{problem_detailed} ,</if>
+			<if test=" dispose_type !=null">dispose_type=#{dispose_type} ,</if>
+			<if test=" blame !=null">blame=#{blame} ,</if>
+			<if test=" state !=null">state=#{state} ,</if>
+			<if test=" return_reason !=null">return_reason=#{return_reason} ,</if>
+			<if test=" order_org !=null">order_org=#{order_org} ,</if>
+			<if test=" amendment_id !=null">amendment_id=#{amendment_id} ,</if>
+			<if test=" amendment_no !=null">amendment_no=#{amendment_no} ,</if>
+			<if test=" factory_no !=null">factory_no=#{factory_no} ,</if>
+			<if test=" reason_analysis !=null">reason_analysis=#{reason_analysis} ,</if>
+			<if test=" supply_amount !=null">supply_amount=#{supply_amount} ,</if>
+			<if test=" updator !=null">updator=#{updator},</if>
+			 <![CDATA[upd_time=sysdate,]]>
+			<if test=" upd_name !=null">upd_name=#{upd_name},</if>
+			<if test=" problem_feedback_no !=null">problem_feedback_no=trim(#{problem_feedback_no}),</if>
+		</set>      
+	   <![CDATA[WHERE problem_feedback_id = #{problem_feedback_id} ]]>
+	</update>
+
+	<!-- 新增 -->
+	<insert id="insert" parameterType="com.centit.drp.main.sales.deliver.after.model.AfterModel">
+		<![CDATA[
+		 insert into DRP_PROBLEM_FEEDBACK
+        (problem_feedback_id ,
+		 problem_feedback_no ,
+		 order_trace_id, 
+		 problem_type, 
+		 sale_order_id,
+		 sale_order_no,  
+		 cust_name,
+ 		 chann_name,  
+		 delivery_time,
+		 person_con, 
+		 recv_addr,
+		 tel,
+		 problem_sketch,
+		 problem_detailed,
+		 dept_name,
+		 dept_id,  
+		 creator,
+		 cre_name,
+		 cre_time,
+		 del_flag,
+		 order_org,
+		 chann_no,
+         chann_id,
+         org_id,
+         org_name,
+		 state)
+        values
+        ( #{problem_feedback_id,jdbcType=VARCHAR},
+		 trim(#{problem_feedback_no,jdbcType=VARCHAR}), 
+		 #{order_trace_id,jdbcType=VARCHAR}, 
+		 #{problem_type,jdbcType=VARCHAR}, 
+		 #{sale_order_id,jdbcType=VARCHAR},
+		 #{sale_order_no,jdbcType=VARCHAR},  
+		 #{cust_name,jdbcType=VARCHAR},
+ 		 #{chann_name,jdbcType=VARCHAR},  
+		 #{delivery_time,jdbcType=VARCHAR},
+		 #{person_con,jdbcType=VARCHAR}, 
+		 #{recv_addr,jdbcType=VARCHAR},
+		 #{tel,jdbcType=VARCHAR},
+		 #{problem_sketch,jdbcType=VARCHAR},
+		 #{problem_detailed,jdbcType=VARCHAR},
+		 #{dept_name,jdbcType=VARCHAR},
+		 #{dept_id,jdbcType=VARCHAR},  
+		 #{creator,jdbcType=VARCHAR},
+		 #{cre_name,jdbcType=VARCHAR},
+		 sysdate,
+		 0,
+		 #{order_org,jdbcType=VARCHAR},
+		 #{chann_no,jdbcType=VARCHAR},
+		 #{chann_id,jdbcType=VARCHAR},
+		 #{org_id,jdbcType=VARCHAR},
+		 #{org_name,jdbcType=VARCHAR},
+		 #{state,jdbcType=VARCHAR})
+		]]>
+	</insert>
+	<!--批量保存附件 -->
+	<insert id="insertFile" parameterType="java.util.Map">
+		 <![CDATA[ insert into BASE_ATT(
+		 	ATT_ID,
+		 	ATT_PATH,
+		 	FROM_BILL_ID,
+		 	SPARE1,
+		 	CREATOR,
+		 	CRE_NAME,
+		 	CRE_TIME,
+		 	DEL_FLAG
+		 	)
+		 values(
+		 	#{ATT_ID},
+		 	#{ATT_PATH},
+		 	#{FROM_BILL_ID},
+		 	#{SPARE1},
+		 	#{CREATOR},
+		 	#{CRE_NAME},
+		 	sysdate,
+		 	0				 
+		 )]]>
+	</insert>
+	<update id="updateFile" parameterType="map">
+		<![CDATA[ update   BASE_ATT
+		set del_flag=1
+		 where from_bill_id = #{PROBLEM_FEEDBACK_ID} and spare1 =#{SPARE1}  ]]>
+	</update>
+	<select id="toQueryFile" parameterType="map"
+		resultType="java.util.HashMap">
+		 <![CDATA[ select * from BASE_ATT ]]>
+		<where>
+			<include refid="queryFiles" />
+		</where>
+	</select>
+	<sql id="queryFiles">
+		<if test="PROBLEM_FEEDBACK_ID != '' and PROBLEM_FEEDBACK_ID != null">
+			1=1 and from_bill_id = #{PROBLEM_FEEDBACK_ID}
+		</if>
+		<if test="SPARE1 != '' and SPARE1 != null">
+			and spare1 =#{SPARE1}
+		</if>
+		  <![CDATA[ and del_flag=0 ]]> 
+	</sql>
+	<!--校验问题单号  --> 
+	<select id="checkProblemNO" parameterType="string"
+		resultType="int">
+		 <![CDATA[ select count(problem_feedback_no) from DRP_PROBLEM_FEEDBACK where problem_feedback_no =#{PROBLEM_FEEDBACK_NO} and del_flag=0]]>
+	</select>
+</mapper>
+

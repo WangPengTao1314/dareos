@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.centit.drp.main.wap.mapper.SysWapLoginMapper">
+	
+	<resultMap id="MarketcardSaleChldModel" type="com.centit.erp.sale.marketcardsale.model.MarketcardSaleChldModel" />
+	
+	<!-- 手机用户查询卡券 -->
+	<select id="queryCradList" parameterType="string" resultMap="MarketcardSaleChldModel" >
+	select u.CARD_SALE_ORDER_DTL_ID,
+	       u.CARD_SALE_ORDER_ID,
+	       u.MARKETING_CARD_ID,
+	       u.MARKETING_CARD_NO,
+	       u.CARD_TYPE,
+	       u.CARD_VALUE,
+	       to_char(u.CRE_TIME, 'yyyy-MM-DD') CRE_TIME,
+	       u.STATE,
+	       u.CUST_NAME,
+	       u.MOBILE_PHONE,
+	       u.SEX,
+	       to_char(u.BIRTHDAY, 'yyyy-MM-DD') BIRTHDAY,
+	       u.HOBBY,
+	       u.ADDRESS,
+	       u.REMARK
+	  from ERP_CARD_SALE_ORDER_DTL u
+	  left join ERP_CARD_SALE_ORDER t
+	    on t.CARD_SALE_ORDER_ID = u.CARD_SALE_ORDER_ID
+	 where t.SALE_PSON_ID=#{SALE_PSON_ID}
+	   and u.DEL_FLAG = 0 
+	   and t.DEL_FLAG=0
+	</select>
+
+</mapper>
+
+
+

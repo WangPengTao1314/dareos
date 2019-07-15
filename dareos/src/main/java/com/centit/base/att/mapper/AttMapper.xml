@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.centit.base.att.mapper.AttMapper">
+
+
+<select id="findList" parameterType="string"
+		resultType="java.util.HashMap">
+			select 
+				a.ATT_ID,
+				a.ATT_PATH,
+				a.FROM_BILL_ID,
+				a.CREATOR,
+				a.CRE_NAME,
+				to_char(a.CRE_TIME, 'yyyy-MM-dd hh:mi') cre_time,
+				a.DEL_FLAG							
+			FROM BASE_ATT a 
+			WHERE a.FROM_BILL_ID = #{FROM_BILL_ID} and DEL_FLAG=0 
+</select>
+
+<!-- 新增附件表 -->
+<insert id="insert" parameterType="java.util.List">
+	<foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+		 insert into BASE_ATT(
+		 	ATT_ID,
+		 	ATT_PATH,
+		 	FROM_BILL_ID,
+		 	CREATOR,
+		 	CRE_NAME,
+		 	CRE_TIME,
+		 	DEL_FLAG
+		 	)
+		 values(
+		 	#{item.ATT_ID},
+		 	#{item.ATT_PATH},
+		 	#{item.FROM_BILL_ID},
+		 	#{item.CREATOR},
+		 	#{item.CRE_NAME},
+		 	sysdate,
+		 	#{item.DEL_FLAG}					 
+		 );
+	</foreach>
+</insert>
+
+<!-- 软删除(附件表) -->
+<update id="delByFromId" parameterType="map">
+	 update BASE_ATT set DEL_FLAG = 1 where FROM_BILL_ID = #{FROM_BILL_ID}
+</update>
+
+<update id="delByAttId" parameterType="map">
+	 update BASE_ATT set DEL_FLAG = 1 where ATT_ID = #{ATT_ID}
+</update>
+
+<select id="findStr" parameterType="string" resultType="string">
+	select wm_concat(a.att_path) att_path from BASE_ATT a WHERE a.FROM_BILL_ID = #{FROM_BILL_ID} and DEL_FLAG=0 
+</select>
+
+<select id="checkAttrName" parameterType="string" resultType="string">
+			select 
+				NAME 
+			from (
+				select substr(
+				       a.ATT_PATH,
+				       INSTR(a.ATT_PATH, '/', -1, 1)+1,
+				       INSTR (a.ATT_PATH, '_', -1, 1)-1 - INSTR(a.ATT_PATH, '/', -1, 1)
+				  ) || substr(
+				  	a.ATT_PATH,
+				  	INSTR(a.ATT_PATH, '.', -1, 1),
+				  	length(a.ATT_PATH)
+				  )  NAME 
+				  from BASE_ATT a
+			)
+ 			where name in (${names})
+ 			group by name
+ 			having count(1)>1
+	</select>
+	
+</mapper>
+

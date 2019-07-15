@@ -1,0 +1,74 @@
+*{
+    padding:0;
+    margin:0;
+    box-sizing: border-box;
+}
+
+.info_list_top{
+    height: 117px;
+    border-top:1px solid #000;
+    /*argin:0px 328px 0px 70px;*/
+}
+.info_list_mid{
+    height: 117px;
+    border-top:1px solid #000;
+/*     margin:0px 328px 0px 70px; */
+}
+.info_list_down{
+    height: 182px;
+    border-top:1px solid #000;
+    border-bottom:1px solid #000;
+/*     margin:0px 328px 0px 70px; */
+}
+.audit{
+    height:140px;
+    border:1px solid #000;
+/*     margin:0px 328px 0px 70px; */
+}
+.list_area{
+   /*height: 500px;*/
+    /*border:1px solid #000;*/
+/*     margin:0px 328px 0px 70px; */
+}
+/* table tr td , table tr th{
+    border:1px solid #000;
+} */
+.three_check{
+    width:180px;
+    height: 40px;  
+    margin:30px 0px 0px 70px;
+    /* border:1px solid #000; */
+    display:flex;
+    justify-content:space-around;
+    
+}
+.list_area table tr th , .list_area table tr td{
+    font-weight: 100;
+    font-size:14px;
+}
+.return_btn{
+    color:#fff;
+    background-color: #3c93dd;
+    width: 95px;
+    height: 22px;
+    outline:none;
+    border:none;
+    border-radius: 6px;
+   /*  margin-bottom: 6px; */
+   vertical-align: middle;
+}
+.add_demodiv{
+	width:95%;
+    margin:9px 420px 0px 20px;
+    display:flex;
+    justify-content:space-between
+}
+.add_demospan{
+    display:block;
+    margin-left:20px;
+    font-size:14px;
+}
+div p{
+	font-size:14px;
+}
+

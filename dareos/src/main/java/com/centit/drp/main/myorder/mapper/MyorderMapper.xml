@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- 
+ *@module 基础资料
+ *@func 货品信息
+ *@version 1.1
+ *@author 刘曰刚
+ *  -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.centit.drp.main.myorder.mapper.MyorderMapper">
+
+	
+
+	<!-- 使用LLGL装载结果集 -->
+	<resultMap id="MyorderModel" type="com.centit.drp.main.myorder.model.MyorderModel">
+		<result column="PRD_ID" property="PRD_ID" />
+	</resultMap>
+	<!-- 动态查询 and 列表排序 -->
+	<sql id="queryDynSql"> 
+		<if test="prdInfo !=null and prdInfo !='' "> and a.PRD_NAME like '%'||#{prdInfo}||'%'</if>
+		<if test="parPrdId !=null and parPrdId !='' "> and (a.PRD_NO like '%'||#{parPrdId}||'%' or a.PAR_PRD_NO like '%'||#{parPrdId}||'%')</if>
+		
+		<if test="type !=null and type !='' ">and a.PAR_PRD_NAME like '%'||#{type}||'%'</if>
+		<if test="spec !=null and spec !='' ">and a.PRD_SPEC like '%'||#{spec}||'%'</if> 
+		<if test="DEL_FLAG !=null and DEL_FLAG !='' ">and a.DEL_FLAG =#{DEL_FLAG}</if>
+		<if test="STATE !=null and STATE !='' ">and a.STATE =#{STATE}</if>
+		<if test="ledger !=null and ledger !='' ">and b.LEDGER_ID =#{ledger}</if>
+		<if test="series !=null and series !='' ">and a.PRD_SERIES =#{series}</if>
+		
+		<if test="FINAL_NODE_FLAG !=null and FINAL_NODE_FLAG !='' ">and a.FINAL_NODE_FLAG =#{FINAL_NODE_FLAG}</if>
+		<if test="prmt !=null and prmt !='' ">and a.PRD_ID in (
+		   select a.PRD_ID from BASE_PRD_GROUP_DTL a 
+					        left join ERP_PRMT_PRD_GROUP b on a.PRD_GROUP_ID=b.PRD_GROUP_ID
+       						left join ERP_PRMT_PLAN c on b.PRMT_PLAN_ID=c.PRMT_PLAN_ID
+					       where c.PRMT_PLAN_ID in (${prmt})  group by a.PRD_ID)
+       </if>
+       <if test="prd_Info !=null and prd_Info !='' ">
+       		<!-- a.PAR_PRD_NO in ($REBATE_PRD_NO$) -->
+       		${REBATE_PRD_NO}
+       	</if>
+       <if test="LARGESSPRD_NO !=null and LARGESSPRD_NO !='' ">
+       		and a.PAR_PRD_NO in (${LARGESSPRD_NO})
+       	</if>
+       <if test="sql != null and sql !='' "> ${sql}  and IS_NO_STAND_FLAG=0</if>
+	</sql>
+    <sql id="orderSql">
+	order by
+		<if test="orderField !=null and orderField !='' "> ${orderField},</if>PRD_NO
+	</sql>
+	<!-- 查询SQL -->
+	<sql id="coreSql">
+		<![CDATA[
+			select 
+				a.PRD_ID,
+				a.PRD_NO,
+				a.PRD_NAME,
+				a.HOLE_SPEC,
+				a.PRD_QUALITY,
+				a.PRD_TOWARD,
+				a.PRD_GLASS,
+				a.PRD_OTHER,
+				a.PRD_SERIES,
+				a.STD_UNIT,
+				a.BRAND,
+				a.RET_PRICE_MIN,
+				a.PIC_PATH
+			from BASE_PRODUCT a
+			left join BASE_PRODUCT_LEDGER b on a.PRD_ID=b.PRD_ID and b.DEL_FLAG=0
+			where a.DEL_FLAG=0 
+				]]>
+			<include refid="queryDynSql" />
+		
+			<include refid="orderSql"/>
+		
+	</sql>
+	
+	
+	<!-- 主表分页查询 -->
+	<select id="pageQuery" parameterType="map" resultType="java.util.HashMap">
+			
+			<include refid="coreSql" />
+			
+		</select>
+	<!-- 分页计数 -->
+	<!-- 0156474 start 刘曰刚 2014-06-17 -->
+	<!-- 去掉和渠道折扣扁平表和渠道表的关联 -->
+	<select id="pageCount" parameterType="map" resultType="int">
+	      <![CDATA[select count(0) cnt FROM BASE_PRODUCT a 
+	    ]]>
+		<where>
+				<include refid="queryDynSql"/>
+		</where>
+	</select>
+	<!-- 0156474 End 刘曰刚 2014-06-17 -->
+	
+	
+	
+	
+	
+	
+	<!-- 查询所有品牌 -->
+	<select id="findBRANDAll" resultType="java.util.HashMap" parameterType="map">
+		select BRAND from BASE_BRAND where STATE=#{STATE} and DEL_FLAG=#{DEL_FLAG} order by BRAND_ID ASC
+	</select>
+	<!-- 按货品id，删除标记，处理标记，来源类型查询是否有相同数据 -->
+	<select id="getByPrdInfo" resultType="java.util.HashMap" parameterType="map">
+		select SHOP_CART_ID,ORDER_NUM
+		 from DRP_SHOP_CART where PRD_ID=#{PRD_ID} and DEL_FLAG=#{DEL_FLAG} and DEAL_FLAG=#{DEAL_FLAG} and SPCL_TECH_ID is  null  and LEDGER_ID=#{LEDGER_ID} and SHOP_CART_TYPE=#{SHOP_CART_TYPE}
+	</select>
+	<!-- 新增购物车 -->
+	<insert id="insert" parameterType="java.util.List">
+	<foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+		insert into DRP_SHOP_CART(
+			SHOP_CART_ID, 
+			PRD_ID,
+			PRD_NO,
+			PRD_NAME,
+			PRD_SPEC,
+			PRD_COLOR,
+			BRAND,
+			STD_UNIT,
+			PRICE,
+			ORDER_NUM,
+			ORDER_AMOUNT,
+			DEL_FLAG,
+			DEAL_FLAG,
+			CREATOR,
+			CRE_NAME,
+			CRE_TIME,
+			DEPT_ID,
+			DEPT_NAME,
+			ORG_ID,
+			ORG_NAME,
+			SHOP_CART_TYPE,
+			HOLE_SPEC,
+			PRD_QUALITY,
+			PRD_TOWARD,
+			PRD_GLASS,
+			PRD_OTHER,
+			PRD_SERIES,
+			LEDGER_ID,
+			LEDGER_NAME,
+			REMARK,
+			PRD_SIZE,
+			PROJECTED_AREA,
+			EXPAND_AREA
+		)
+		select 
+			#{item.SHOP_CART_ID,jdbcType=VARCHAR},
+			PRD_ID,
+			PRD_NO,
+			PRD_NAME,
+			#{item.PRD_SPEC,jdbcType=VARCHAR},
+			#{item.PRD_COLOR,jdbcType=VARCHAR},
+			#{item.BRAND,jdbcType=VARCHAR},
+			STD_UNIT,
+			#{item.PRICE,jdbcType=VARCHAR},
+			#{item.ORDER_NUM,jdbcType=VARCHAR},
+			#{item.ORDER_AMOUNT,jdbcType=VARCHAR},
+			#{item.DEL_FLAG,jdbcType=VARCHAR},
+			#{item.DEAL_FLAG,jdbcType=VARCHAR},
+			#{item.CREATOR,jdbcType=VARCHAR},
+			#{item.CRE_NAME,jdbcType=VARCHAR},
+			sysdate,
+			#{item.DEPT_ID,jdbcType=VARCHAR},
+			#{item.DEPT_NAME,jdbcType=VARCHAR},
+			#{item.ORG_ID,jdbcType=VARCHAR},
+			#{item.ORG_NAME,jdbcType=VARCHAR},
+			#{item.SHOP_CART_TYPE,jdbcType=VARCHAR},
+			#{item.HOLE_SPEC,jdbcType=VARCHAR},
+			#{item.PRD_QUALITY,jdbcType=VARCHAR},
+			#{item.PRD_TOWARD,jdbcType=VARCHAR},
+			#{item.PRD_GLASS,jdbcType=VARCHAR},
+			#{item.PRD_OTHER,jdbcType=VARCHAR},
+			#{item.PRD_SERIES,jdbcType=VARCHAR},
+			#{item.LEDGER_ID,jdbcType=VARCHAR},
+			#{item.LEDGER_NAME,jdbcType=VARCHAR},
+			#{item.REMARK,jdbcType=VARCHAR},
+			#{item.PRD_SIZE,jdbcType=VARCHAR},
+			#{item.PROJECTED_AREA,jdbcType=VARCHAR},
+			#{item.EXPAND_AREA,jdbcType=VARCHAR}
+		from BASE_PRODUCT where PRD_ID=#{item.PRD_ID};
+		</foreach>
+	</insert>
+	<!-- 当购物车里有同样的货品数据并且没有特殊工艺时 修改购物车里的数量和金额 -->
+	<update id="update" parameterType="java.util.List">
+	<foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+	
+		<![CDATA[ update DRP_SHOP_CART ]]>
+		<set>
+	    	<if test="ORDER_NUM != null " ><![CDATA[ORDER_NUM = #{item.ORDER_NUM}]]>,</if>
+	    	<if test="ORDER_AMOUNT != null " ><![CDATA[ORDER_AMOUNT = #{item.ORDER_AMOUNT}]]>,</if>
+	    	<if test="UPDATOR != null " ><![CDATA[UPDATOR = #{item.UPDATOR}]]>,</if>
+	    	<if test="UPD_NAME != null " ><![CDATA[UPD_NAME = #{item.UPD_NAME}]]>,</if>
+	    	<if test="UPD_TIME != null " ><![CDATA[UPD_TIME = sysdate]]>,</if>
+	    </set>
+		<![CDATA[  where SHOP_CART_ID = #{item.SHOP_CART_ID}]]>
+		</foreach>
+	</update>
+	<select id="findPRMT_PLANAll"  resultType="java.util.HashMap" parameterType="map">
+		<![CDATA[
+			select PRMT_PLAN_NAME,PRMT_PLAN_ID from ERP_PRMT_PLAN 
+				where STATE=#{STATE}  
+					and EFFCT_DATE_BEG<sysdate 
+					and EFFCT_DATE_END>sysdate
+		       		and PRMT_PLAN_ID in (
+		       			select PRMT_PLAN_ID from ERP_PRMT_EFFCT_AREA where AREA_ID = (
+		       				select AREA_ID from BASE_CHANN where CHANN_ID=#{CHANN_ID}
+		       			)
+		       		)
+		]]>
+		
+	</select>
+	<!-- // 0156143 End 刘曰刚 2014/06/16// -->
+		<select id="getChannDiscount" parameterType="string" resultType="string">
+		<![CDATA[
+			select DECT_RATE from BASE_CHANN_DSCT where CHANN_ID=#{CHANN_ID}
+		]]>
+	</select>
+<!-- // 0156143 End 刘曰刚 2014/06/16// -->
+<!-- 查询货品分类 -->
+	<select id="findType" parameterType="map" resultType="string">
+		<![CDATA[
+			select 
+				distinct PAR_PRD_NAME
+			from BASE_PRODUCT 
+			where STATE in (${STATE}) 
+			and DEL_FLAG=#{DEL_FLAG} 
+			and FINAL_NODE_FLAG=#{FINAL_NODE_FLAG}
+			and PAR_PRD_NAME is not null
+		]]>
+	</select>
+	<!-- 查询树 -->
+	<select id="queryTree" parameterType="String"
+		resultType="com.centit.base.product.model.ProductTree">
+  		<![CDATA[
+  		  SELECT 
+  		  	DISTINCT p.PRD_NO id , 
+  		  	p.PRD_NAME name,
+  		  	p.PAR_PRD_ID PID
+       FROM BASE_PRODUCT p 
+       left join BASE_PRODUCT_LEDGER a on a.PRD_ID = p.PRD_ID and a.DEL_FLAG=0
+       WHERE p.DEL_FLAG = 0 and p.STATE IN ('启用','停用','制定') and p.FINAL_NODE_FLAG=0 and a.LEDGER_ID=#{LEDGER_ID}
+        order  by p.PRD_NO
+			]]>
+	</select>
+	
+	<select id="getLedgerByChannId" parameterType="string" resultType="java.util.HashMap">
+		select LEDGER_ID,LEDGER_NAME,LEDGER_NAME_ABBR from BASE_CHANN_LEDGER_CHRG where CHANN_ID=#{CHANN_ID} and DEL_FLAG='0'
+	</select>
+	
+	<select id="getSeriesd" resultType="java.util.HashMap" parameterType="string">
+		select a.sjxmc,a.sjxz
+						  from T_SYS_SJZD u
+						  left join T_SYS_SJZDMX a
+						  on u.sjzdid = a.sjzdid
+						where u.delflag=0
+						and a.delflag = 0
+						and u.state='启用'
+						and u.SJZDBH='PRO_SERIES'  
+	</select>
+</mapper>

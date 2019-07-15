@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.centit.system.role.mapper.SysRolePrvgMapper">
+	<resultMap id="BaseResultMap" type="com.centit.system.role.entity.SysRolePrvgEntity">
+		<id column="ROLE_PRVG_ID" property="rolePrvgId" jdbcType="VARCHAR" />
+		<result column="ROLE_ID" property="roleId" jdbcType="VARCHAR" />
+		<result column="PRVG_ID" property="prvgId" jdbcType="VARCHAR" />
+		<result column="MENU_ID" property="menuId" jdbcType="VARCHAR" />
+	</resultMap>
+	<resultMap id="PrvgMap" type="com.centit.system.power.entity.SysPrvgEntity"></resultMap>
+	<resultMap id="RolePrvgMap" type="com.centit.system.role.entity.SysRolePrvgEntity"></resultMap>
+	
+	<!-- 根据角色ID查询角色权限 -->
+	<select id="queryPrvgsByRoleId" resultMap="PrvgMap" parameterType="java.lang.String">
+		select b.*
+		from sys_role_prvg a left join SYS_PRVG b
+		on a.PRVG_ID = b.PRVG_ID
+		where a.ROLE_ID = #{roleId}
+	</select>
+	
+	<!-- 根据用户ID查询关联的操作权限 -->
+	<select id="queryPrvgsByUserId" resultMap="RolePrvgMap" parameterType="java.lang.String">
+		select distinct b.PRVG_NO, m.MENU_NO
+		from sys_role_prvg a 
+		left join SYS_PRVG b on a.PRVG_ID = b.PRVG_ID
+		left join sys_role r on a.ROLE_ID = r.ROLE_ID
+		left join sys_menu m on b.MENU_ID = m.MENU_ID
+		where b.PRVG_TYPE = '${@com.centit.common.utils.PrvgConstants@PRVG_TYPE_OPT}'
+		and r.STATE = '${@com.centit.common.utils.StaticConstants@RECORD_STATE_ENABLED}'
+		and m.STATE = '${@com.centit.common.utils.StaticConstants@RECORD_STATE_ENABLED}'
+		and a.ROLE_ID in (select ROLE_ID from SYS_USER_ROLE where USER_ID = #{userId})
+	</select>
+	
+	<!-- 根据用户ID、菜单编码、权限编码，查询权限SQL -->
+	<select id="queryPrvgSql" resultType="java.lang.String" parameterType="map">
+		select b.PRVG_SQL from sys_role_prvg a 
+		left join SYS_PRVG b on a.PRVG_ID = b.PRVG_ID
+		left join sys_role r on a.ROLE_ID = r.ROLE_ID
+		left join sys_menu m on b.MENU_ID = m.MENU_ID
+		where r.STATE = #{state} and m.STATE = #{state}
+			and m.MENU_NO = #{menuNo} 
+			and b.PRVG_NO = #{prvgNo}
+			and b.PRVG_TYPE = #{prvgType} 
+			and a.ROLE_ID in (select ROLE_ID from SYS_USER_ROLE where USER_ID = #{userId})
+		order by b.PRVG_LVL desc 
+		limit 1
+	</select>
+	
+	<!-- 根据主键ID查找关联记录 -->
+	<select id="selectByRolePrvgId" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select ROLE_PRVG_ID, ROLE_ID, PRVG_ID, MENU_ID from sys_role_prvg
+		where ROLE_PRVG_ID = #{rolePrvgId}
+	</select>
+	
+	<!-- 根据角色ID和权限ID查找关联记录 -->
+	<select id="selectByRoleIdAndPrvgId" resultMap="BaseResultMap" >
+		select ROLE_PRVG_ID, ROLE_ID, PRVG_ID, MENU_ID from sys_role_prvg
+		where ROLE_ID = #{roleId} and PRVG_ID = #{prvgId}
+	</select>
+	
+	<!-- 插入 -->
+	<insert id="insert" parameterType="com.centit.system.role.entity.SysRolePrvgEntity">
+		insert into sys_role_prvg (
+			ROLE_PRVG_ID, 
+			ROLE_ID, 
+			PRVG_ID,
+			MENU_ID
+		)
+		values (
+			#{rolePrvgId,jdbcType=VARCHAR}, 
+			#{roleId,jdbcType=VARCHAR},
+			#{prvgId,jdbcType=VARCHAR},
+			#{menuId,jdbcType=VARCHAR}
+		)
+	</insert>
+	
+	<!-- 按主键ID删除关联记录 -->
+	<delete id="deleteByRolePrvgId" parameterType="java.lang.String">
+		delete from sys_role_prvg
+		where ROLE_PRVG_ID = #{rolePrvgId,jdbcType=VARCHAR}
+	</delete>
+	
+	<!-- 按角色ID删除关联记录 -->
+	<delete id="deleteByRoleId" parameterType="java.lang.String">
+		delete from sys_role_prvg
+		where ROLE_ID = #{roleId,jdbcType=VARCHAR}
+	</delete>
+	
+	<!-- 按权限ID删除关联记录 -->
+	<delete id="deleteByPrvgId" parameterType="java.lang.String">
+		delete from sys_role_prvg
+		where PRVG_ID = #{prvgId,jdbcType=VARCHAR}
+	</delete>
+	
+	<!-- 按角色ID删除关联记录 -->
+	<delete id="deleteByMenuId" parameterType="java.lang.String">
+		delete from sys_role_prvg
+		where FIND_IN_SET(MENU_ID, getChildMenu(#{menuId}))
+	</delete>
+	
+	<!-- 按角色ID删除关联记录 -->
+	<delete id="deleteByRoleIdAndPrvgId">
+		delete from sys_role_prvg
+		where ROLE_ID = #{roleId,jdbcType=VARCHAR} and PRVG_ID = #{prvgId,jdbcType=VARCHAR}
+	</delete>
+	
+</mapper>

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="Numformat">
+	<!-- 
+		*@module 系统管理
+		*@func 小数位设置
+		*@version 1.1
+		*@author 唐赟
+		*  -->
+
+
+	<!-- 使用BMXX装载结果集 -->
+	<resultMap id="NumformatModel" type="com.hoperun.sys.model.NumformatModel">
+		<result column="NUMFORMATID" property="NUMFORMATID" />
+	</resultMap>
+
+    <sql id="queryDynSql">
+        <if test="NUMFORMATMC !=null and NUMFORMATMC !='' ">
+			NUMFORMATMC like '%'||#NUMFORMATMC#||'%'
+		</if>
+		<if test="NUMTYPE !=null and NUMTYPE !='' ">
+			and NUMTYPE like '%'||#NUMTYPE#||'%'
+		</if>
+		<if test="ROUNDTYPE !=null and ROUNDTYPE !='' ">
+			and ROUNDTYPE like '%'||#ROUNDTYPE#||'%'
+		</if>
+		<if test="STATE !=null and STATE !='' ">
+			and STATE like '%'||#STATE#||'%'
+		</if>
+		<if test="DELFLAG !=null and DELFLAG !='' ">
+			and DELFLAG = #DELFLAG#
+		</if>
+    </sql>
+    
+    <sql id="orderSql">
+        <if test="orderField !=null and orderField !='' ">
+		order by
+			$orderField$,
+		</if>
+    </sql>
+    
+    <sql id="coreSql">
+        <![CDATA[  select NUMFORMATID,NUMFORMATMC,NUMTYPE,DECIMALS,ROUNDTYPE,CREATER,CRENAME,to_char(CRETIME,'yyyy-mm-dd') CRETIME,UPDATER,to_char(UPDTIME,'yyyy-mm-dd') UPDTIME,
+  STATE,DELFLAG　from ${SYSSCHEMA}.T_SYS_NUMFORMAT   ]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+		<include refid="orderSql" />
+    </sql>
+    <!-- 分页查询 -->
+	<select id="pageQuery" parameterType="map"
+		resultType="java.util.HashMap">
+		<include refid="public.pageBegin" />
+		<include refid="coreSql" />
+		<include refid="public.pageEnd" />
+	</select>
+
+	<!-- 分页计数 -->
+	<select id="pageCount" parameterType="map" resultType="int">
+		<![CDATA[SELECT count(*) cnt FROM ${SYSSCHEMA}.T_SYS_NUMFORMAT ]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+	</select>
+	
+	<select id="getOneRecord" parameterType="String" resultType="java.util.HashMap">
+	    select NUMFORMATID,NUMFORMATMC,NUMTYPE,DECIMALS,ROUNDTYPE,CREATER,CRENAME,to_char(CRETIME,'yyyy-mm-dd') CRETIME,UPDATER,to_char(UPDTIME,'yyyy-mm-dd') UPDTIME,
+  STATE,DELFLAG from ${SYSSCHEMA}.T_SYS_NUMFORMAT
+	    where NUMFORMATID=#{numid}
+	</select>
+	
+	<insert id="insertOneRecord" parameterType="map">
+	    insert into ${SYSSCHEMA}.T_SYS_NUMFORMAT(NUMFORMATID,NUMFORMATMC,NUMTYPE,DECIMALS,ROUNDTYPE,CREATER,CRENAME,CRETIME,UPDATER,UPDTIME,
+  STATE,DELFLAG)
+	    values(#{NUMFORMATID},#{NUMFORMATMC},#{NUMTYPE},#{DECIMALS},#{ROUNDTYPE},#{CREATER},#{CRENAME},sysdate,#{CREATER},sysdate,
+  #{STATE},0)
+	</insert>
+
+<update id="updateOneRecord" parameterType="map">
+    update ${SYSSCHEMA}.T_SYS_NUMFORMAT
+    <set>
+         <if test="NUMFORMATMC !=null and NUMFORMATMC !='' "><![CDATA[NUMFORMATMC = #{NUMFORMATMC}]]>,</if>
+         <if test="NUMTYPE !=null and NUMTYPE !='' "><![CDATA[NUMTYPE = #{NUMTYPE}]]>,</if>
+		 <if test="DECIMALS !=null and DECIMALS !='' "><![CDATA[DECIMALS = #{DECIMALS}]]>,</if>
+         <if test="ROUNDTYPE !=null and ROUNDTYPE !='' "><![CDATA[ROUNDTYPE = #{ROUNDTYPE}]]>,</if>
+         <if test="STATE !=null and STATE !='' "><![CDATA[STATE = #{STATE}]]>,</if>
+    </set>
+    where NUMFORMATID=#{NUMFORMATID}
+</update>
+	
+	<delete id="deleteOneRecord" parameterType="String">
+	   delete from ${SYSSCHEMA}.T_SYS_NUMFORMAT where NUMFORMATID=#{NUMFORMATID}
+	</delete>
+	
+	<update id="updatestate" parameterType="map">
+	    update ${SYSSCHEMA}.T_SYS_NUMFORMAT
+	    set state=#{STATE}
+	    where NUMFORMATID=#{NUMFORMATID}
+	</update>
+</mapper>
+

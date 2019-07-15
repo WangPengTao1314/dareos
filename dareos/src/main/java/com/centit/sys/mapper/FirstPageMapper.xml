@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- *@module 发货管理 *@func 发货指令 *@version 1.1 *@author * -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper
+	namespace="com.centit.sys.mapper.FirstPageMapper">
+
+	<!-- 动态查询 -->
+	<sql id="queryDynSql">
+		<![CDATA[ el.sale_order_id=e.sale_order_id
+    			and order_date <	ADD_MONTHS(to_date(to_char(sysdate, 'yyyy-mm'), 'yyyy-mm'), 1)
+   				and order_date >	ADD_MONTHS(to_date(to_char(sysdate, 'yyyy-mm'), 'yyyy-mm'), -12)
+   				and el.del_flag = 0
+   				and e.del_flag = 0 
+   				 ]]>
+		<if test="LEDGER_ID != '' and LEDGER_ID != null">
+			and e.LEDGER_ID = #{LEDGER_ID}
+		</if>
+		<if test="CHANN_ID != '' and CHANN_ID != null">
+			and  e.CHANN_ID =#{CHANN_ID} 
+		</if>
+		<if test="STATE != '' and STATE != null">
+			
+		</if>
+	</sql>
+	
+	<!-- 计算，已完成的销售订单,近一年月总金额 -->
+	<select id="querySum" parameterType="map"
+		resultType="java.util.HashMap">
+		<![CDATA[select sended_amount,(total_amount-sended_amount)unsended_amount,total_amount,order_date from
+                 (select      		 
+      				sum(el.sended_num * el.price) sended_amount,
+       				sum(ORDER_AMOUNT) total_amount,
+       				to_char(e.order_date, 'yyyy-mm')  order_date
+  				from ERP_SALE_ORDER_DTL el,ERP_SALE_ORDER e
+		]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+		<![CDATA[ group by to_char(order_date, 'yyyy-mm'))
+ 				order by order_date asc]]>
+	</select>
+	
+	<!--  
+		款式下单排名
+	-->
+	<select id="orderRanking" parameterType="map" resultType="java.util.HashMap">
+		<![CDATA[
+				 select  prd_name,order_num
+				 from (select so.ledger_id,sod.prd_name,sum(sod.order_num) order_num
+				 from ERP_SALE_ORDER so
+				 left join ERP_SALE_ORDER_DTL sod on so.sale_order_id = sod.sale_order_id
+         		 left join base_product bp on bp.prd_id=sod.prd_id     
+				 where so.del_flag=0 and sod.del_flag=0
+         		 and bp.two_id='014501'
+				 and sod.order_num>0 and so.ledger_id=#{LEDGER_ID}
+				 group by so.ledger_id,sod.prd_name 
+				 order by order_num desc) WHERE rownum <= 10
+				 order by order_num asc
+		]]>
+	</select>
+	
+	<!--
+		返修订单未完成，信息记录数
+	 -->
+	<select id="ReworkCounts" parameterType="map"
+		resultType="int">
+		 <![CDATA[ 
+		 	select  count(*) from  ERP_SALE_ORDER where del_flag=0 and BILL_TYPE='返修订单' and state not in ('审核通过')
+		 ]]>
+	</select>
+	<!--  
+		销售订单
+	-->
+	<select id="SaleCounts" parameterType="map"
+		resultType="int">
+		 <![CDATA[ 
+		 	 SELECT count(*) FROM ERP_SALE_ORDER u
+                   LEFT JOIN DRP_SALE_ORDER d  ON u.FROM_BILL_ID = d.SALE_ORDER_ID
+             WHERE u.STATE in ('待处理','待设计','待分派','分派设计师','设计师拆件','待拆件','待生产','生产中' ,'待发货','草稿')
+             AND u.DEL_FLAG = 0
+		 ]]>
+	</select>
+	<!--  
+		充值信息
+	-->
+	<select id="DepositCounts" parameterType="map"
+		resultType="int">
+		 <![CDATA[ 
+		 	 select count(*) from ERP_DEPOSIT_INFO u
+   				left join BASE_ATT a on u.DEPOSIT_ID = a.FROM_BILL_ID
+       				where u.STATE not in ('审核通过') and u.DEL_FLAG =0
+		 ]]>
+	</select>
+	<!--
+		额度信息
+	-->
+	<select id="CreditReqCounts" parameterType="map"
+		resultType="int">
+		 <![CDATA[ 
+		 	 SELECT count(*) FROM ERP_CREDIT_REQ u
+		        LEFT JOIN BASE_ATT a  ON u.CREDIT_REQ_ID = a.FROM_BILL_ID
+		       		WHERE u.DEL_FLAG =0 AND u.STATE not in ('审核通过')
+		 ]]>
+	</select>
+	<!--
+		要货单
+    -->
+    <select id="GoodsorderCounts" parameterType="map"
+		resultType="int">
+		 <![CDATA[ 
+		 	 SELECT count(*) FROM DRP_GOODS_ORDER u  
+      			WHERE u.STATE IN  ('审图中', '待审图', '订单审核', '报价中', '待报价', '待审核')
+            		AND u.DEL_FLAG = 0  AND u.CHANN_ID_P IS NULL
+		 ]]>
+	</select>
+	
+	<!-- 
+	用户对单据操作的权限
+	 -->
+	<select id="OperationAuthority" parameterType="map"
+		resultType="java.util.HashMap">
+		 <![CDATA[ select distinct  bxl.LEDGER_ID,
+                		bxl.LEDGER_NAME_ABBR
+          		   from BASE_XTYH_LEDGER_CHRG bxl, BASE_USER_CHANN_CHRG bcl
+		 ]]>
+		 <where>
+			<include refid="OperaSql" />
+		</where>
+	</select>
+	<sql id="OperaSql">
+		<![CDATA[  bxl.XTYHID = bcl.user_id]]>
+		<if test="XTYHID != '' and XTYHID != null">
+			and bxl.XTYHID =#{XTYHID}		
+		</if>
+		<if test="CHANN_ID != '' and CHANN_ID != null">
+			and bcl.CHANN_ID =#{CHANN_ID}			
+		</if>
+	</sql>
+	<!-- 待办事项 -->
+	<select id="findByUserIdErp" parameterType="map" resultType="java.util.HashMap">
+		<![CDATA[ 
+			select 
+				m.MENU_ID,
+		       m.MENU_NAME,
+		       m.MENU_PAR_ID,
+		       m.MENU_URL,
+		       m.MENU_IMG,
+		       m.MENU_SORT,
+		       m.MENU_QXCODE
+		  from T_SYS_MENUINFO m
+		 where MENU_ID in
+		       (select MENU_ID
+		          from T_SYS_MENUINFO
+		         start with MENU_ID in
+		                    (select distinct MENU_ID
+		                       from T_SYS_MENUINFO
+		                      where MENU_QXCODE in
+		                            (select XTMKID
+		                               from T_SYS_YHQX b
+		                              where b.XTYHID = #{userId}
+		                             union all
+		                             select XTMKID
+		                               from T_SYS_JSQX
+		                              where XTJSID in
+		                                    (select a.XTJSID
+		                                       from T_SYS_XTJS a, T_SYS_XTYHJS b
+		                                      where a.XTJSID = b.XTJSID
+		                                        and a.DELFLAG = 0
+		                                        and b.DELFLAG = 0
+		                                        and a.STATE = '启用'
+		                                        and b.XTYHID = #{userId})
+		                             union all
+		                             select XTMKID
+		                               from T_SYS_GZZQX a
+		                              where GZZXXID in
+		                                    (select a.GZZXXID
+		                                       from T_SYS_GZZXX a, T_SYS_GZZCY b
+		                                      where a.GZZXXID = b.GZZXXID
+		                                        and a.DELFLAG = 0
+		                                        and b.DELFLAG = 0
+		                                        and a.GZZZT = '启用'
+		                                        and b.XTYHID = #{userId})))
+		        connect by PRIOR MENU_PAR_ID = MENU_ID) 
+		and (MENU_ID like 'BS%' or MENU_ID like 'XT%' or
+		MENU_ID in
+		(select MENU_ID from t_sys_menuinfo where menu_par_id = 'DR9A00') or
+		menu_id in ('DR9000', 'DR9A00'))
+		and   m.MENU_PAR_ID in('BS0100','BS0200','BS0300','BS0400','BS0500','BS0600','DR0000')
+        and m.MENU_URL is not null
+        and m.MENU_URL like '%?%' 
+		        ]]>
+	</select>
+	<select id="findByUserIdDrp" parameterType="map" resultType="java.util.HashMap">
+		<![CDATA[ 
+			select 
+				m.MENU_ID, 
+				m.MENU_NAME, 
+				m.MENU_PAR_ID, 
+				m.MENU_URL,
+				m.MENU_IMG, 
+				m.MENU_SORT,
+				m.MENU_QXCODE   
+			from T_SYS_MENUINFO m  
+			where MENU_ID in (
+				select 
+					MENU_ID 
+				from T_SYS_MENUINFO 
+				start with  MENU_ID in (
+					select  distinct MENU_ID  
+					from T_SYS_MENUINFO  
+					where MENU_QXCODE in ( 
+						select 
+							XTMKID  
+						from T_SYS_YHQX b 
+						where b.XTYHID=#{userId}
+			 			union all
+			 			select 
+			 				XTMKID  
+			 			from T_SYS_JSQX 
+			 			where  XTJSID in ( 
+			 				select 
+			 					a.XTJSID
+                			from T_SYS_XTJS a, T_SYS_XTYHJS b
+               				where a.XTJSID = b.XTJSID
+			                 and a.DELFLAG = 0
+			                 and b.DELFLAG = 0
+			                 and a.STATE = '启用'
+			                 and b.XTYHID = #{userId}
+			    		)
+			 	union all
+			 	select 
+			 		XTMKID  
+			 	from T_SYS_GZZQX a 
+			  	where GZZXXID in (
+			   		select 
+			   			a.GZZXXID
+  					from T_SYS_GZZXX a, T_SYS_GZZCY b
+					where a.GZZXXID = b.GZZXXID
+						and a.DELFLAG = 0
+					    and b.DELFLAG = 0
+					    and a.GZZZT = '启用'
+					    and b.XTYHID =#{userId}
+			  	)
+			  )) connect by PRIOR  MENU_PAR_ID  = MENU_ID )
+			    and (MENU_ID like 'DR%' or MENU_ID like'BS3%')
+			    and m.MENU_URL is not null
+              and m.MENU_URL  like '%?module%' 
+			]]>
+	</select>
+	<!-- 查询所有 -->
+	<select id="findAll" resultType="java.util.HashMap">
+		<![CDATA[ select m.MENU_ID, m.MENU_NAME, m.MENU_PAR_ID, m.MENU_URL, m.MENU_IMG, m.MENU_SORT,m.MENU_QXCODE from T_SYS_MENUINFO m order by m.MENU_ID ]]>
+	</select>
+	<!--常用功能-->
+	<select id="findByUserIdErp2" parameterType="map" resultType="java.util.HashMap">
+		<![CDATA[ 
+			select 
+				m.MENU_ID,
+		       m.MENU_NAME,
+		       m.MENU_PAR_ID,
+		       m.MENU_URL,
+		       m.MENU_IMG,
+		       m.MENU_SORT,
+		       m.MENU_QXCODE
+		  from T_SYS_MENUINFO m
+		 where MENU_ID in
+		       (select MENU_ID
+		          from T_SYS_MENUINFO
+		         start with MENU_ID in
+		                    (select distinct MENU_ID
+		                       from T_SYS_MENUINFO
+		                      where MENU_QXCODE in
+		                            (select XTMKID
+		                               from T_SYS_YHQX b
+		                              where b.XTYHID = #{userId}
+		                             union all
+		                             select XTMKID
+		                               from T_SYS_JSQX
+		                              where XTJSID in
+		                                    (select a.XTJSID
+		                                       from T_SYS_XTJS a, T_SYS_XTYHJS b
+		                                      where a.XTJSID = b.XTJSID
+		                                        and a.DELFLAG = 0
+		                                        and b.DELFLAG = 0
+		                                        and a.STATE = '启用'
+		                                        and b.XTYHID = #{userId})
+		                             union all
+		                             select XTMKID
+		                               from T_SYS_GZZQX a
+		                              where GZZXXID in
+		                                    (select a.GZZXXID
+		                                       from T_SYS_GZZXX a, T_SYS_GZZCY b
+		                                      where a.GZZXXID = b.GZZXXID
+		                                        and a.DELFLAG = 0
+		                                        and b.DELFLAG = 0
+		                                        and a.GZZZT = '启用'
+		                                        and b.XTYHID = #{userId})))
+		        connect by PRIOR MENU_PAR_ID = MENU_ID) 
+		and (MENU_ID like 'BS%' or MENU_ID like 'XT%' or
+		MENU_ID in
+		(select MENU_ID from t_sys_menuinfo where menu_par_id = 'DR9A00') or
+		menu_id in ('DR9000', 'DR9A00'))
+		and MENU_URL is not null
+		        ]]>
+	</select>
+	<select id="findByUserIdDrp2" parameterType="map" resultType="java.util.HashMap">
+		<![CDATA[ 
+			select 
+				m.MENU_ID, 
+				m.MENU_NAME, 
+				m.MENU_PAR_ID, 
+				m.MENU_URL,
+				m.MENU_IMG, 
+				m.MENU_SORT,
+				m.MENU_QXCODE   
+			from T_SYS_MENUINFO m  
+			where MENU_ID in (
+				select 
+					MENU_ID 
+				from T_SYS_MENUINFO 
+				start with  MENU_ID in (
+					select  distinct MENU_ID  
+					from T_SYS_MENUINFO  
+					where MENU_QXCODE in ( 
+						select 
+							XTMKID  
+						from T_SYS_YHQX b 
+						where b.XTYHID=#{userId}
+			 			union all
+			 			select 
+			 				XTMKID  
+			 			from T_SYS_JSQX 
+			 			where  XTJSID in ( 
+			 				select 
+			 					a.XTJSID
+                			from T_SYS_XTJS a, T_SYS_XTYHJS b
+               				where a.XTJSID = b.XTJSID
+			                 and a.DELFLAG = 0
+			                 and b.DELFLAG = 0
+			                 and a.STATE = '启用'
+			                 and b.XTYHID = #{userId}
+			    		)
+			 	union all
+			 	select 
+			 		XTMKID  
+			 	from T_SYS_GZZQX a 
+			  	where GZZXXID in (
+			   		select 
+			   			a.GZZXXID
+  					from T_SYS_GZZXX a, T_SYS_GZZCY b
+					where a.GZZXXID = b.GZZXXID
+						and a.DELFLAG = 0
+					    and b.DELFLAG = 0
+					    and a.GZZZT = '启用'
+					    and b.XTYHID =#{userId}
+			  	)
+			  )) connect by PRIOR  MENU_PAR_ID  = MENU_ID )
+			    and (MENU_ID like 'DR%' or MENU_ID like'BS3%')
+			    and MENU_URL is not null
+			]]>
+	</select>
+	
+</mapper>
+

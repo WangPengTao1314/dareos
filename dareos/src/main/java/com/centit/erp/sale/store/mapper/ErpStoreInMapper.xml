@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- 
+*@module 订单中心
+*@func 订单进度管理
+*@version 1.1 
+*@author 
+* -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper
+	namespace="com.centit.erp.sale.store.mapper.ErpStoreInMapper">
+	
+	<!-- 
+		动态查询 and 列表分页 
+	-->
+	<sql id="queryDynSql">
+		<!-- <![CDATA[ and b.from_bill_id =m.tendering_id ]]> -->
+		<if test="store_in_id !='' and store_in_id != null">
+			and m.store_in_id = #{store_in_id}
+		</if>
+		<if test="store_in_no != '' and store_in_no != null">
+			and m.store_in_no like '%'||#{store_in_no}||'%'
+		</if>
+		<if test="sale_order_no != '' and sale_order_no != null">
+			and m.sale_order_no >= #{sale_order_no}
+		</if>
+		<if test="state != '' and state != null">
+			and m.state = #{state}
+		</if>
+	 	 <![CDATA[ and m.del_flag =0 ]]> 
+	</sql>
+	<!-- 
+		查询SQL 
+	-->
+	<sql id="coreSql">
+		<![CDATA[ select m.*  from ERP_STORE_IN m ]]>
+		<where>
+			<include refid="queryDynSql" />
+		</where>
+		<![CDATA[ order by m.CRE_TIME desc]]>
+	</sql>
+	<!-- 分页查询 -->
+	<select id="pageQuery" parameterType="map"
+		resultType="java.util.HashMap">
+		<include refid="coreSql" />
+	</select>
+	<!-- 
+		查询进度主表
+	 -->
+	<select id="toQuery" parameterType="map" resultType="java.util.HashMap">
+	 <![CDATA[select * from ERP_STORE_IN  where STORE_IN_ID=#{store_in_id}]]>
+	</select>
+	
+	<select id="toQuerySun" parameterType="map" resultType="java.util.HashMap">
+	 <![CDATA[select * from ERP_STORE_IN_DTL  where STORE_IN_ID=#{store_in_id}]]>
+	</select>
+	
+	<!-- 
+		主表编辑 
+	-->
+	<update id="edit" parameterType="map">
+		<![CDATA[ update ERP_STORE_IN]]>
+		 <set>
+		 	<if test="state !=null">state=#{state},</if>
+		 	<if test="upd_time !=null">UPD_TIME=to_date(#{upd_time},'yyyy-mm-dd'),</if>
+		 </set>
+		 <![CDATA[where  STORE_IN_ID = #{store_in_id}]]>
+	</update>
+	<!--  
+		编辑子表
+	-->
+	<update id="editSun" parameterType="map">
+		<![CDATA[ update ERP_STORE_IN_DTL]]>
+		<set>
+			<if test="in_num !=null">IN_NUM=#{in_num},</if>
+		</set>
+		 <![CDATA[ where STORE_IN_DTL_ID = #{store_in_dtl_id}]]>
+	</update>
+	
+   	<insert id="insertErpStoreIn" parameterType="com.centit.erp.sale.store.model.ErpStoreIn">
+		<![CDATA[
+		 insert into ERP_STORE_IN(
+		 	store_in_id,
+		 	store_in_no,
+		 	sale_order_no,
+		 	in_date,
+		 	state,
+		 	remark,
+		 	creator,
+		 	cre_name,
+		 	cre_time,
+		 	ledger_id,
+		 	upd_time,
+		 	del_flag
+		 )
+		 values(
+			#{store_in_id,jdbcType=VARCHAR},
+			#{store_in_no,jdbcType=VARCHAR},
+			#{sale_order_no,jdbcType=VARCHAR},
+		 	to_date(#{in_date,jdbcType=VARCHAR},'yyyy-MM-DD'),
+		 	#{state,jdbcType=VARCHAR},
+		 	#{remark,jdbcType=VARCHAR},
+		 	#{creator,jdbcType=VARCHAR},
+		 	#{cre_name,jdbcType=VARCHAR},
+		 	#{cre_time,jdbcType=TIMESTAMP},
+		 	#{ledger_id,jdbcType=VARCHAR},
+		 	#{upd_time,jdbcType=TIMESTAMP},
+		 	'0'
+		 )
+		]]>
+	</insert>
+	
+	<insert id="insertErpStoreInDtlList" parameterType="map">
+		<foreach collection="list" item="item" index="index" separator=""  open="begin" close="end;" >
+			<![CDATA[
+			 insert into ERP_STORE_IN_DTL(
+			 	store_in_dtl_id,
+				store_in_id,
+				store_in_no,
+				prd_id,
+				prd_no,
+				prd_name,
+				prd_spec,
+				hole_spec,
+				prd_toward,
+				prd_quality,
+				prd_glass,
+				prd_other,
+				prd_series,
+				group_no,
+				std_unit,
+				prd_color,
+				brand,
+				pkg_num,
+				in_num,
+				del_flag
+			 )
+			 values(
+				#{item.store_in_dtl_id,jdbcType=VARCHAR},
+				#{item.store_in_id,jdbcType=VARCHAR},
+				#{item.store_in_no,jdbcType=VARCHAR},
+				#{item.prd_id,jdbcType=VARCHAR},
+			 	#{item.prd_no,jdbcType=VARCHAR},
+			 	#{item.prd_name,jdbcType=VARCHAR},
+			 	#{item.prd_spec,jdbcType=VARCHAR},
+			 	#{item.hole_spec,jdbcType=VARCHAR},
+			 	#{item.prd_toward,jdbcType=VARCHAR},
+			 	#{item.prd_quality,jdbcType=VARCHAR},
+			 	#{item.prd_glass,jdbcType=VARCHAR},
+			 	#{item.prd_other,jdbcType=VARCHAR},			 
+			 	#{item.prd_series,jdbcType=VARCHAR},
+			 	#{item.group_no,jdbcType=VARCHAR},
+			 	#{item.std_unit,jdbcType=VARCHAR},
+			 	#{item.prd_color,jdbcType=VARCHAR},
+			 	#{item.brand,jdbcType=VARCHAR},
+			 	#{item.pkg_num,jdbcType=VARCHAR},
+			 	#{item.in_num,jdbcType=VARCHAR},
+			 	'0'
+			 );
+			]]>
+		</foreach>
+	</insert>
+	
+
+</mapper>
+
